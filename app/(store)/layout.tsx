@@ -2,6 +2,7 @@ import { ReactNode, Suspense } from 'react';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { CartReconciler } from '@/components/layout/CartReconciler';
+import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
 
 export default function StoreLayout({ children }: { children: ReactNode }) {
   return (
@@ -9,7 +10,9 @@ export default function StoreLayout({ children }: { children: ReactNode }) {
       <Suspense fallback={<div className="h-16 w-full bg-surface" />}>
         <Navbar />
       </Suspense>
-      <main className="flex-grow">{children}</main>
+      <main className="flex-grow">
+        <ErrorBoundary>{children}</ErrorBoundary>
+      </main>
       <Footer />
       <CartReconciler />
     </div>

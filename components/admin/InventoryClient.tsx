@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { memo, useState, useMemo, useEffect, useDeferredValue } from 'react';
 import Image from 'next/image';
@@ -73,18 +73,18 @@ export const InventoryClient = memo(function InventoryClient() {
     const trimmed = newCategoryName.trim();
     if (!trimmed) return;
     if (categories.includes(trimmed)) {
-      showToast(`Ø§Ù„ÙØ¦Ø© "${trimmed}" Ù…ÙˆØ¬ÙˆØ¯Ø© Ø¨Ø§Ù„ÙØ¹Ù„.`);
+      showToast(`الفئة "${trimmed}" موجودة بالفعل.`);
       return;
     }
     setConfirmModal({
       isOpen: true,
-      title: 'Ø¥Ø¶Ø§ÙØ© ÙØ¦Ø©',
-      message: `Ù‡Ù„ Ø£Ù†Øª Ù…ØªØ£ÙƒØ¯ Ù…Ù† Ø±ØºØ¨ØªÙƒ ÙÙŠ Ø¥Ø¶Ø§ÙØ© Ø§Ù„ÙØ¦Ø© Ø§Ù„Ø¬Ø¯ÙŠØ¯Ø© "${trimmed}"ØŸ`,
-      confirmLabel: 'Ø¥Ø¶Ø§ÙØ© ÙØ¦Ø©',
-      cancelLabel: 'Ø¥Ù„ØºØ§Ø¡',
+      title: 'إضافة فئة',
+      message: `هل أنت متأكد من رغبتك في إضافة الفئة الجديدة "${trimmed}"؟`,
+      confirmLabel: 'إضافة فئة',
+      cancelLabel: 'إلغاء',
       onConfirm: () => {
         addCategory(trimmed);
-        showToast(`ØªÙ… Ø¥Ø¶Ø§ÙØ© Ø§Ù„ÙØ¦Ø© "${trimmed}" Ø¨Ù†Ø¬Ø§Ø­!`);
+        showToast(`تم إضافة الفئة "${trimmed}" بنجاح!`);
         setNewCategoryName('');
         setConfirmModal((prev) => ({ ...prev, isOpen: false }));
       },
@@ -93,20 +93,20 @@ export const InventoryClient = memo(function InventoryClient() {
 
   const handleDeleteCategory = (catToDelete: string) => {
     if (categories.length <= 1) {
-      showToast("Ù„Ø§ ÙŠÙ…ÙƒÙ† Ø­Ø°Ù Ø¢Ø®Ø± ÙØ¦Ø©. ÙŠØ¬Ø¨ Ø£Ù† ØªÙˆØ¬Ø¯ ÙØ¦Ø© ÙˆØ§Ø­Ø¯Ø© Ø¹Ù„Ù‰ Ø§Ù„Ø£Ù‚Ù„.");
+      showToast("لا يمكن حذف آخر فئة. يجب أن توجد فئة واحدة على الأقل.");
       return;
     }
     const fallback = categories.filter((c) => c !== catToDelete)[0];
     setConfirmModal({
       isOpen: true,
-      title: 'Ø­Ø°Ù ÙØ¦Ø©',
-      message: `Ù‡Ù„ Ø£Ù†Øª Ù…ØªØ£ÙƒØ¯ Ù…Ù† Ø±ØºØ¨ØªÙƒ ÙÙŠ Ø­Ø°Ù Ø§Ù„ÙØ¦Ø© "${catToDelete}"ØŸ Ø³ÙŠØªÙ… Ù†Ù‚Ù„ Ø§Ù„Ù…Ù†ØªØ¬Ø§Øª ÙÙŠ Ù‡Ø°Ù‡ Ø§Ù„ÙØ¦Ø© ØªÙ„Ù‚Ø§Ø¦ÙŠØ§Ù‹ Ø¥Ù„Ù‰ "${fallback}".`,
-      confirmLabel: 'Ø­Ø°Ù ÙØ¦Ø©',
-      cancelLabel: 'Ø¥Ù„ØºØ§Ø¡',
+      title: 'حذف فئة',
+      message: `هل أنت متأكد من رغبتك في حذف الفئة "${catToDelete}"؟ سيتم نقل المنتجات في هذه الفئة تلقائياً إلى "${fallback}".`,
+      confirmLabel: 'حذف فئة',
+      cancelLabel: 'إلغاء',
       isDestructive: true,
       onConfirm: () => {
         deleteCategory(catToDelete);
-        showToast(`ØªÙ… Ø­Ø°Ù Ø§Ù„ÙØ¦Ø© "${catToDelete}" Ø¨Ù†Ø¬Ø§Ø­!`);
+        showToast(`تم حذف الفئة "${catToDelete}" بنجاح!`);
         if (categoryFilter === catToDelete) {
           setCategoryFilter('all');
         }
@@ -157,13 +157,13 @@ export const InventoryClient = memo(function InventoryClient() {
 
   const handleExportCSV = () => {
     const headers = [
-      'Ù…Ø¹Ø±Ù Ø§Ù„Ù…Ù†ØªØ¬',
-      'Ø§Ø³Ù… Ø§Ù„Ù…Ù†ØªØ¬',
-      'Ø§Ù„ÙØ¦Ø©',
-      'Ø§Ù„Ø³Ø¹Ø± (Ø¬.Ù…)',
-      'ÙƒÙ…ÙŠØ© Ø§Ù„Ù…Ø®Ø²ÙˆÙ†',
-      'Ø§Ù„Ø­Ø§Ù„Ø©',
-      'Ø§Ù„ÙˆØµÙ'
+      'معرف المنتج',
+      'اسم المنتج',
+      'الفئة',
+      'السعر (ج.م)',
+      'كمية المخزون',
+      'الحالة',
+      'الوصف'
     ];
 
     const rows = products.map((product) => [
@@ -172,7 +172,7 @@ export const InventoryClient = memo(function InventoryClient() {
       product.category,
       product.price,
       product.stock,
-      product.is_active ? 'Ù†Ø´Ø·' : 'ØºÙŠØ± Ù†Ø´Ø·',
+      product.is_active ? 'نشط' : 'غير نشط',
       product.description
     ]);
 
@@ -187,10 +187,10 @@ export const InventoryClient = memo(function InventoryClient() {
   const handleClearAllProducts = () => {
     setConfirmModal({
       isOpen: true,
-      title: 'Ù…Ø³Ø­ Ø§Ù„Ù…Ø®Ø²ÙˆÙ† Ø¨Ø§Ù„ÙƒØ§Ù…Ù„',
-      message: 'Ù‡Ù„ Ø£Ù†Øª Ù…ØªØ£ÙƒØ¯ Ù…Ù† Ø±ØºØ¨ØªÙƒ ÙÙŠ Ø­Ø°Ù Ø¬Ù…ÙŠØ¹ Ø§Ù„Ù…Ù†ØªØ¬Ø§Øª ÙÙŠ Ø§Ù„Ù…Ø®Ø²ÙˆÙ† Ù†Ù‡Ø§Ø¦ÙŠØ§Ù‹ØŸ Ù‡Ø°Ø§ Ø§Ù„Ø¥Ø¬Ø±Ø§Ø¡ Ù„Ø§ ÙŠÙ…ÙƒÙ† Ø§Ù„ØªØ±Ø§Ø¬Ø¹ Ø¹Ù†Ù‡.',
-      confirmLabel: 'Ù†Ø¹Ù…ØŒ Ø§Ù…Ø³Ø­ ÙƒÙ„ Ø§Ù„Ù…Ù†ØªØ¬Ø§Øª',
-      cancelLabel: 'Ø¥Ù„ØºØ§Ø¡',
+      title: 'مسح المخزون بالكامل',
+      message: 'هل أنت متأكد من رغبتك في حذف جميع المنتجات في المخزون نهائياً؟ هذا الإجراء لا يمكن التراجع عنه.',
+      confirmLabel: 'نعم، امسح كل المنتجات',
+      cancelLabel: 'إلغاء',
       isDestructive: true,
       onConfirm: () => {
         setConfirmModal((prev) => ({ ...prev, isOpen: false }));
@@ -274,7 +274,7 @@ export const InventoryClient = memo(function InventoryClient() {
         image_url: dataUrl,
       }));
     } catch (err: unknown) {
-      const errorMsg = err instanceof Error ? err.message : 'ÙØ´Ù„ Ù…Ø¹Ø§Ù„Ø¬Ø© Ø§Ù„ØµÙˆØ±Ø©. ÙŠØ±Ø¬Ù‰ Ù…Ø­Ø§ÙˆÙ„Ø© Ø±ÙØ¹ Ù…Ù„Ù Ø¢Ø®Ø±.';
+      const errorMsg = err instanceof Error ? err.message : 'فشل معالجة الصورة. يرجى محاولة رفع ملف آخر.';
       setFormErrors((prev) => ({
         ...prev,
         image_url: errorMsg,
@@ -307,10 +307,10 @@ export const InventoryClient = memo(function InventoryClient() {
     if (editingProduct) {
       setConfirmModal({
         isOpen: true,
-        title: 'Ø­ÙØ¸ ØªØºÙŠÙŠØ±Ø§Øª Ø§Ù„Ù…Ù†ØªØ¬',
-        message: `Ù‡Ù„ Ø£Ù†Øª Ù…ØªØ£ÙƒØ¯ Ù…Ù† Ø±ØºØ¨ØªÙƒ ÙÙŠ Ø­ÙØ¸ Ø§Ù„ØªØºÙŠÙŠØ±Ø§Øª Ø¹Ù„Ù‰ Ø§Ù„Ù…Ù†ØªØ¬ "${editingProduct.name}"ØŸ`,
-        confirmLabel: 'Ø­ÙØ¸ Ø§Ù„ØªØºÙŠÙŠØ±Ø§Øª',
-        cancelLabel: 'Ø¥Ù„ØºØ§Ø¡',
+        title: 'حفظ تغييرات المنتج',
+        message: `هل أنت متأكد من رغبتك في حفظ التغييرات على المنتج "${editingProduct.name}"؟`,
+        confirmLabel: 'حفظ التغييرات',
+        cancelLabel: 'إلغاء',
         onConfirm: async () => {
           setConfirmModal((prev) => ({ ...prev, isOpen: false }));
           setIsSaving(true);
@@ -328,13 +328,13 @@ export const InventoryClient = memo(function InventoryClient() {
               image_url: finalImageUrl,
               category: result.data.category ? result.data.category.trim() : null,
             });
-            showToast(`ØªÙ… ØªØ­Ø¯ÙŠØ« Ø§Ù„Ù…Ù†ØªØ¬ "${result.data.name}" Ø¨Ù†Ø¬Ø§Ø­!`);
+            showToast(`تم تحديث المنتج "${result.data.name}" بنجاح!`);
             setEditingProduct(null);
           } catch (err: unknown) {
             if (uploadedImageUrl) {
               await deleteProductImage(uploadedImageUrl);
             }
-            const msg = err instanceof Error ? err.message : 'Ø­Ø¯Ø« Ø®Ø·Ø£ Ø£Ø«Ù†Ø§Ø¡ Ø­ÙØ¸ Ø§Ù„Ù…Ù†ØªØ¬';
+            const msg = err instanceof Error ? err.message : 'حدث خطأ أثناء حفظ المنتج';
             showToast(msg);
           } finally {
             setIsSaving(false);
@@ -345,10 +345,10 @@ export const InventoryClient = memo(function InventoryClient() {
     } else {
       setConfirmModal({
         isOpen: true,
-        title: 'Ø¥Ø¶Ø§ÙØ© Ù…Ù†ØªØ¬',
-        message: `Ù‡Ù„ Ø£Ù†Øª Ù…ØªØ£ÙƒØ¯ Ù…Ù† Ø±ØºØ¨ØªÙƒ ÙÙŠ Ø¥Ø¶Ø§ÙØ© Ø§Ù„Ù…Ù†ØªØ¬ Ø§Ù„Ø¬Ø¯ÙŠØ¯ "${result.data.name}"ØŸ`,
-        confirmLabel: 'Ø¥Ø¶Ø§ÙØ© Ù…Ù†ØªØ¬',
-        cancelLabel: 'Ø¥Ù„ØºØ§Ø¡',
+        title: 'إضافة منتج',
+        message: `هل أنت متأكد من رغبتك في إضافة المنتج الجديد "${result.data.name}"؟`,
+        confirmLabel: 'إضافة منتج',
+        cancelLabel: 'إلغاء',
         onConfirm: async () => {
           setConfirmModal((prev) => ({ ...prev, isOpen: false }));
           setIsSaving(true);
@@ -365,13 +365,13 @@ export const InventoryClient = memo(function InventoryClient() {
               image_url: finalImageUrl,
               category: result.data.category ? result.data.category.trim() : null,
             });
-            showToast(`ØªÙ… Ø¥Ø¶Ø§ÙØ© Ø§Ù„Ù…Ù†ØªØ¬ "${result.data.name}" Ø¨Ù†Ø¬Ø§Ø­!`);
+            showToast(`تم إضافة المنتج "${result.data.name}" بنجاح!`);
             setIsAddModalOpen(false);
           } catch (err: unknown) {
             if (uploadedImageUrl) {
               await deleteProductImage(uploadedImageUrl);
             }
-            const msg = err instanceof Error ? err.message : 'Ø­Ø¯Ø« Ø®Ø·Ø£ Ø£Ø«Ù†Ø§Ø¡ Ø­ÙØ¸ Ø§Ù„Ù…Ù†ØªØ¬';
+            const msg = err instanceof Error ? err.message : 'حدث خطأ أثناء حفظ المنتج';
             showToast(msg);
           } finally {
             setIsSaving(false);
@@ -389,20 +389,20 @@ export const InventoryClient = memo(function InventoryClient() {
     setDeletingProduct(null);
     try {
       await deleteProduct(productId);
-      showToast(`ØªÙ… Ø­Ø°Ù Ø§Ù„Ù…Ù†ØªØ¬ "${productName}" Ø¨Ù†Ø¬Ø§Ø­!`);
+      showToast(`تم حذف المنتج "${productName}" بنجاح!`);
     } catch {
-      showToast('ÙØ´Ù„ Ø­Ø°Ù Ø§Ù„Ù…Ù†ØªØ¬. Ø§Ù„Ø±Ø¬Ø§Ø¡ Ø§Ù„Ù…Ø­Ø§ÙˆÙ„Ø© Ù…Ø±Ø© Ø£Ø®Ø±Ù‰.');
+      showToast('فشل حذف المنتج. الرجاء المحاولة مرة أخرى.');
     }
   };
 
   const handleToggleActive = (product: Product) => {
-    const actionName = product.is_active ? 'ØªØ¹Ø·ÙŠÙ„' : 'ØªÙ†Ø´ÙŠØ·';
+    const actionName = product.is_active ? 'تعطيل' : 'تنشيط';
     setConfirmModal({
       isOpen: true,
-      title: `${product.is_active ? 'ØªØ¹Ø·ÙŠÙ„' : 'ØªÙ†Ø´ÙŠØ·'} Ø§Ù„Ù…Ù†ØªØ¬`,
-      message: `Ù‡Ù„ Ø£Ù†Øª Ù…ØªØ£ÙƒØ¯ Ù…Ù† Ø±ØºØ¨ØªÙƒ ÙÙŠ ${actionName} Ø§Ù„Ù…Ù†ØªØ¬ "${product.name}"ØŸ`,
-      confirmLabel: product.is_active ? 'ØªØ¹Ø·ÙŠÙ„' : 'ØªÙ†Ø´ÙŠØ·',
-      cancelLabel: 'Ø¥Ù„ØºØ§Ø¡',
+      title: `${product.is_active ? 'تعطيل' : 'تنشيط'} المنتج`,
+      message: `هل أنت متأكد من رغبتك في ${actionName} المنتج "${product.name}"؟`,
+      confirmLabel: product.is_active ? 'تعطيل' : 'تنشيط',
+      cancelLabel: 'إلغاء',
       isDestructive: product.is_active,
       onConfirm: async () => {
         setConfirmModal((prev) => ({ ...prev, isOpen: false }));
@@ -411,9 +411,9 @@ export const InventoryClient = memo(function InventoryClient() {
             ...product,
             is_active: !product.is_active,
           });
-          showToast(`Ø§Ù„Ù…Ù†ØªØ¬ "${product.name}" Ø£ØµØ¨Ø­ Ø§Ù„Ø¢Ù† ${!product.is_active ? 'Ù†Ø´Ø·Ø§Ù‹' : 'ØºÙŠØ± Ù†Ø´Ø·'}!`);
+          showToast(`المنتج "${product.name}" أصبح الآن ${!product.is_active ? 'نشطاً' : 'غير نشط'}!`);
         } catch {
-          showToast(`ÙØ´Ù„ ${product.is_active ? 'ØªØ¹Ø·ÙŠÙ„' : 'ØªÙ†Ø´ÙŠØ·'} Ø§Ù„Ù…Ù†ØªØ¬. Ø§Ù„Ø±Ø¬Ø§Ø¡ Ø§Ù„Ù…Ø­Ø§ÙˆÙ„Ø© Ù…Ø±Ø© Ø£Ø®Ø±Ù‰.`);
+          showToast(`فشل ${product.is_active ? 'تعطيل' : 'تنشيط'} المنتج. الرجاء المحاولة مرة أخرى.`);
         }
       },
     });
@@ -434,8 +434,8 @@ export const InventoryClient = memo(function InventoryClient() {
           <div className="bg-white p-6 rounded-xl shadow-xl border border-outline-variant/30 flex flex-col items-center gap-4 text-center">
             <span className="material-symbols-outlined text-primary text-[48px] animate-spin select-none">sync</span>
             <div>
-              <p className="font-bold text-on-surface">Ø¬Ø§Ø±ÙŠ Ø­ÙØ¸ Ø¨ÙŠØ§Ù†Ø§Øª Ø§Ù„Ù…Ù†ØªØ¬...</p>
-              <p className="text-xs text-on-surface-variant mt-1">ÙŠØ±Ø¬Ù‰ Ø§Ù„Ø§Ù†ØªØ¸Ø§Ø± ÙˆØ¹Ø¯Ù… Ø¥ØºÙ„Ø§Ù‚ Ø§Ù„ØµÙØ­Ø©.</p>
+              <p className="font-bold text-on-surface">جاري حفظ بيانات المنتج...</p>
+              <p className="text-xs text-on-surface-variant mt-1">يرجى الانتظار وعدم إغلاق الصفحة.</p>
             </div>
           </div>
         </div>
@@ -444,35 +444,35 @@ export const InventoryClient = memo(function InventoryClient() {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="font-headline-lg text-headline-lg font-bold text-on-surface">
-            Ø¥Ø¯Ø§Ø±Ø© Ø§Ù„Ù…Ø®Ø²ÙˆÙ†
+            إدارة المخزون
           </h1>
           <p className="text-on-surface-variant text-sm mt-1">
-            Ù‚Ù… Ø¨Ø¥Ù†Ø´Ø§Ø¡ ÙˆØªØ¹Ø¯ÙŠÙ„ ÙˆØªØºÙŠÙŠØ± Ø¸Ù‡ÙˆØ± ÙˆØªØ­Ø¯ÙŠØ« Ù…Ø®Ø²ÙˆÙ† Ø§Ù„Ù…Ù†ØªØ¬Ø§Øª ÙÙŠ ÙƒØªØ§Ù„ÙˆØ¬ Ø§Ù„Ù…ØªØ¬Ø± Ø§Ù„Ø¥Ù„ÙƒØªØ±ÙˆÙ†ÙŠ.
+            قم بإنشاء وتعديل وتغيير ظهور وتحديث مخزون المنتجات في كتالوج المتجر الإلكتروني.
           </p>
         </div>
         <div className="flex items-center gap-3 w-full sm:w-auto flex-wrap">
           <button
             onClick={handleExportCSV}
             className="flex items-center gap-1.5 px-5 py-3 bg-primary/10 text-primary border border-primary/20 rounded-lg hover:bg-primary/20 transition-all font-semibold text-xs cursor-pointer select-none h-fit w-fit uppercase tracking-wider font-bold"
-            title="ØªØµØ¯ÙŠØ± Ø¬Ù…ÙŠØ¹ Ø¹Ù†Ø§ØµØ± Ø§Ù„Ù…Ø®Ø²ÙˆÙ† Ø¥Ù„Ù‰ CSV"
+            title="تصدير جميع عناصر المخزون إلى CSV"
           >
             <span className="material-symbols-outlined text-[18px]">download</span>
-            ØªØµØ¯ÙŠØ± CSV
+            تصدير CSV
           </button>
           <button
             onClick={handleClearAllProducts}
             className="flex items-center gap-1.5 px-5 py-3 bg-red-50 text-red-600 border border-red-200 rounded-lg hover:bg-red-100 transition-all font-semibold text-xs cursor-pointer select-none h-fit w-fit uppercase tracking-wider font-bold"
-            title="Ø­Ø°Ù Ø¬Ù…ÙŠØ¹ Ø§Ù„Ù…Ù†ØªØ¬Ø§Øª ÙÙŠ Ø§Ù„ÙƒØªØ§Ù„ÙˆØ¬"
+            title="حذف جميع المنتجات في الكتالوج"
           >
             <span className="material-symbols-outlined text-[18px]">delete_sweep</span>
-            Ù…Ø³Ø­ Ø§Ù„Ù…Ø®Ø²ÙˆÙ†
+            مسح المخزون
           </button>
           <button
             onClick={handleOpenAddModal}
             className="bg-primary text-on-primary px-5 py-3 rounded-lg font-label-md text-label-md hover:opacity-90 active:scale-[0.98] transition-all flex items-center gap-2 cursor-pointer font-bold uppercase tracking-wider shadow-lg shadow-primary/20"
           >
             <span className="material-symbols-outlined text-[20px]">add</span>
-            Ø¥Ø¶Ø§ÙØ© Ù…Ù†ØªØ¬ Ø¬Ø¯ÙŠØ¯
+            إضافة منتج جديد
           </button>
         </div>
       </div>
@@ -480,7 +480,7 @@ export const InventoryClient = memo(function InventoryClient() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         <div className="bg-surface-container-lowest border border-outline-variant/30 rounded-xl p-6 shadow-sm flex items-center justify-between">
           <div>
-            <p className="text-on-surface-variant text-xs uppercase tracking-wider font-semibold">Ø¥Ø¬Ù…Ø§Ù„ÙŠ Ø§Ù„Ù…Ù†ØªØ¬Ø§Øª</p>
+            <p className="text-on-surface-variant text-xs uppercase tracking-wider font-semibold">إجمالي المنتجات</p>
             <h3 className="font-display-lg text-display-lg font-extrabold text-on-surface mt-1">{metrics.total}</h3>
           </div>
           <div className="w-12 h-12 rounded-lg bg-surface-container-low flex items-center justify-center text-on-surface-variant">
@@ -490,7 +490,7 @@ export const InventoryClient = memo(function InventoryClient() {
 
         <div className="bg-surface-container-lowest border border-outline-variant/30 rounded-xl p-6 shadow-sm flex items-center justify-between">
           <div>
-            <p className="text-on-surface-variant text-xs uppercase tracking-wider font-semibold">Ø§Ù„ÙƒØªØ§Ù„ÙˆØ¬ Ø§Ù„Ù†Ø´Ø·</p>
+            <p className="text-on-surface-variant text-xs uppercase tracking-wider font-semibold">الكتالوج النشط</p>
             <h3 className="font-display-lg text-display-lg font-extrabold text-green-600 mt-1">{metrics.active}</h3>
           </div>
           <div className="w-12 h-12 rounded-lg bg-green-50 flex items-center justify-center text-green-600">
@@ -500,7 +500,7 @@ export const InventoryClient = memo(function InventoryClient() {
 
         <div className="bg-surface-container-lowest border border-outline-variant/30 rounded-xl p-6 shadow-sm flex items-center justify-between">
           <div>
-            <p className="text-on-surface-variant text-xs uppercase tracking-wider font-semibold">Ù†ÙØ¯ Ù…Ù† Ø§Ù„Ù…Ø®Ø²ÙˆÙ†</p>
+            <p className="text-on-surface-variant text-xs uppercase tracking-wider font-semibold">نفد من المخزون</p>
             <h3 className={`font-display-lg text-display-lg font-extrabold mt-1 ${metrics.outOfStock > 0 ? 'text-primary' : 'text-on-surface'}`}>{metrics.outOfStock}</h3>
           </div>
           <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${metrics.outOfStock > 0 ? 'bg-red-50 text-primary' : 'bg-surface-container-low text-on-surface-variant'}`}>
@@ -510,7 +510,7 @@ export const InventoryClient = memo(function InventoryClient() {
 
         <div className="bg-surface-container-lowest border border-outline-variant/30 rounded-xl p-6 shadow-sm flex items-center justify-between">
           <div>
-            <p className="text-on-surface-variant text-xs uppercase tracking-wider font-semibold">Ø¥Ø¬Ù…Ø§Ù„ÙŠ ÙˆØ­Ø¯Ø§Øª Ø§Ù„Ù…Ø®Ø²ÙˆÙ†</p>
+            <p className="text-on-surface-variant text-xs uppercase tracking-wider font-semibold">إجمالي وحدات المخزون</p>
             <h3 className="font-display-lg text-display-lg font-extrabold text-secondary mt-1">{metrics.totalStock}</h3>
           </div>
           <div className="w-12 h-12 rounded-lg bg-yellow-50 flex items-center justify-center text-secondary">
@@ -524,7 +524,7 @@ export const InventoryClient = memo(function InventoryClient() {
         <div className="lg:col-span-8 bg-surface-container-lowest border border-outline-variant/30 rounded-xl p-6 shadow-sm flex flex-col justify-start space-y-5">
           <div className="flex items-center gap-3 border-b border-outline-variant/10 pb-3">
             <span className="material-symbols-outlined text-primary text-[24px]">search</span>
-            <h4 className="font-bold text-sm text-on-surface">Ø§Ù„Ø¨Ø­Ø« ÙˆØ§Ù„ØªØµÙÙŠØ© ÙÙŠ Ø§Ù„ÙƒØªØ§Ù„ÙˆØ¬</h4>
+            <h4 className="font-bold text-sm text-on-surface">البحث والتصفية في الكتالوج</h4>
           </div>
           
           <div className="space-y-4">
@@ -532,7 +532,7 @@ export const InventoryClient = memo(function InventoryClient() {
             <div className="relative w-full">
               <input
                 className="w-full bg-surface-container-low border border-outline-variant rounded-lg pr-10 pl-4 py-2.5 text-label-md focus:ring-2 focus:ring-primary/10 focus:border-primary outline-none transition-all text-on-surface text-right"
-                placeholder="Ø§Ø¨Ø­Ø« Ø¹Ù† Ø§Ù„Ù…Ù†ØªØ¬Ø§Øª Ø¨Ø§Ù„Ø§Ø³Ù… Ø£Ùˆ Ø§Ù„Ù…Ø¹Ø±Ù Ø£Ùˆ Ø§Ù„ÙˆØµÙ..."
+                placeholder="ابحث عن المنتجات بالاسم أو المعرف أو الوصف..."
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -544,9 +544,9 @@ export const InventoryClient = memo(function InventoryClient() {
 
             <div className="flex flex-wrap items-center gap-3">
               <CustomDropdown
-                labelPrefix="Ø§Ù„ÙØ¦Ø©:"
+                labelPrefix="الفئة:"
                 options={[
-                  { value: 'all', label: 'Ø¬Ù…ÙŠØ¹ Ø§Ù„ÙØ¦Ø§Øª' },
+                  { value: 'all', label: 'جميع الفئات' },
                   ...categories.filter(cat => {
                     const lower = cat.trim().toLowerCase();
                     return lower !== 'all' && lower !== 'all categories';
@@ -557,23 +557,23 @@ export const InventoryClient = memo(function InventoryClient() {
               />
 
               <CustomDropdown
-                labelPrefix="Ø§Ù„Ø­Ø§Ù„Ø©:"
+                labelPrefix="الحالة:"
                 options={[
-                  { value: 'all', label: 'Ø§Ù„ÙƒÙ„' },
-                  { value: 'active', label: 'Ù†Ø´Ø·' },
-                  { value: 'inactive', label: 'ØºÙŠØ± Ù†Ø´Ø·' }
+                  { value: 'all', label: 'الكل' },
+                  { value: 'active', label: 'نشط' },
+                  { value: 'inactive', label: 'غير نشط' }
                 ]}
                 value={statusFilter}
                 onChange={(val) => setStatusFilter(val as 'all' | 'active' | 'inactive')}
               />
 
               <CustomDropdown
-                labelPrefix="Ø§Ù„Ù…Ø®Ø²ÙˆÙ†:"
+                labelPrefix="المخزون:"
                 options={[
-                  { value: 'all', label: 'Ø¬Ù…ÙŠØ¹ Ø§Ù„Ù…Ø³ØªÙˆÙŠØ§Øª' },
-                  { value: 'instock', label: 'Ù…ØªÙˆÙØ± (> 5)' },
-                  { value: 'low', label: 'Ù…Ø®Ø²ÙˆÙ† Ù…Ù†Ø®ÙØ¶ (1-5)' },
-                  { value: 'out', label: 'Ù†ÙØ¯ Ù…Ù† Ø§Ù„Ù…Ø®Ø²ÙˆÙ† (0)' }
+                  { value: 'all', label: 'جميع المستويات' },
+                  { value: 'instock', label: 'متوفر (> 5)' },
+                  { value: 'low', label: 'مخزون منخفض (1-5)' },
+                  { value: 'out', label: 'نفد من المخزون (0)' }
                 ]}
                 value={stockFilter}
                 onChange={(val) => setStockFilter(val as 'all' | 'out' | 'low' | 'instock')}
@@ -585,13 +585,13 @@ export const InventoryClient = memo(function InventoryClient() {
         <div className="lg:col-span-4 bg-surface-container-lowest border border-outline-variant/30 rounded-xl p-6 shadow-sm flex flex-col justify-between space-y-6">
           <div className="flex items-center gap-3 border-b border-outline-variant/10 pb-3">
             <span className="material-symbols-outlined text-primary text-[24px]">category</span>
-            <h4 className="font-bold text-sm text-on-surface">Ø¥Ø¯Ø§Ø±Ø© Ø§Ù„ÙØ¦Ø§Øª</h4>
+            <h4 className="font-bold text-sm text-on-surface">إدارة الفئات</h4>
           </div>
           
           <form onSubmit={handleAddCategorySubmit} className="flex gap-2">
             <input
               type="text"
-              placeholder="ÙØ¦Ø© Ø¬Ø¯ÙŠØ¯Ø©..."
+              placeholder="فئة جديدة..."
               value={newCategoryName}
               onChange={(e) => setNewCategoryName(e.target.value)}
               className="flex-grow bg-surface-container-low border border-outline-variant rounded-lg px-3 py-2.5 text-xs focus:ring-2 focus:ring-primary/10 focus:border-primary outline-none transition-all text-on-surface font-medium"
@@ -601,12 +601,12 @@ export const InventoryClient = memo(function InventoryClient() {
               className="bg-secondary text-on-secondary px-3 py-2.5 rounded-lg font-label-md text-xs hover:opacity-90 active:scale-[0.98] transition-all flex items-center gap-1 cursor-pointer font-bold shrink-0 shadow-md shadow-secondary/15"
             >
               <span className="material-symbols-outlined text-[14px]">add_circle</span>
-              Ø¥Ø¶Ø§ÙØ©
+              إضافة
             </button>
           </form>
 
           <div className="space-y-2 flex-grow">
-            <p className="text-[10px] font-semibold text-on-surface-variant uppercase select-none">Ø§Ù„ÙØ¦Ø§Øª Ø§Ù„Ø­Ø§Ù„ÙŠØ©</p>
+            <p className="text-[10px] font-semibold text-on-surface-variant uppercase select-none">الفئات الحالية</p>
             <div className="flex flex-wrap gap-1.5 max-h-[85px] overflow-y-auto pe-1 scrollbar-thin scrollbar-thumb-outline-variant">
               {categories.map((cat) => (
                 <div
@@ -618,7 +618,7 @@ export const InventoryClient = memo(function InventoryClient() {
                     type="button"
                     onClick={() => handleDeleteCategory(cat)}
                     className="text-on-surface-variant/40 hover:text-primary transition-colors cursor-pointer flex items-center"
-                    title={`Ø­Ø°Ù Ø§Ù„ÙØ¦Ø© "${cat}"`}
+                    title={`حذف الفئة "${cat}"`}
                   >
                     <span className="material-symbols-outlined text-[12px]">close</span>
                   </button>
@@ -634,13 +634,13 @@ export const InventoryClient = memo(function InventoryClient() {
           <table className="w-full text-start border-collapse">
             <thead>
               <tr className="bg-surface-container-low border-b border-outline-variant/20 text-on-surface-variant font-bold text-xs uppercase tracking-wider text-start">
-                <th className="py-4 px-6 text-start">Ø§Ù„ØµÙˆØ±Ø©</th>
-                <th className="py-4 px-6 text-start">ØªÙØ§ØµÙŠÙ„ Ø§Ù„Ù…Ù†ØªØ¬</th>
-                <th className="py-4 px-6 text-start">Ø§Ù„ÙØ¦Ø©</th>
-                <th className="py-4 px-6 text-end">Ø§Ù„Ø³Ø¹Ø±</th>
-                <th className="py-4 px-6 text-center">Ø§Ù„Ù…Ø®Ø²ÙˆÙ†</th>
-                <th className="py-4 px-6 text-center">Ø§Ù„Ø¸Ù‡ÙˆØ±</th>
-                <th className="py-4 px-6 text-center">Ø§Ù„Ø¥Ø¬Ø±Ø§Ø¡Ø§Øª</th>
+                <th className="py-4 px-6 text-start">الصورة</th>
+                <th className="py-4 px-6 text-start">تفاصيل المنتج</th>
+                <th className="py-4 px-6 text-start">الفئة</th>
+                <th className="py-4 px-6 text-end">السعر</th>
+                <th className="py-4 px-6 text-center">المخزون</th>
+                <th className="py-4 px-6 text-center">الظهور</th>
+                <th className="py-4 px-6 text-center">الإجراءات</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-outline-variant/10 text-sm">
@@ -688,7 +688,7 @@ export const InventoryClient = memo(function InventoryClient() {
                             ? 'bg-yellow-50 text-secondary border border-yellow-100'
                             : 'bg-green-50 text-green-700 border border-green-100'
                         }`}>
-                          {product.stock === 0 ? 'Ù†ÙØ¯ Ù…Ù† Ø§Ù„Ù…Ø®Ø²ÙˆÙ†' : `${product.stock} ÙˆØ­Ø¯Ø©`}
+                          {product.stock === 0 ? 'نفد من المخزون' : `${product.stock} وحدة`}
                         </span>
                       </div>
                     </td>
@@ -705,7 +705,7 @@ export const InventoryClient = memo(function InventoryClient() {
                         <span className="material-symbols-outlined text-[16px]">
                           {product.is_active ? 'visibility' : 'visibility_off'}
                         </span>
-                        {product.is_active ? 'Ù†Ø´Ø·' : 'ØºÙŠØ± Ù†Ø´Ø·'}
+                        {product.is_active ? 'نشط' : 'غير نشط'}
                       </button>
                     </td>
 
@@ -714,14 +714,14 @@ export const InventoryClient = memo(function InventoryClient() {
                         <button
                           onClick={() => handleOpenEditModal(product)}
                           className="w-9 h-9 rounded-lg border border-outline-variant/30 flex items-center justify-center text-on-surface hover:text-secondary hover:border-secondary transition-all cursor-pointer bg-white"
-                          title="ØªØ¹Ø¯ÙŠÙ„ Ø§Ù„Ù…Ù†ØªØ¬"
+                          title="تعديل المنتج"
                         >
                           <span className="material-symbols-outlined text-[18px]">edit</span>
                         </button>
                         <button
                           onClick={() => setDeletingProduct(product)}
                           className="w-9 h-9 rounded-lg border border-outline-variant/30 flex items-center justify-center text-on-surface hover:text-primary hover:border-primary transition-all cursor-pointer bg-white"
-                          title="Ø­Ø°Ù Ø§Ù„Ù…Ù†ØªØ¬"
+                          title="حذف المنتج"
                         >
                           <span className="material-symbols-outlined text-[18px]">delete</span>
                         </button>
@@ -733,7 +733,7 @@ export const InventoryClient = memo(function InventoryClient() {
                 <tr>
                   <td colSpan={7} className="py-12 px-6 text-center text-on-surface-variant font-medium">
                     <span className="material-symbols-outlined text-4xl block mb-2 select-none">inventory</span>
-                    Ù„Ù… ÙŠØªÙ… Ø§Ù„Ø¹Ø«ÙˆØ± Ø¹Ù„Ù‰ Ù…Ù†ØªØ¬Ø§Øª Ù…Ø·Ø§Ø¨Ù‚Ø© Ù„Ù„ØªØµÙÙŠØ©.
+                    لم يتم العثور على منتجات مطابقة للتصفية.
                   </td>
                 </tr>
               )}
@@ -743,7 +743,7 @@ export const InventoryClient = memo(function InventoryClient() {
 
         <div className="px-6 py-4 bg-surface-container-low flex justify-between items-center border-t border-outline-variant/30 select-none">
           <p className="font-label-sm text-label-sm text-on-surface-variant">
-            Ø§Ù„ØµÙØ­Ø© {currentPage} Ù…Ù† {totalPages}
+            الصفحة {currentPage} من {totalPages}
           </p>
           <div className="flex gap-2">
             <button
@@ -780,7 +780,7 @@ export const InventoryClient = memo(function InventoryClient() {
           >
             <div className="bg-on-background text-white p-6 flex justify-between items-center">
               <h3 className="font-headline-md text-headline-md font-bold">
-                {editingProduct ? 'ØªØ¹Ø¯ÙŠÙ„ ØªÙØ§ØµÙŠÙ„ Ø§Ù„Ù…Ù†ØªØ¬' : 'Ø¥Ø¶Ø§ÙØ© Ù…Ù†ØªØ¬ Ø¬Ø¯ÙŠØ¯'}
+                {editingProduct ? 'تعديل تفاصيل المنتج' : 'إضافة منتج جديد'}
               </h3>
               <button
                 onClick={handleCloseModal}
@@ -793,13 +793,13 @@ export const InventoryClient = memo(function InventoryClient() {
             <form onSubmit={handleFormSubmit} className="p-8 space-y-6 text-start overflow-y-auto flex-grow">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-1">
-                  <label className="font-label-md text-on-surface block font-bold">Ø§Ø³Ù… Ø§Ù„Ù…Ù†ØªØ¬</label>
+                  <label className="font-label-md text-on-surface block font-bold">اسم المنتج</label>
                   <input
                     className={`w-full border rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary/10 focus:border-primary transition-all bg-white text-on-background font-body-md ${
                       formErrors.name ? 'border-error ring-1 ring-error/20' : 'border-gray-300'
                     }`}
                     name="name"
-                    placeholder="Ù…Ø«Ø§Ù„: Ø´Ù†Ø§ÙŠØ¯Ø± Easy9 Ù‚Ø§Ø·Ø¹ Ø«Ù„Ø§Ø«ÙŠ 16 Ø£Ù…Ø¨ÙŠØ±"
+                    placeholder="مثال: شنايدر Easy9 قاطع ثلاثي 16 أمبير"
                     type="text"
                     value={formData.name}
                     onChange={handleInputChange}
@@ -810,7 +810,7 @@ export const InventoryClient = memo(function InventoryClient() {
                 </div>
 
                 <div className="space-y-1">
-                  <label className="font-label-md text-on-surface block font-bold">ØµÙˆØ±Ø© Ø§Ù„Ù…Ù†ØªØ¬</label>
+                  <label className="font-label-md text-on-surface block font-bold">صورة المنتج</label>
                   <div className="flex items-center gap-4">
                     <input
                       type="file"
@@ -822,7 +822,7 @@ export const InventoryClient = memo(function InventoryClient() {
                     {isCompressing && (
                       <span className="text-xs text-primary font-medium flex items-center gap-1 shrink-0 animate-pulse">
                         <span className="material-symbols-outlined text-base select-none">architecture</span>
-                        Ø¬Ø§Ø±ÙŠ Ù…Ø¹Ø§Ù„Ø¬Ø© Ø§Ù„ØµÙˆØ±Ø©...
+                        جاري معالجة الصورة...
                       </span>
                     )}
                     {!isCompressing && formData.image_url && (
@@ -848,7 +848,7 @@ export const InventoryClient = memo(function InventoryClient() {
                 </div>
 
                 <div className="space-y-1">
-                  <label className="font-label-md text-on-surface block font-bold">Ø§Ù„Ø³Ø¹Ø± (Ø¬.Ù…)</label>
+                  <label className="font-label-md text-on-surface block font-bold">السعر (ج.م)</label>
                   <input
                     className={`w-full border rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary/10 focus:border-primary transition-all bg-white text-on-background font-body-md ${
                       formErrors.price ? 'border-error ring-1 ring-error/20' : 'border-gray-300'
@@ -866,7 +866,7 @@ export const InventoryClient = memo(function InventoryClient() {
                 </div>
 
                 <div className="space-y-1">
-                  <label className="font-label-md text-on-surface block font-bold">Ø§Ù„ÙƒÙ…ÙŠØ© Ø§Ù„Ù…ØªÙˆÙØ±Ø©</label>
+                  <label className="font-label-md text-on-surface block font-bold">الكمية المتوفرة</label>
                   <input
                     className={`w-full border rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary/10 focus:border-primary transition-all bg-white text-on-background font-body-md ${
                       formErrors.stock ? 'border-error ring-1 ring-error/20' : 'border-gray-300'
@@ -883,10 +883,10 @@ export const InventoryClient = memo(function InventoryClient() {
                 </div>
 
                 <div className="space-y-1">
-                  <label className="font-label-md text-on-surface block font-bold">Ø§Ù„ÙØ¦Ø©</label>
+                  <label className="font-label-md text-on-surface block font-bold">الفئة</label>
                   <CustomDropdown
                     options={[
-                      { value: '', label: 'ØºÙŠØ± Ù…Ø­Ø¯Ø¯ (Ø¹Ø§Ù…)' },
+                      { value: '', label: 'غير محدد (عام)' },
                       ...categories.map(cat => ({ value: cat, label: cat }))
                     ]}
                     value={formData.category || ''}
@@ -905,13 +905,13 @@ export const InventoryClient = memo(function InventoryClient() {
               </div>
 
               <div className="space-y-1">
-                <label className="font-label-md text-on-surface block font-bold">Ø§Ù„ÙˆØµÙ</label>
+                <label className="font-label-md text-on-surface block font-bold">الوصف</label>
                 <textarea
                   className={`w-full border rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary/10 focus:border-primary transition-all bg-white text-on-background font-body-md h-24 ${
                     formErrors.description ? 'border-error ring-1 ring-error/20' : 'border-gray-300'
                   }`}
                   name="description"
-                  placeholder="Ø£Ø¯Ø®Ù„ Ø§Ù„Ù…ÙˆØ§ØµÙØ§Øª Ø§Ù„ÙÙ†ÙŠØ©ØŒ Ø§Ù„Ù…Ø§Ø±ÙƒØ©ØŒ Ø¹Ø¯Ø¯ Ø§Ù„Ø£Ù‚Ø·Ø§Ø¨ØŒ Ø´Ø¯Ø© Ø§Ù„ØªÙŠØ§Ø±ØŒ Ø³Ø¹Ø© Ø§Ù„Ù‚Ø·Ø¹ØŒ Ø£Ùˆ Ù…Ù‚Ø§Ø³ Ø§Ù„Ø³Ù„Ùƒ..."
+                  placeholder="أدخل المواصفات الفنية، الماركة، عدد الأقطاب، شدة التيار، سعة القطع، أو مقاس السلك..."
                   value={formData.description}
                   onChange={handleInputChange}
                 />
@@ -930,7 +930,7 @@ export const InventoryClient = memo(function InventoryClient() {
                   className="w-5 h-5 rounded border-outline focus:ring-primary text-primary cursor-pointer accent-primary"
                 />
                 <label htmlFor="modal-is-active" className="font-bold text-sm text-on-surface cursor-pointer select-none">
-                  Ø¬Ø¹Ù„ Ø§Ù„Ù…Ù†ØªØ¬ Ù…Ø±Ø¦ÙŠØ§Ù‹ ÙÙŠ ÙƒØªØ§Ù„ÙˆØ¬ Ø§Ù„Ù…ØªØ¬Ø± (Ù†Ø´Ø·)
+                  جعل المنتج مرئياً في كتالوج المتجر (نشط)
                 </label>
               </div>
 
@@ -940,13 +940,13 @@ export const InventoryClient = memo(function InventoryClient() {
                   onClick={handleCloseModal}
                   className="px-5 py-2.5 rounded-lg border border-outline-variant text-on-surface-variant font-label-md text-sm hover:bg-surface-container-low transition-colors cursor-pointer"
                 >
-                  Ø¥Ù„ØºØ§Ø¡
+                  إلغاء
                 </button>
                 <button
                   type="submit"
                   className="px-6 py-2.5 rounded-lg bg-primary text-on-primary font-label-md text-sm hover:opacity-90 active:scale-[0.98] transition-all cursor-pointer font-bold uppercase tracking-wider"
                 >
-                  {editingProduct ? 'Ø­ÙØ¸ Ø§Ù„ØªØºÙŠÙŠØ±Ø§Øª' : 'Ø¥Ø¶Ø§ÙØ© Ø§Ù„Ù…Ù†ØªØ¬'}
+                  {editingProduct ? 'حفظ التغييرات' : 'إضافة المنتج'}
                 </button>
               </div>
             </form>
@@ -963,9 +963,9 @@ export const InventoryClient = memo(function InventoryClient() {
                 <span className="material-symbols-outlined text-3xl select-none">warning</span>
               </div>
               <div>
-                <h3 className="font-headline-md text-headline-md font-bold text-on-surface">Ø­Ø°Ù Ø§Ù„Ù…Ù†ØªØ¬ØŸ</h3>
+                <h3 className="font-headline-md text-headline-md font-bold text-on-surface">حذف المنتج؟</h3>
                 <p className="text-on-surface-variant text-sm mt-2 leading-relaxed">
-                  Ù‡Ù„ Ø£Ù†Øª Ù…ØªØ£ÙƒØ¯ Ù…Ù† Ø±ØºØ¨ØªÙƒ ÙÙŠ Ø­Ø°Ù **&quot;{deletingProduct.name}&quot;**ØŸ Ø³ÙŠØ¤Ø¯ÙŠ Ù‡Ø°Ø§ Ø§Ù„Ø¥Ø¬Ø±Ø§Ø¡ Ø¥Ù„Ù‰ Ø¥Ø²Ø§Ù„Ø© Ø§Ù„Ù…Ù†ØªØ¬ Ù†Ù‡Ø§Ø¦ÙŠØ§Ù‹ Ù…Ù† Ø§Ù„ÙƒØªØ§Ù„ÙˆØ¬ ÙˆÙ„Ø§ ÙŠÙ…ÙƒÙ† Ø§Ù„ØªØ±Ø§Ø¬Ø¹ Ø¹Ù†Ù‡.
+                  هل أنت متأكد من رغبتك في حذف **&quot;{deletingProduct.name}&quot;**؟ سيؤدي هذا الإجراء إلى إزالة المنتج نهائياً من الكتالوج ولا يمكن التراجع عنه.
                 </p>
               </div>
             </div>
@@ -974,13 +974,13 @@ export const InventoryClient = memo(function InventoryClient() {
                 onClick={() => setDeletingProduct(null)}
                 className="px-4 py-2 rounded-lg border border-outline-variant text-on-surface-variant font-label-md text-sm hover:bg-white transition-colors cursor-pointer"
               >
-                Ø¥Ù„ØºØ§Ø¡
+                إلغاء
               </button>
               <button
                 onClick={handleDeleteConfirm}
                 className="px-5 py-2 rounded-lg bg-primary text-on-primary font-label-md text-sm hover:opacity-90 active:scale-[0.98] transition-all cursor-pointer font-bold uppercase tracking-wider"
               >
-                ØªØ£ÙƒÙŠØ¯ Ø§Ù„Ø­Ø°Ù
+                تأكيد الحذف
               </button>
             </div>
           </div>
@@ -992,7 +992,7 @@ export const InventoryClient = memo(function InventoryClient() {
         title={confirmModal.title}
         message={confirmModal.message}
         confirmLabel={confirmModal.confirmLabel}
-        cancelLabel={confirmModal.cancelLabel || 'Ø¥Ù„ØºØ§Ø¡'}
+        cancelLabel={confirmModal.cancelLabel || 'إلغاء'}
         isDestructive={confirmModal.isDestructive}
         onConfirm={confirmModal.onConfirm}
         onCancel={() => setConfirmModal((prev) => ({ ...prev, isOpen: false }))}
@@ -1000,15 +1000,15 @@ export const InventoryClient = memo(function InventoryClient() {
 
       <PasswordConfirmModal
         isOpen={isClearProductsPasswordOpen}
-        title="ØªØ£ÙƒÙŠØ¯ ÙƒÙ„Ù…Ø© Ø§Ù„Ù…Ø±ÙˆØ±"
-        message="ÙŠØ±Ø¬Ù‰ Ø¥Ø¯Ø®Ø§Ù„ ÙƒÙ„Ù…Ø© Ù…Ø±ÙˆØ± Ø§Ù„Ù…Ø³Ø¤ÙˆÙ„ Ù„ØªØ£ÙƒÙŠØ¯ Ø­Ø°Ù Ø¬Ù…ÙŠØ¹ Ø§Ù„Ù…Ù†ØªØ¬Ø§Øª Ù…Ù† Ø§Ù„Ù…Ø®Ø²ÙˆÙ†. Ù‡Ø°Ø§ Ø§Ù„Ø¥Ø¬Ø±Ø§Ø¡ Ù„Ø§ ÙŠÙ…ÙƒÙ† Ø§Ù„ØªØ±Ø§Ø¬Ø¹ Ø¹Ù†Ù‡."
-        confirmLabel="ØªØ£ÙƒÙŠØ¯ ÙˆØ­Ø°Ù Ø§Ù„ÙƒÙ„"
+        title="تأكيد كلمة المرور"
+        message="يرجى إدخال كلمة مرور المسؤول لتأكيد حذف جميع المنتجات من المخزون. هذا الإجراء لا يمكن التراجع عنه."
+        confirmLabel="تأكيد وحذف الكل"
         onConfirm={async () => {
           try {
             await clearAllProducts();
-            showToast('ØªÙ… Ø­Ø°Ù Ø¬Ù…ÙŠØ¹ Ø¹Ù†Ø§ØµØ± Ø§Ù„Ù…Ø®Ø²ÙˆÙ†.');
+            showToast('تم حذف جميع عناصر المخزون.');
           } catch {
-            showToast('ÙØ´Ù„ Ø­Ø°Ù Ø¬Ù…ÙŠØ¹ Ø§Ù„Ù…Ù†ØªØ¬Ø§Øª. Ø§Ù„Ø±Ø¬Ø§Ø¡ Ø§Ù„Ù…Ø­Ø§ÙˆÙ„Ø© Ù…Ø±Ø© Ø£Ø®Ø±Ù‰.');
+            showToast('فشل حذف جميع المنتجات. الرجاء المحاولة مرة أخرى.');
           }
           setIsClearProductsPasswordOpen(false);
         }}

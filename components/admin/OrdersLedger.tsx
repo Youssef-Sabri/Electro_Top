@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { memo, useState, useMemo, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
@@ -37,13 +37,13 @@ export const OrdersLedger = memo(function OrdersLedger() {
 
   const handleExportCSV = useCallback(() => {
     const headers = [
-      'Ø±Ù‚Ù… Ø§Ù„ØªØªØ¨Ø¹',
-      'Ø§Ø³Ù… Ø§Ù„Ø¹Ù…ÙŠÙ„',
-      'Ø±Ù‚Ù… Ø§Ù„Ù‡Ø§ØªÙ',
-      'Ø§Ù„Ù…Ù†ØªØ¬Ø§Øª Ø§Ù„Ù…Ø´ØªØ±Ø§Ø©',
-      'Ø§Ù„Ø¥Ø¬Ù…Ø§Ù„ÙŠ Ø§Ù„Ù…Ø¯ÙÙˆØ¹ (Ø¬Ù†ÙŠÙ‡)',
-      'ØªØ§Ø±ÙŠØ® Ø§Ù„Ø¥Ù†Ø´Ø§Ø¡',
-      'Ø§Ù„Ø­Ø§Ù„Ø©'
+      'رقم التتبع',
+      'اسم العميل',
+      'رقم الهاتف',
+      'المنتجات المشتراة',
+      'الإجمالي المدفوع (جنيه)',
+      'تاريخ الإنشاء',
+      'الحالة'
     ];
 
     const productsById = getProductsMap();
@@ -115,26 +115,26 @@ export const OrdersLedger = memo(function OrdersLedger() {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 text-start">
         <div className="flex flex-col sm:flex-row sm:items-center gap-4">
           <div>
-            <h2 className="font-headline-lg text-headline-lg text-on-surface">Ø¬Ù…ÙŠØ¹ Ø§Ù„Ø·Ù„Ø¨Ø§Øª</h2>
+            <h2 className="font-headline-lg text-headline-lg text-on-surface">جميع الطلبات</h2>
             <p className="text-on-surface-variant font-body-md text-body-md">
-              Ø¥Ø¬Ù…Ø§Ù„ÙŠ Ø§Ù„Ø·Ù„Ø¨Ø§Øª ÙÙŠ Ø§Ù„Ù†Ø¸Ø§Ù…: {filteredOrders.length} Ø·Ù„Ø¨.
+              إجمالي الطلبات في النظام: {filteredOrders.length} طلب.
             </p>
           </div>
           <button
             onClick={handleExportCSV}
             className="flex items-center gap-1.5 px-4 py-2 bg-primary/10 text-primary border border-primary/20 rounded-lg hover:bg-primary/20 transition-all font-semibold text-xs cursor-pointer select-none h-fit w-fit"
-            title="ØªØµØ¯ÙŠØ± ÙƒØ§ÙØ© Ø§Ù„Ø·Ù„Ø¨Ø§Øª Ø¥Ù„Ù‰ CSV"
+            title="تصدير كافة الطلبات إلى CSV"
           >
             <span className="material-symbols-outlined text-[16px]">download</span>
-            ØªØµØ¯ÙŠØ± CSV
+            تصدير CSV
           </button>
           <button
             onClick={() => setIsClearConfirmOpen(true)}
             className="flex items-center gap-1.5 px-4 py-2 bg-red-50 text-red-600 border border-red-200 rounded-lg hover:bg-red-100 transition-all font-semibold text-xs cursor-pointer select-none h-fit w-fit"
-            title="Ø­Ø°Ù Ø¬Ù…ÙŠØ¹ Ø¨ÙŠØ§Ù†Ø§Øª Ø§Ù„Ø·Ù„Ø¨Ø§Øª"
+            title="حذف جميع بيانات الطلبات"
           >
             <span className="material-symbols-outlined text-[16px]">delete_sweep</span>
-            Ù…Ø³Ø­ Ø¬Ù…ÙŠØ¹ Ø§Ù„Ø·Ù„Ø¨Ø§Øª
+            مسح جميع الطلبات
           </button>
         </div>
         
@@ -145,7 +145,7 @@ export const OrdersLedger = memo(function OrdersLedger() {
             </span>
             <input
               className="pr-10 pl-4 py-2 bg-surface-container-lowest border border-outline-variant rounded-lg font-body-md text-body-md focus:outline-none focus:ring-2 focus:ring-primary/10 focus:border-primary w-full sm:w-64 text-on-surface text-right"
-              placeholder="Ø§Ù„Ø¨Ø­Ø« Ø¨Ø±Ù‚Ù… Ø§Ù„Ø·Ù„Ø¨ØŒ Ø§Ø³Ù… Ø§Ù„Ø¹Ù…ÙŠÙ„..."
+              placeholder="البحث برقم الطلب، اسم العميل..."
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -153,15 +153,15 @@ export const OrdersLedger = memo(function OrdersLedger() {
           </div>
 
           <CustomDropdown
-            labelPrefix="Ø§Ù„Ø­Ø§Ù„Ø©:"
+            labelPrefix="الحالة:"
             options={[
-              { value: 'All', label: 'Ø§Ù„ÙƒÙ„' },
-              { value: 'Pending', label: 'Ù‚ÙŠØ¯ Ø§Ù„Ù…Ø±Ø§Ø¬Ø¹Ø©' },
-              { value: 'Accepted', label: 'Ù…Ù‚Ø¨ÙˆÙ„' },
-              { value: 'Processing', label: 'Ù‚ÙŠØ¯ Ø§Ù„ØªØ­Ø¶ÙŠØ±' },
-              { value: 'Delivered', label: 'ØªÙ… Ø§Ù„ØªÙˆØµÙŠÙ„' },
-              { value: 'Declined', label: 'Ù…Ø±ÙÙˆØ¶' },
-              { value: 'Check Internal Note', label: 'Ù‚ÙŠØ¯ Ø§Ù„ÙØ­Øµ' },
+              { value: 'All', label: 'الكل' },
+              { value: 'Pending', label: 'قيد المراجعة' },
+              { value: 'Accepted', label: 'مقبول' },
+              { value: 'Processing', label: 'قيد التحضير' },
+              { value: 'Delivered', label: 'تم التوصيل' },
+              { value: 'Declined', label: 'مرفوض' },
+              { value: 'Check Internal Note', label: 'قيد الفحص' },
             ]}
             value={statusFilter}
             onChange={(val) => setStatusFilter(val)}
@@ -172,49 +172,49 @@ export const OrdersLedger = memo(function OrdersLedger() {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-gutter text-start">
         <div className="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant/30 electro-card">
           <p className="text-on-surface-variant font-label-md text-label-md uppercase tracking-wider mb-1">
-            Ø¥Ø¬Ù…Ø§Ù„ÙŠ Ø§Ù„Ø·Ù„Ø¨Ø§Øª
+            إجمالي الطلبات
           </p>
           <h3 className="text-secondary-fixed-dim font-headline-md text-headline-md font-bold">
             {metrics.totalCount}
           </h3>
           <div className="mt-2 text-green-600 font-label-sm text-label-sm flex items-center gap-1 select-none">
-            <span className="material-symbols-outlined text-sm">inventory</span> Ø³Ø¬Ù„Ø§Øª Ù†Ø´Ø·Ø© ÙÙŠ Ø§Ù„Ù†Ø¸Ø§Ù…
+            <span className="material-symbols-outlined text-sm">inventory</span> سجلات نشطة في النظام
           </div>
         </div>
 
         <div className="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant/30 electro-card">
           <p className="text-on-surface-variant font-label-md text-label-md uppercase tracking-wider mb-1">
-            Ù‚ÙŠØ¯ Ø§Ù„Ù…Ø±Ø§Ø¬Ø¹Ø©
+            قيد المراجعة
           </p>
           <h3 className="text-on-surface font-headline-md text-headline-md font-bold">
             {metrics.pendingCount}
           </h3>
           <div className="mt-2 text-primary font-label-sm text-label-sm flex items-center gap-1 select-none">
-            <span className="material-symbols-outlined text-sm">notifications_active</span> Ø¨Ø­Ø§Ø¬Ø© Ù„Ø§ØªØ®Ø§Ø° Ø¥Ø¬Ø±Ø§Ø¡
+            <span className="material-symbols-outlined text-sm">notifications_active</span> بحاجة لاتخاذ إجراء
           </div>
         </div>
 
         <div className="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant/30 electro-card">
           <p className="text-on-surface-variant font-label-md text-label-md uppercase tracking-wider mb-1">
-            Ù‚ÙŠØ¯ Ø§Ù„ØªØ­Ø¶ÙŠØ±
+            قيد التحضير
           </p>
           <h3 className="text-on-surface font-headline-md text-headline-md font-bold">
             {metrics.activeFulfillmentCount}
           </h3>
           <div className="mt-2 text-secondary-fixed-dim font-label-sm text-label-sm flex items-center gap-1 select-none">
-            <span className="material-symbols-outlined text-sm">bolt</span> ÙÙŠ Ù…Ø³Ø§Ø± Ø§Ù„ØªØ­Ø¶ÙŠØ± Ø­Ø§Ù„ÙŠØ§Ù‹
+            <span className="material-symbols-outlined text-sm">bolt</span> في مسار التحضير حالياً
           </div>
         </div>
 
         <div className="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant/30 electro-card">
           <p className="text-on-surface-variant font-label-md text-label-md uppercase tracking-wider mb-1">
-            Ø§Ù„Ø·Ù„Ø¨Ø§Øª Ø§Ù„Ù…ÙƒØªÙ…Ù„Ø©
+            الطلبات المكتملة
           </p>
           <h3 className="text-on-surface font-headline-md text-headline-md font-bold">
             {metrics.completedCount}
           </h3>
           <div className="mt-2 text-on-surface-variant font-label-sm text-label-sm">
-            ØªÙ… ØªÙˆØµÙŠÙ„Ù‡Ø§ Ø¨Ù†Ø¬Ø§Ø­ Ù„Ù„Ø¹Ù…Ù„Ø§Ø¡
+            تم توصيلها بنجاح للعملاء
           </div>
         </div>
       </div>
@@ -225,25 +225,25 @@ export const OrdersLedger = memo(function OrdersLedger() {
             <thead>
               <tr className="bg-surface-container-low border-b border-outline-variant/30 select-none text-start">
                 <th className="px-6 py-4 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider text-start">
-                  Ø±Ù‚Ù… Ø§Ù„Ø·Ù„Ø¨
+                  رقم الطلب
                 </th>
                 <th className="px-6 py-4 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider text-start">
-                  Ø§Ù„Ø¹Ù…ÙŠÙ„
+                  العميل
                 </th>
                 <th className="px-6 py-4 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider text-start">
-                  Ø±Ù‚Ù… Ø§Ù„Ù‡Ø§ØªÙ
+                  رقم الهاتف
                 </th>
                 <th className="px-6 py-4 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider text-start">
-                  Ø§Ù„Ø­Ø§Ù„Ø©
+                  الحالة
                 </th>
                 <th className="px-6 py-4 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider text-start">
-                  Ø§Ù„ØªØ§Ø±ÙŠØ®
+                  التاريخ
                 </th>
                 <th className="px-6 py-4 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider text-end">
-                  Ø§Ù„Ø¥Ø¬Ù…Ø§Ù„ÙŠ
+                  الإجمالي
                 </th>
                 <th className="px-6 py-4 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider text-end">
-                  Ø§Ù„Ø¥Ø¬Ø±Ø§Ø¡Ø§Øª
+                  الإجراءات
                 </th>
               </tr>
             </thead>
@@ -303,7 +303,7 @@ export const OrdersLedger = memo(function OrdersLedger() {
                             setIsDeleteConfirmOpen(true);
                           }}
                           className="p-1.5 bg-red-50 text-red-600 hover:bg-red-100 border border-red-200 rounded-md transition-colors cursor-pointer select-none"
-                          title="Ø­Ø°Ù Ù‡Ø°Ø§ Ø§Ù„Ø·Ù„Ø¨"
+                          title="حذف هذا الطلب"
                         >
                           <span className="material-symbols-outlined text-[18px]">delete</span>
                         </button>
@@ -314,7 +314,7 @@ export const OrdersLedger = memo(function OrdersLedger() {
               ) : (
                 <tr>
                   <td colSpan={7} className="text-center py-20 text-on-surface-variant italic">
-                    Ù„Ø§ ØªÙˆØ¬Ø¯ Ø£ÙŠ Ø·Ù„Ø¨Ø§Øª ØªØ·Ø§Ø¨Ù‚ Ù…Ø¹Ø§ÙŠÙŠØ± Ø§Ù„Ø¨Ø­Ø« Ø¨Ø§Ù„ØªØµÙÙŠØ©.
+                    لا توجد أي طلبات تطابق معايير البحث بالتصفية.
                   </td>
                 </tr>
               )}
@@ -324,7 +324,7 @@ export const OrdersLedger = memo(function OrdersLedger() {
 
         <div className="px-6 py-4 bg-surface-container-low flex justify-between items-center border-t border-outline-variant/30 select-none">
           <p className="font-label-sm text-label-sm text-on-surface-variant">
-            Ø§Ù„ØµÙØ­Ø© {currentPage} Ù…Ù† {totalPages}
+            الصفحة {currentPage} من {totalPages}
           </p>
           <div className="flex gap-2">
             <button
@@ -355,26 +355,26 @@ export const OrdersLedger = memo(function OrdersLedger() {
 
       <ConfirmationModal
         isOpen={isClearConfirmOpen}
-        title="Ù…Ø³Ø­ ÙƒØ§ÙØ© Ø§Ù„Ø·Ù„Ø¨Ø§Øª"
-        message="Ù‡Ù„ Ø£Ù†Øª Ù…ØªØ£ÙƒØ¯ Ù…Ù† Ø±ØºØ¨ØªÙƒ ÙÙŠ Ø­Ø°Ù Ø¬Ù…ÙŠØ¹ Ø§Ù„Ø·Ù„Ø¨Ø§Øª ÙˆØ³Ø¬Ù„ Ø§Ù„Ø·Ù„Ø¨Ø§Øª Ù†Ù‡Ø§Ø¦ÙŠØ§Ù‹ Ù…Ù† Ø§Ù„Ù†Ø¸Ø§Ù…ØŸ Ù‡Ø°Ø§ Ø§Ù„Ø¥Ø¬Ø±Ø§Ø¡ Ù„Ø§ ÙŠÙ…ÙƒÙ† Ø§Ù„ØªØ±Ø§Ø¬Ø¹ Ø¹Ù†Ù‡."
+        title="مسح كافة الطلبات"
+        message="هل أنت متأكد من رغبتك في حذف جميع الطلبات وسجل الطلبات نهائياً من النظام؟ هذا الإجراء لا يمكن التراجع عنه."
         onConfirm={() => {
           setIsClearConfirmOpen(false);
           setIsClearPasswordOpen(true);
         }}
         onCancel={() => setIsClearConfirmOpen(false)}
-        confirmLabel="Ù†Ø¹Ù…ØŒ Ø§Ø­Ø°Ù ÙƒØ§ÙØ© Ø§Ù„Ø¨ÙŠØ§Ù†Ø§Øª"
+        confirmLabel="نعم، احذف كافة البيانات"
       />
 
       <PasswordConfirmModal
         isOpen={isClearPasswordOpen}
-        title="ØªØ£ÙƒÙŠØ¯ ÙƒÙ„Ù…Ø© Ø§Ù„Ù…Ø±ÙˆØ±"
-        message="ÙŠØ±Ø¬Ù‰ Ø¥Ø¯Ø®Ø§Ù„ ÙƒÙ„Ù…Ø© Ù…Ø±ÙˆØ± Ø§Ù„Ù…Ø³Ø¤ÙˆÙ„ Ù„ØªØ£ÙƒÙŠØ¯ Ø­Ø°Ù Ø¬Ù…ÙŠØ¹ Ø§Ù„Ø·Ù„Ø¨Ø§Øª. Ù‡Ø°Ø§ Ø§Ù„Ø¥Ø¬Ø±Ø§Ø¡ Ù„Ø§ ÙŠÙ…ÙƒÙ† Ø§Ù„ØªØ±Ø§Ø¬Ø¹ Ø¹Ù†Ù‡."
-        confirmLabel="ØªØ£ÙƒÙŠØ¯ ÙˆØ­Ø°Ù Ø§Ù„ÙƒÙ„"
+        title="تأكيد كلمة المرور"
+        message="يرجى إدخال كلمة مرور المسؤول لتأكيد حذف جميع الطلبات. هذا الإجراء لا يمكن التراجع عنه."
+        confirmLabel="تأكيد وحذف الكل"
         onConfirm={async () => {
           try {
             await clearAllOrders();
           } catch {
-            setToast({ message: 'ÙØ´Ù„ Ø­Ø°Ù Ø§Ù„Ø·Ù„Ø¨Ø§Øª. Ø§Ù„Ø±Ø¬Ø§Ø¡ Ø§Ù„Ù…Ø­Ø§ÙˆÙ„Ø© Ù…Ø±Ø© Ø£Ø®Ø±Ù‰.', type: 'error' });
+            setToast({ message: 'فشل حذف الطلبات. الرجاء المحاولة مرة أخرى.', type: 'error' });
           }
           setIsClearPasswordOpen(false);
         }}
@@ -383,15 +383,15 @@ export const OrdersLedger = memo(function OrdersLedger() {
 
       <ConfirmationModal
         isOpen={isDeleteConfirmOpen}
-        title="Ø­Ø°Ù Ø§Ù„Ø·Ù„Ø¨"
-        message={`Ù‡Ù„ Ø£Ù†Øª Ù…ØªØ£ÙƒØ¯ Ù…Ù† Ø±ØºØ¨ØªÙƒ ÙÙŠ Ø­Ø°Ù Ø§Ù„Ø·Ù„Ø¨ #${orderToDeleteId} Ù†Ù‡Ø§Ø¦ÙŠØ§Ù‹ Ù…Ù† Ø§Ù„Ù†Ø¸Ø§Ù…ØŸ Ù‡Ø°Ø§ Ø§Ù„Ø¥Ø¬Ø±Ø§Ø¡ Ù„Ø§ ÙŠÙ…ÙƒÙ† Ø§Ù„ØªØ±Ø§Ø¬Ø¹ Ø¹Ù†Ù‡ ÙˆØ³ÙŠØ¤Ø¯ÙŠ Ù„Ø­Ø°Ù ØªÙØ§ØµÙŠÙ„ Ø§Ù„Ø·Ù„Ø¨ ÙˆØ³Ø¬Ù„ Ø­Ø§Ù„ØªÙ‡ Ø¨Ø§Ù„ÙƒØ§Ù…Ù„.`}
+        title="حذف الطلب"
+        message={`هل أنت متأكد من رغبتك في حذف الطلب #${orderToDeleteId} نهائياً من النظام؟ هذا الإجراء لا يمكن التراجع عنه وسيؤدي لحذف تفاصيل الطلب وسجل حالته بالكامل.`}
         onConfirm={async () => {
           if (orderToDeleteId) {
             try {
               await deleteOrder(orderToDeleteId);
-              setToast({ message: `ØªÙ… Ø­Ø°Ù Ø§Ù„Ø·Ù„Ø¨ #${orderToDeleteId} Ø¨Ù†Ø¬Ø§Ø­!`, type: 'success' });
+              setToast({ message: `تم حذف الطلب #${orderToDeleteId} بنجاح!`, type: 'success' });
             } catch {
-              setToast({ message: 'ÙØ´Ù„ Ø­Ø°Ù Ø§Ù„Ø·Ù„Ø¨. Ø§Ù„Ø±Ø¬Ø§Ø¡ Ø§Ù„Ù…Ø­Ø§ÙˆÙ„Ø© Ù…Ø±Ø© Ø£Ø®Ø±Ù‰.', type: 'error' });
+              setToast({ message: 'فشل حذف الطلب. الرجاء المحاولة مرة أخرى.', type: 'error' });
             }
           }
           setIsDeleteConfirmOpen(false);
@@ -401,7 +401,7 @@ export const OrdersLedger = memo(function OrdersLedger() {
           setIsDeleteConfirmOpen(false);
           setOrderToDeleteId(null);
         }}
-        confirmLabel="Ù†Ø¹Ù…ØŒ Ø§Ø­Ø°Ù Ø§Ù„Ø·Ù„Ø¨"
+        confirmLabel="نعم، احذف الطلب"
       />
 
       {toast && (

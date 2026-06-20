@@ -90,7 +90,8 @@ export async function GET(
   const { data, error } = await noopClient.rpc('get_order_details_for_tracking', { tracking_id: id })
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    if (process.env.NODE_ENV !== 'production') console.error('Tracking lookup error:', error);
+    return NextResponse.json({ error: 'حدث خطأ أثناء البحث عن الطلب. يرجى المحاولة مرة أخرى.' }, { status: 500 })
   }
 
   if (!data) {

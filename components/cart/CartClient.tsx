@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
@@ -16,7 +16,7 @@ export function CartClient() {
   if (!isHydrated) {
     return (
       <div className="max-w-max-width mx-auto px-margin-mobile md:px-margin-desktop py-20 text-center font-poppins">
-        <p className="text-on-surface-variant text-sm">Ø¬Ø§Ø±ÙŠ ØªØ­Ù…ÙŠÙ„ Ø¹Ø±Ø¨Ø© ØªØ³ÙˆÙ‚ Ø¥Ù„ÙƒØªØ±Ùˆ ØªÙˆØ¨...</p>
+        <p className="text-on-surface-variant text-sm">جاري تحميل عربة تسوق إلكترو توب...</p>
       </div>
     );
   }
@@ -30,13 +30,13 @@ export function CartClient() {
           </span>
         </div>
         <h2 className="font-display-lg text-headline-lg text-on-surface mb-3">
-          Ø¹Ø±Ø¨Ø© Ø§Ù„ØªØ³ÙˆÙ‚ ÙØ§Ø±ØºØ©
+          عربة التسوق فارغة
         </h2>
         <p className="text-on-surface-variant mb-8 max-w-sm mx-auto">
-          ÙŠØ¨Ø¯Ùˆ Ø£Ù†Ùƒ Ù„Ù… ØªÙ‚Ù… Ø¨Ø¥Ø¶Ø§ÙØ© Ø£ÙŠ Ù…Ø³ØªÙ„Ø²Ù…Ø§Øª ÙƒÙ‡Ø±Ø¨Ø§Ø¦ÙŠØ© Ø¥Ù„Ù‰ Ø¹Ø±Ø¨Ø© Ø§Ù„ØªØ³ÙˆÙ‚ Ø¨Ø¹Ø¯. Ø¯Ø¹Ù†Ø§ Ù†Ø¬Ø¯ Ø´ÙŠØ¦Ø§Ù‹ Ù…Ù†Ø§Ø³Ø¨Ø§Ù‹ Ù„Ùƒ.
+          يبدو أنك لم تقم بإضافة أي مستلزمات كهربائية إلى عربة التسوق بعد. دعنا نجد شيئاً مناسباً لك.
         </p>
         <Link href="/shop" className="bg-electro-red text-white px-8 py-3 rounded-lg font-label-md hover:scale-105 transition-transform duration-200 inline-block">
-          ØªØµÙØ­ Ø§Ù„Ù…Ù†ØªØ¬Ø§Øª
+          تصفح المنتجات
         </Link>
       </div>
     );
@@ -45,7 +45,7 @@ export function CartClient() {
   return (
     <div className="max-w-max-width mx-auto px-margin-mobile md:px-margin-desktop font-poppins">
       <h1 className="font-headline-lg text-headline-lg mb-8 text-on-background text-start">
-        Ù…Ø±Ø§Ø¬Ø¹Ø© Ø¹Ø±Ø¨Ø© Ø§Ù„ØªØ³ÙˆÙ‚
+        مراجعة عربة التسوق
       </h1>
       
       <div className="flex flex-col lg:flex-row gap-gutter">
@@ -57,7 +57,7 @@ export function CartClient() {
           <div className="pt-6 flex justify-start">
             <Link href="/shop" className="group flex items-center gap-2 text-primary font-label-md">
               <span className="material-symbols-outlined select-none rotate-180">arrow_back</span>
-              <span className="group-hover:underline">Ù…ÙˆØ§ØµÙ„Ø© Ø§Ù„ØªØ³ÙˆÙ‚</span>
+              <span className="group-hover:underline">مواصلة التسوق</span>
             </Link>
           </div>
         </div>
@@ -65,21 +65,21 @@ export function CartClient() {
         <div className="lg:w-1/3">
           <div className="bg-white border border-gray-100 rounded-xl p-8 shadow-sm sticky top-24 text-start">
             <h2 className="font-headline-md text-headline-md mb-6 border-b border-outline-variant/30 pb-4">
-              Ù…Ù„Ø®Øµ Ø§Ù„Ø·Ù„Ø¨
+              ملخص الطلب
             </h2>
             
             <div className="space-y-4 mb-8">
               <div className="flex justify-between font-label-md text-on-surface-variant">
-                <span>Ø§Ù„Ù…Ø¬Ù…ÙˆØ¹ Ø§Ù„ÙØ±Ø¹ÙŠ ({itemCount} Ù…Ù†ØªØ¬)</span>
+                <span>المجموع الفرعي ({itemCount} منتج)</span>
                 <span>{formatCurrency(total)}</span>
               </div>
               <div className="flex justify-between font-label-md text-on-surface-variant">
-                <span>Ø§Ù„ØªÙˆØµÙŠÙ„ Ø§Ù„Ø¹Ø§Ø¯ÙŠ</span>
-                <span className="text-green-600 font-bold">Ù…Ø¬Ø§Ù†ÙŠ</span>
+                <span>التوصيل العادي</span>
+                <span className="text-green-600 font-bold">مجاني</span>
               </div>
               
               <div className="pt-4 border-t border-outline-variant/30 flex justify-between items-end">
-                <span className="font-headline-md text-on-surface">Ø§Ù„Ø¥Ø¬Ù…Ø§Ù„ÙŠ</span>
+                <span className="font-headline-md text-on-surface">الإجمالي</span>
                 <span className="font-display-lg text-primary text-[32px]">
                   {formatCurrency(total)}
                 </span>
@@ -90,7 +90,7 @@ export function CartClient() {
               href="/checkout"
               className="w-full bg-gradient-to-r from-primary to-primary-container text-white py-4 rounded-lg font-headline-md text-body-lg hover:opacity-90 transition-all flex items-center justify-center gap-2 uppercase tracking-wide cursor-pointer"
             >
-              Ø§Ù„Ø§Ø³ØªÙ…Ø±Ø§Ø± ÙÙŠ Ø§Ù„Ø¯ÙØ¹
+              الاستمرار في الدفع
               <span className="material-symbols-outlined select-none rotate-180">arrow_forward</span>
             </Link>
           </div>

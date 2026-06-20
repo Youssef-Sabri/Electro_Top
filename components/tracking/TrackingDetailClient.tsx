@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -21,7 +21,7 @@ export function TrackingDetailClient({ id }: TrackingDetailClientProps) {
   const { getOrderById, getOrderItems, getStatusHistory } = useOrders();
   const { getProductsMap } = useProducts();
 
-  // Single batch lookup â€” avoids per-item function call overhead
+  // Single batch lookup — avoids per-item function call overhead
   const productsById = getProductsMap();
 
   const [order, setOrder] = useState<Order | null>(null);
@@ -94,12 +94,12 @@ export function TrackingDetailClient({ id }: TrackingDetailClientProps) {
     const cleanId = retryId.trim().toUpperCase();
 
     if (!cleanId) {
-      setRetryError('Ø§Ù„Ø±Ø¬Ø§Ø¡ Ø¥Ø¯Ø®Ø§Ù„ Ø±Ù‚Ù… Ø§Ù„ØªØªØ¨Ø¹ Ø§Ù„Ø®Ø§Øµ Ø¨Ùƒ.');
+      setRetryError('الرجاء إدخال رقم التتبع الخاص بك.');
       return;
     }
 
     if (!cleanId.startsWith('ET-') || cleanId.length !== 13) {
-      setRetryError('Ø±Ù‚Ù… ØªØªØ¨Ø¹ ØºÙŠØ± ØµØ­ÙŠØ­. ÙŠØ¬Ø¨ Ø£Ù† ÙŠØ¨Ø¯Ø£ Ø±Ù‚Ù… Ø§Ù„ØªØªØ¨Ø¹ Ø¨Ù€ "ET-" Ù…ØªØ¨ÙˆØ¹Ø§Ù‹ Ø¨Ù€ 10 Ø±Ù…ÙˆØ² (Ù…Ø«Ø§Ù„: ET-A1B2C3D4E5).');
+      setRetryError('رقم تتبع غير صحيح. يجب أن يبدأ رقم التتبع بـ "ET-" متبوعاً بـ 10 رموز (مثال: ET-A1B2C3D4E5).');
       return;
     }
 
@@ -111,7 +111,7 @@ export function TrackingDetailClient({ id }: TrackingDetailClientProps) {
   if (loading) {
     return (
       <div className="max-w-max-width mx-auto px-margin-mobile md:px-margin-desktop py-20 text-center font-poppins">
-        <p className="text-on-surface-variant text-sm">Ø¬Ø§Ø±ÙŠ Ø§Ù„Ø¨Ø­Ø« ÙÙŠ Ù‚Ø§Ø¹Ø¯Ø© Ø¨ÙŠØ§Ù†Ø§Øª ØªØªØ¨Ø¹ Ø·Ù„Ø¨Ø§Øª Ø¥Ù„ÙƒØªØ±Ùˆ ØªÙˆØ¨...</p>
+        <p className="text-on-surface-variant text-sm">جاري البحث في قاعدة بيانات تتبع طلبات إلكترو توب...</p>
       </div>
     );
   }
@@ -128,10 +128,10 @@ export function TrackingDetailClient({ id }: TrackingDetailClientProps) {
           
           <div className="space-y-2 text-center">
             <h2 className="text-2xl font-montserrat font-extrabold text-on-surface">
-              Ù„Ù… ÙŠØªÙ… Ø§Ù„Ø¹Ø«ÙˆØ± Ø¹Ù„Ù‰ Ø§Ù„Ø·Ù„Ø¨
+              لم يتم العثور على الطلب
             </h2>
             <p className="text-sm text-on-surface-variant">
-              Ø±Ù‚Ù… Ø§Ù„ØªØªØ¨Ø¹ Ù‡Ø°Ø§ ØºÙŠØ± Ù…ÙˆØ¬ÙˆØ¯. ÙŠØ±Ø¬Ù‰ Ø§Ù„ØªØ­Ù‚Ù‚ Ù…Ù† Ø±Ù‚Ù… Ø§Ù„ØªØªØ¨Ø¹ (Ù…Ø«Ø§Ù„: ET-A1B2C3D4E5) ÙˆØ§Ù„Ù…Ø­Ø§ÙˆÙ„Ø© Ù…Ø±Ø© Ø£Ø®Ø±Ù‰.
+              رقم التتبع هذا غير موجود. يرجى التحقق من رقم التتبع (مثال: ET-A1B2C3D4E5) والمحاولة مرة أخرى.
             </p>
           </div>
 
@@ -153,14 +153,14 @@ export function TrackingDetailClient({ id }: TrackingDetailClientProps) {
               <p className="text-xs text-error font-medium">{retryError}</p>
             )}
             <button type="submit" className="w-full bg-primary text-on-primary py-3 rounded-lg font-label-md text-label-md hover:opacity-90 transition-all uppercase tracking-widest cursor-pointer">
-              Ø¬Ø±Ø¨ Ø±Ù‚Ù… ØªØªØ¨Ø¹ Ø¢Ø®Ø±
+              جرب رقم تتبع آخر
             </button>
           </form>
 
           <div className="pt-2 text-center">
             <Link href="/track" className="group inline-flex items-center gap-2 text-sm font-semibold text-primary">
               <span className="material-symbols-outlined select-none rotate-180">arrow_back</span>
-              <span className="group-hover:underline">Ø§Ù„Ø¹ÙˆØ¯Ø©</span>
+              <span className="group-hover:underline">العودة</span>
             </Link>
           </div>
         </div>
@@ -191,24 +191,24 @@ export function TrackingDetailClient({ id }: TrackingDetailClientProps) {
       <div className="mb-8 flex justify-start">
         <Link href="/track" className="group flex items-center gap-2 text-primary font-label-md w-fit">
           <span className="material-symbols-outlined select-none rotate-180">arrow_back</span>
-          <span className="group-hover:underline">Ø§Ù„Ø¹ÙˆØ¯Ø© Ø¥Ù„Ù‰ ØªØªØ¨Ø¹ Ø§Ù„Ø´Ø­Ù†Ø§Øª</span>
+          <span className="group-hover:underline">العودة إلى تتبع الشحنات</span>
         </Link>
       </div>
 
       <div className="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-outline-variant/30 pb-6 text-start">
         <div>
           <span className="text-primary font-label-md uppercase tracking-widest text-xs font-semibold">
-            Ø­Ø§Ù„Ø© Ø§Ù„ØªØªØ¨Ø¹
+            حالة التتبع
           </span>
           <h1 className="font-headline-lg text-headline-lg mt-2 text-on-surface uppercase tracking-tight">
-            Ø·Ù„Ø¨ Ø±Ù‚Ù… {order.id_unique_tracking}
+            طلب رقم {order.id_unique_tracking}
           </h1>
         </div>
         
         <div className={`px-6 py-3 rounded-full flex items-center gap-3 border ${statusColorInfo.text} shrink-0 w-fit`}>
           <span className={`w-3 h-3 rounded-full pulsing-dot ${statusColorInfo.dot}`}></span>
           <span className="font-label-md text-label-md font-bold">
-            Ø§Ù„Ø­Ø§Ù„Ø© Ø§Ù„Ø­Ø§Ù„ÙŠØ©: {translateStatus(order.status, true)}
+            الحالة الحالية: {translateStatus(order.status, true)}
           </span>
         </div>
       </div>
@@ -225,10 +225,10 @@ export function TrackingDetailClient({ id }: TrackingDetailClientProps) {
           <div className="bg-on-background text-surface rounded-xl p-8 shadow-xl text-start space-y-5">
             <div className="flex justify-between items-start border-b border-surface/20 pb-4 mb-2">
               <h3 className="font-headline-md text-headline-md text-secondary-fixed">
-                ØªÙØ§ØµÙŠÙ„ Ø§Ù„ÙØ§ØªÙˆØ±Ø©
+                تفاصيل الفاتورة
               </h3>
               <div className="text-left">
-                <p className="text-surface-variant font-label-sm text-[10px] uppercase tracking-widest">Ø±Ù‚Ù… Ø§Ù„Ø·Ù„Ø¨</p>
+                <p className="text-surface-variant font-label-sm text-[10px] uppercase tracking-widest">رقم الطلب</p>
                 <p className="font-mono text-xs font-bold text-white tracking-wider">{order.id_unique_tracking}</p>
               </div>
             </div>
@@ -237,7 +237,7 @@ export function TrackingDetailClient({ id }: TrackingDetailClientProps) {
               <span className="material-symbols-outlined text-[14px] select-none">calendar_today</span>
               <span>
                 {new Date(order.created_at).toLocaleDateString('ar-EG', { month: 'short', day: 'numeric', year: 'numeric' })}
-                {' â€” '}
+                {' — '}
                 {new Date(order.created_at).toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' })}
               </span>
             </div>
@@ -245,7 +245,7 @@ export function TrackingDetailClient({ id }: TrackingDetailClientProps) {
             <div className="space-y-4 max-h-[300px] overflow-y-auto pe-1">
               {orderItems.map((item) => {
                 const product = productsById.get(item.product_id);
-                const name = product ? product.name : item.product_name || 'Ø¹Ù†ØµØ± ØºÙŠØ± Ù…Ø¹Ø±ÙˆÙ';
+                const name = product ? product.name : item.product_name || 'عنصر غير معروف';
                 const imageUrl = product ? product.image_url : item.product_image;
 
                 return (
@@ -272,7 +272,7 @@ export function TrackingDetailClient({ id }: TrackingDetailClientProps) {
                       <p className="font-label-md text-label-md text-white truncate">
                         {name}
                       </p>
-                      <p className="text-surface-variant font-label-sm">Ø§Ù„ÙƒÙ…ÙŠØ©: {item.quantity} Ã— {formatCurrency(item.unit_price)}</p>
+                      <p className="text-surface-variant font-label-sm">الكمية: {item.quantity} × {formatCurrency(item.unit_price)}</p>
                     </div>
                     <p className="font-bold shrink-0 font-mono">{formatCurrency(item.unit_price * item.quantity)}</p>
                   </div>
@@ -282,15 +282,15 @@ export function TrackingDetailClient({ id }: TrackingDetailClientProps) {
 
             <div className="border-t border-surface/20 pt-5 mt-4 space-y-2 text-sm text-white">
               <div className="flex justify-between items-center">
-                <span className="text-surface-variant">Ø§Ù„Ù…Ø¬Ù…ÙˆØ¹ Ø§Ù„ÙØ±Ø¹ÙŠ</span>
+                <span className="text-surface-variant">المجموع الفرعي</span>
                 <span className="font-mono">{formatCurrency(order.total_amount)}</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-surface-variant">Ø§Ù„Ø´Ø­Ù†</span>
-                <span className="font-bold text-xs" style={{ color: '#4ade80' }}>Ù…Ø¬Ø§Ù†ÙŠ</span>
+                <span className="text-surface-variant">الشحن</span>
+                <span className="font-bold text-xs" style={{ color: '#4ade80' }}>مجاني</span>
               </div>
               <div className="flex justify-between items-center pt-3 border-t border-surface/20 mt-1">
-                <span className="font-headline-md text-headline-md">Ø§Ù„Ø¥Ø¬Ù…Ø§Ù„ÙŠ</span>
+                <span className="font-headline-md text-headline-md">الإجمالي</span>
                 <span className="font-headline-lg text-headline-lg text-secondary-fixed gold-glow font-mono">
                   {formatCurrency(order.total_amount)}
                 </span>
@@ -299,13 +299,13 @@ export function TrackingDetailClient({ id }: TrackingDetailClientProps) {
 
             <div className="pt-3 border-t border-surface/10 flex items-center gap-2 text-surface-variant text-xs">
               <span className="material-symbols-outlined text-[14px] select-none">payments</span>
-              <span>ØªÙ… Ø§Ù„Ø¯ÙØ¹ Ø¹Ø¨Ø± Ø¥Ù†Ø³ØªØ§Ø¨Ø§ÙŠ (InstaPay)</span>
+              <span>تم الدفع عبر إنستاباي (InstaPay)</span>
             </div>
           </div>
 
           <div className="bg-surface-container-lowest p-8 border border-outline-variant/30 rounded-xl text-start space-y-4">
             <div>
-              <h4 className="font-headline-md text-headline-md mb-3 text-on-surface">Ø¹Ù†ÙˆØ§Ù† Ø§Ù„ØªÙˆØµÙŠÙ„</h4>
+              <h4 className="font-headline-md text-headline-md mb-3 text-on-surface">عنوان التوصيل</h4>
               <p className="text-on-surface-variant text-body-md leading-relaxed whitespace-pre-line text-start">
                 {order.customer_name}
                 {'\n'}
@@ -316,7 +316,7 @@ export function TrackingDetailClient({ id }: TrackingDetailClientProps) {
             {order.location_link && getSafeUrl(order.location_link) && (
               <div className="pt-3 border-t border-outline-variant/20">
                 <p className="font-label-sm text-label-sm text-on-surface-variant uppercase font-bold tracking-wider mb-1">
-                  Ø±Ø§Ø¨Ø· Ø§Ù„Ù…ÙˆÙ‚Ø¹ Ø§Ù„Ø¬ØºØ±Ø§ÙÙŠ
+                  رابط الموقع الجغرافي
                 </p>
                 <a
                   href={getSafeUrl(order.location_link)!}
@@ -325,7 +325,7 @@ export function TrackingDetailClient({ id }: TrackingDetailClientProps) {
                   className="group inline-flex items-center gap-1.5 text-primary font-body-md text-body-md font-semibold"
                 >
                   <span className="material-symbols-outlined text-[18px]">map</span>
-                  <span className="group-hover:underline">Ø¹Ø±Ø¶ Ø§Ù„Ù…ÙˆÙ‚Ø¹ Ø§Ù„Ø¬ØºØ±Ø§ÙÙŠ Ø§Ù„Ù…Ø±Ø³Ù„</span>
+                  <span className="group-hover:underline">عرض الموقع الجغرافي المرسل</span>
                 </a>
               </div>
             )}

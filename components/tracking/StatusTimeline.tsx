@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { memo } from 'react';
 import type { OrderStatus, OrderStatusHistory } from '@/types';
@@ -11,26 +11,26 @@ interface StatusTimelineProps {
 const STATUS_FLOW: { status: OrderStatus; label: string; desc: string; icon: string }[] = [
   {
     status: 'Pending Review',
-    label: 'Ù‚ÙŠØ¯ Ø§Ù„Ù…Ø±Ø§Ø¬Ø¹Ø©',
-    desc: 'Ù†Ø­Ù† Ù†ØªØ­Ù‚Ù‚ Ù…Ù† ØªÙØ§ØµÙŠÙ„ Ø§Ù„Ø¯ÙØ¹ ÙˆØ§Ù„Ø·Ù„Ø¨.',
+    label: 'قيد المراجعة',
+    desc: 'نحن نتحقق من تفاصيل الدفع والطلب.',
     icon: 'hourglass_empty',
   },
   {
     status: 'Accepted',
-    label: 'ØªÙ… Ù‚Ø¨ÙˆÙ„ Ø§Ù„Ø·Ù„Ø¨',
-    desc: 'ØªÙ… ØªØ£ÙƒÙŠØ¯ Ø¹Ù…Ù„ÙŠØ© Ø§Ù„ØªØ­ÙˆÙŠÙ„ ÙˆØ§Ù„Ø¯ÙØ¹ Ø¨Ù†Ø¬Ø§Ø­.',
+    label: 'تم قبول الطلب',
+    desc: 'تم تأكيد عملية التحويل والدفع بنجاح.',
     icon: 'check_circle',
   },
   {
     status: 'Processing',
-    label: 'Ù‚ÙŠØ¯ Ø§Ù„ØªØ­Ø¶ÙŠØ± ÙˆØ§Ù„Ø´Ø­Ù†',
-    desc: 'ÙŠØªÙ… Ø§Ù„Ø¢Ù† ØªØ­Ø¶ÙŠØ± ÙˆØªØºÙ„ÙŠÙ Ø´Ø­Ù†ØªÙƒ ÙˆØªØ³Ù„ÙŠÙ…Ù‡Ø§ Ù„Ù„Ù…Ù†Ø¯ÙˆØ¨.',
+    label: 'قيد التحضير والشحن',
+    desc: 'يتم الآن تحضير وتغليف شحنتك وتسليمها للمندوب.',
     icon: 'local_shipping',
   },
   {
     status: 'Delivered',
-    label: 'ØªÙ… Ø§Ù„ØªÙˆØµÙŠÙ„',
-    desc: 'ØªÙ… ØªØ³Ù„ÙŠÙ… Ø§Ù„Ø´Ø­Ù†Ø© ÙˆØªÙˆØµÙŠÙ„Ù‡Ø§ Ù„Ù„Ù…ÙˆÙ‚Ø¹ Ø¨Ù†Ø¬Ø§Ø­.',
+    label: 'تم التوصيل',
+    desc: 'تم تسليم الشحنة وتوصيلها للموقع بنجاح.',
     icon: 'home',
   },
 ];
@@ -55,14 +55,14 @@ export const StatusTimeline = memo(function StatusTimeline({ currentStatus, stat
         </span>
         <div className="space-y-2">
           <h3 className="text-xl font-montserrat font-extrabold text-error">
-            ØªÙ… Ø±ÙØ¶ Ø§Ù„Ø·Ù„Ø¨
+            تم رفض الطلب
           </h3>
           <p className="text-sm text-on-surface-variant leading-relaxed">
-            ØªÙ… Ø±ÙØ¶ Ù‡Ø°Ø§ Ø§Ù„Ø·Ù„Ø¨ Ù…Ù† Ù‚Ø¨Ù„ Ø¥Ø¯Ø§Ø±Ø© Ø§Ù„Ù…ÙˆÙ‚Ø¹. Ø¥Ø°Ø§ ÙƒØ§Ù† Ù„Ø¯ÙŠÙƒ Ø£ÙŠ Ø§Ø³ØªÙØ³Ø§Ø± Ø¨Ø®ØµÙˆØµ Ù‡Ø°Ø§ Ø§Ù„Ù‚Ø±Ø§Ø±ØŒ ÙŠØ±Ø¬Ù‰ Ø§Ù„ØªÙˆØ§ØµÙ„ Ù…Ø¹ Ø§Ù„Ø¯Ø¹Ù… Ø§Ù„ÙÙ†ÙŠ ÙˆØªØ²ÙˆÙŠØ¯Ù‡Ù… Ø¨Ø±Ù‚Ù… Ø§Ù„ØªØªØ¨Ø¹.
+            تم رفض هذا الطلب من قبل إدارة الموقع. إذا كان لديك أي استفسار بخصوص هذا القرار، يرجى التواصل مع الدعم الفني وتزويدهم برقم التتبع.
           </p>
           {declinedTime && (
             <p className="text-xs text-gray-500 font-semibold pt-1">
-              ØªØ§Ø±ÙŠØ® Ø§Ù„Ø±ÙØ¶: {declinedTime}
+              تاريخ الرفض: {declinedTime}
             </p>
           )}
         </div>
@@ -77,7 +77,7 @@ export const StatusTimeline = memo(function StatusTimeline({ currentStatus, stat
 
   return (
     <div className="space-y-12 bg-surface-container-lowest p-8 md:p-12 rounded-xl border border-outline-variant/30 shadow-sm text-start font-poppins">
-      <h2 className="font-headline-md text-headline-md mb-8 text-on-surface">Ù…Ø³Ø§Ø± Ø´Ø­Ù†ØªÙƒ</h2>
+      <h2 className="font-headline-md text-headline-md mb-8 text-on-surface">مسار شحنتك</h2>
       
       <div className="relative pr-12 space-y-12">
         <div className="absolute right-[19px] top-2 bottom-2 w-1 bg-outline-variant/30"></div>
@@ -139,7 +139,7 @@ export const StatusTimeline = memo(function StatusTimeline({ currentStatus, stat
                 </h4>
                 
                 <p className="text-on-surface-variant text-body-md mt-1">
-                  {formattedTime ? formattedTime : isCurrent ? 'Ø§Ù„Ù…Ø±Ø­Ù„Ø© Ø§Ù„Ø­Ø§Ù„ÙŠØ©' : 'Ø¨Ø§Ù†ØªØ¸Ø§Ø± ÙˆØµÙˆÙ„ Ø§Ù„Ø´Ø­Ù†Ø©'}
+                  {formattedTime ? formattedTime : isCurrent ? 'المرحلة الحالية' : 'بانتظار وصول الشحنة'}
                 </p>
                 
                 <p className="text-on-surface-variant font-label-sm mt-2 max-w-lg leading-relaxed">

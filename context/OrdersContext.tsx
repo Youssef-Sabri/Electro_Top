@@ -1,8 +1,7 @@
-﻿'use client';
+'use client';
 
 import { createContext, useState, useEffect, useMemo, useCallback, useRef, ReactNode } from 'react';
 import type { Order, OrderItem, OrderStatusHistory, OrderStatus, CartItem } from '@/types';
-import { generateOrderId } from '@/lib/id-generator';
 import type { CheckoutFormData } from '@/lib/validators';
 import { supabase } from '@/lib/supabase';
 import { clearAllReceipts, deleteReceiptImage } from '@/lib/image-utils';
@@ -181,14 +180,28 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const createOrder = useCallback(async (data: CheckoutFormData, cartItems: CartItem[]): Promise<Order> => {
-    const trackingId = generateOrderId();
+    const response = await fetch('/api/orders', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...data, cartItems }),
+    })
+
+    const result = await response.json()
+
+    if (!response.ok) {
+      if (result.fieldErrors) {
+        const firstError = Object.values(result.fieldErrors)[0]
+        throw new Error(typeof firstError === 'string' ? firstError : 'بيانات غير صالحة.')
+      }
+      throw new Error(result.error || 'فشل إنشاء الطلب.')
+    }
+
+    const trackingId = result.trackingId
+    const timestamp = new Date().toISOString()
     const totalAmount = cartItems.reduce(
       (acc, item) => acc + item.product.price * item.quantity,
       0
-    );
-    const timestamp = new Date().toISOString();
-
-    const screenshotUrl = data.instapay_screenshot;
+    )
 
     const newOrder: Order = {
       id_unique_tracking: trackingId,
@@ -200,9 +213,9 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
       created_at: timestamp,
       admin_notes: '',
       location_link: data.location_link,
-      instapay_screenshot: screenshotUrl,
+      instapay_screenshot: data.instapay_screenshot,
       instapay_phone_number: data.instapay_phone_number,
-    };
+    }
 
     const newItems: OrderItem[] = cartItems.map((item, index) => ({
       id: `oi-${trackingId}-${index}`,
@@ -210,45 +223,20 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
       product_id: item.product.id,
       quantity: item.quantity,
       unit_price: item.product.price,
-    }));
+    }))
 
     const initialHistory: OrderStatusHistory = {
       id: `h-${trackingId}-init`,
       order_id: trackingId,
       status: 'Pending Review',
       timestamp,
-    };
-
-    const { error: oErr } = await supabase.from('orders').insert([newOrder]);
-    if (oErr) {
-      throw new Error(oErr.message);
     }
 
-    const [
-      { error: oiErr },
-      { error: hErr },
-    ] = await Promise.all([
-      supabase.from('order_items').insert(newItems),
-      supabase.from('order_status_history').insert([initialHistory]),
-    ]);
+    setOrders((prev) => [newOrder, ...prev])
+    setOrderItems((prev) => [...prev, ...newItems])
+    setStatusHistory((prev) => [...prev, initialHistory])
 
-    if (oiErr || hErr) {
-      await supabase.from('orders').delete().eq('id_unique_tracking', trackingId).maybeSingle();
-      if (oiErr) {
-        if (process.env.NODE_ENV !== 'production') console.error('Failed to insert order items records:', oiErr);
-        throw new Error('ÙØ´Ù„ Ø­ÙØ¸ Ù…Ù†ØªØ¬Ø§Øª Ø§Ù„Ø·Ù„Ø¨. ÙŠØ±Ø¬Ù‰ Ø§Ù„Ù…Ø­Ø§ÙˆÙ„Ø© Ù…Ø±Ø© Ø£Ø®Ø±Ù‰.');
-      }
-      if (hErr) {
-        if (process.env.NODE_ENV !== 'production') console.error('Failed to insert status history logs:', hErr);
-        throw new Error('ÙØ´Ù„ Ø­ÙØ¸ Ø³Ø¬Ù„ Ø§Ù„Ø·Ù„Ø¨. ÙŠØ±Ø¬Ù‰ Ø§Ù„Ù…Ø­Ø§ÙˆÙ„Ø© Ù…Ø±Ø© Ø£Ø®Ø±Ù‰.');
-      }
-    }
-
-    setOrders((prev) => [newOrder, ...prev]);
-    setOrderItems((prev) => [...prev, ...newItems]);
-    setStatusHistory((prev) => [...prev, initialHistory]);
-
-    return newOrder;
+    return newOrder
   }, []);
 
   const updateOrderStatus = useCallback(async (orderId: string, status: string) => {

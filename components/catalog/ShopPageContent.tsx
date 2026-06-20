@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { memo, useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import dynamic from 'next/dynamic';
@@ -18,10 +18,10 @@ const ALL_CATEGORIES = 'All';
 type SortByType = 'name-asc' | 'price-asc' | 'price-desc';
 
 const CATEGORY_LABELS: Record<string, string> = {
-  'Circuit Protection': 'Ø­Ù…Ø§ÙŠØ© Ø§Ù„Ø¯ÙˆØ§Ø¦Ø± Ø§Ù„ÙƒÙ‡Ø±Ø¨Ø§Ø¦ÙŠØ©',
-  'Distribution Boards': 'Ù„ÙˆØ­Ø§Øª Ø§Ù„ØªÙˆØ²ÙŠØ¹',
-  'Cables & Wires': 'ÙƒØ§Ø¨Ù„Ø§Øª ÙˆØ£Ø³Ù„Ø§Ùƒ',
-  'Wiring Accessories': 'Ø¥ÙƒØ³Ø³ÙˆØ§Ø±Ø§Øª Ø§Ù„ØªÙˆØµÙŠÙ„',
+  'Circuit Protection': 'حماية الدوائر الكهربائية',
+  'Distribution Boards': 'لوحات التوزيع',
+  'Cables & Wires': 'كابلات وأسلاك',
+  'Wiring Accessories': 'إكسسوارات التوصيل',
 };
 
 interface ShopPageContentProps {
@@ -150,7 +150,7 @@ export const ShopPageContent = memo(function ShopPageContent({ initialProducts, 
   }, [debouncedSearch, category, hideOutOfStock, sortBy, resetPage]);
 
   const getCategoryLabel = (cat: string) => {
-    if (cat === 'All') return 'Ø¬Ù…ÙŠØ¹ Ø§Ù„Ø£Ù‚Ø³Ø§Ù…';
+    if (cat === 'All') return 'جميع الأقسام';
     return CATEGORY_LABELS[cat] || cat;
   };
 
@@ -167,10 +167,10 @@ export const ShopPageContent = memo(function ShopPageContent({ initialProducts, 
         <div className="absolute inset-0 diagonal-accents opacity-10"></div>
         <div className="max-w-max-width mx-auto px-margin-mobile md:px-margin-desktop relative z-10">
           <span className="text-electro-gold font-bold text-xs uppercase tracking-widest">
-            Ø§ÙƒØªØ´Ù ÙƒØªØ§Ù„ÙˆØ¬ Ù…Ù†ØªØ¬Ø§ØªÙ†Ø§
+            اكتشف كتالوج منتجاتنا
           </span>
           <h1 className="font-headline-lg text-[32px] md:text-[40px] text-white font-extrabold mt-2">
-            Ø§Ù„Ù…ØªØ¬Ø±
+            المتجر
           </h1>
           <div className="w-16 h-1 bg-electro-red rounded-full mt-4"></div>
         </div>
@@ -184,7 +184,7 @@ export const ShopPageContent = memo(function ShopPageContent({ initialProducts, 
             <div className="relative flex-grow max-w-xl text-start">
                <input
                  className="w-full bg-white border border-gray-300 rounded-lg pr-10 pl-4 py-2.5 text-label-md focus:ring-2 focus:ring-primary/10 focus:border-primary outline-none transition-all text-on-surface text-right"
-                 placeholder="Ø§Ù„Ø¨Ø­Ø« Ø¹Ù† Ù…Ø³ØªÙ„Ø²Ù…Ø§Øª ÙƒÙ‡Ø±Ø¨Ø§Ø¦ÙŠØ©..."
+                 placeholder="البحث عن مستلزمات كهربائية..."
                  type="text"
                  value={searchInput}
                  onChange={(e) => setSearchInput(e.target.value)}
@@ -202,12 +202,12 @@ export const ShopPageContent = memo(function ShopPageContent({ initialProducts, 
                   onChange={(e) => setHideOutOfStock(e.target.checked)}
                  className="w-4.5 h-4.5 rounded border-gray-300 focus:ring-primary text-primary accent-primary cursor-pointer"
                />
-                Ø¥Ø®ÙØ§Ø¡ Ø§Ù„Ù…Ù†ØªØ¬Ø§Øª ØºÙŠØ± Ø§Ù„Ù…ØªÙˆÙØ±Ø©
+                إخفاء المنتجات غير المتوفرة
               </label>
 
               <div className="flex items-center gap-2">
                <CustomDropdown
-                 labelPrefix="Ø§Ù„Ù‚Ø³Ù…:"
+                 labelPrefix="القسم:"
                  options={categoriesList.map(cat => ({ 
                    value: cat, 
                    label: getCategoryLabel(cat)
@@ -220,11 +220,11 @@ export const ShopPageContent = memo(function ShopPageContent({ initialProducts, 
 
               <div className="flex items-center gap-2">
                <CustomDropdown
-                 labelPrefix="ØªØ±ØªÙŠØ¨ Ø­Ø³Ø¨:"
+                 labelPrefix="ترتيب حسب:"
                  options={[
-                   { value: 'name-asc', label: 'Ø£Ø¨Ø¬Ø¯ÙŠ (Ø£ - ÙŠ)' },
-                   { value: 'price-asc', label: 'Ø§Ù„Ø³Ø¹Ø±: Ù…Ù† Ø§Ù„Ø£Ù‚Ù„ Ù„Ù„Ø£Ø¹Ù„Ù‰' },
-                   { value: 'price-desc', label: 'Ø§Ù„Ø³Ø¹Ø±: Ù…Ù† Ø§Ù„Ø£Ø¹Ù„Ù‰ Ù„Ù„Ø£Ù‚Ù„' },
+                   { value: 'name-asc', label: 'أبجدي (أ - ي)' },
+                   { value: 'price-asc', label: 'السعر: من الأقل للأعلى' },
+                   { value: 'price-desc', label: 'السعر: من الأعلى للأقل' },
                  ]}
                  value={sortBy}
                   onChange={(val) => setSortBy(val as SortByType)}
@@ -249,7 +249,7 @@ export const ShopPageContent = memo(function ShopPageContent({ initialProducts, 
 
             <div className="flex justify-between items-center bg-surface-container-low border border-outline-variant/30 rounded-xl px-6 py-4 select-none font-poppins">
               <p className="font-label-md text-label-sm text-on-surface-variant font-medium">
-                Ø§Ù„ØµÙØ­Ø© {currentPage} Ù…Ù† {totalPages}
+                الصفحة {currentPage} من {totalPages}
               </p>
               <div className="flex gap-2">
                 <button
@@ -282,15 +282,15 @@ export const ShopPageContent = memo(function ShopPageContent({ initialProducts, 
             <span className="material-symbols-outlined text-[64px] text-on-surface-variant mb-4 select-none">
               search_off
             </span>
-            <h3 className="font-headline-md text-[20px] text-on-surface mb-2">Ù„Ù… ÙŠØªÙ… Ø§Ù„Ø¹Ø«ÙˆØ± Ø¹Ù„Ù‰ Ø£ÙŠ Ù…Ù†ØªØ¬Ø§Øª</h3>
+            <h3 className="font-headline-md text-[20px] text-on-surface mb-2">لم يتم العثور على أي منتجات</h3>
             <p className="text-on-surface-variant text-label-sm mb-6">
-              Ù„Ù… Ù†ØªÙ…ÙƒÙ† Ù…Ù† Ø§Ù„Ø¹Ø«ÙˆØ± Ø¹Ù„Ù‰ Ø£ÙŠ Ù…Ø³ØªÙ„Ø²Ù…Ø§Øª ÙƒÙ‡Ø±Ø¨Ø§Ø¦ÙŠØ© ØªØ·Ø§Ø¨Ù‚ Ø§Ù„ØªØµÙÙŠØ© Ø§Ù„Ø­Ø§Ù„ÙŠØ©.
+              لم نتمكن من العثور على أي مستلزمات كهربائية تطابق التصفية الحالية.
             </p>
             <button
               onClick={handleClearFilters}
               className="bg-primary text-on-primary px-6 py-2.5 rounded-lg font-label-md hover:opacity-90 transition-opacity cursor-pointer font-bold uppercase tracking-wider text-xs"
             >
-              Ø¥Ø¹Ø§Ø¯Ø© ØªØ¹ÙŠÙŠÙ† Ø§Ù„ØªØµÙÙŠØ©
+              إعادة تعيين التصفية
             </button>
           </div>
         )}

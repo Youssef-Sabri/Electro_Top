@@ -41,7 +41,8 @@ export async function DELETE(
   ])
 
   if (itemsError || historyError) {
-    return NextResponse.json({ error: 'Failed to delete order related records' }, { status: 500 })
+    if (process.env.NODE_ENV !== 'production') console.error('Delete order records error:', itemsError || historyError);
+    return NextResponse.json({ error: 'فشل حذف سجلات الطلب. يرجى المحاولة مرة أخرى.' }, { status: 500 })
   }
 
   const { error } = await supabaseClient
@@ -50,7 +51,8 @@ export async function DELETE(
     .eq('id_unique_tracking', id)
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    if (process.env.NODE_ENV !== 'production') console.error('Delete order error:', error);
+    return NextResponse.json({ error: 'فشل حذف الطلب. يرجى المحاولة مرة أخرى.' }, { status: 500 })
   }
 
   return NextResponse.json({ success: true })

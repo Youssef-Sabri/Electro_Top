@@ -2,12 +2,12 @@ import { supabase } from '@/lib/supabase';
 
 export async function verifyAdminPassword(password: string): Promise<boolean> {
   const { data: { user } } = await supabase.auth.getUser();
-  const { data: sessionData } = await supabase.auth.getSession();
-  if (!user?.email || !sessionData.session) return false;
+  if (!user?.email) return false;
 
-  const { error } = await supabase.auth.reauthenticate();
+  const { error } = await supabase.auth.signInWithPassword({
+    email: user.email,
+    password,
+  });
 
-  if (error) return false;
-
-  return true;
+  return !error;
 }

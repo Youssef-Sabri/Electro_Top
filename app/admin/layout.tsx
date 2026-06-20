@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
+import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
 
 interface AdminLayoutProps {
   children: React.ReactNode;
@@ -426,7 +427,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       {/* Main Content Area */}
       <div className="flex-grow min-h-screen ps-0 md:ps-64 pt-16 md:pt-0 print:ps-0 print:pt-0 print:min-h-0">
         <main className="p-margin-mobile md:p-margin-desktop min-h-screen text-start print:p-0 print:min-h-0">
-          {children}
+          <ErrorBoundary>{children}</ErrorBoundary>
         </main>
       </div>
     </div>

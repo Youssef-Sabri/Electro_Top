@@ -65,7 +65,8 @@ export async function PATCH(
     .eq('id', id)
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    if (process.env.NODE_ENV !== 'production') console.error('Update product error:', error);
+    return NextResponse.json({ error: 'فشل تحديث المنتج. يرجى المحاولة مرة أخرى.' }, { status: 500 })
   }
 
   return NextResponse.json({ success: true })
@@ -91,7 +92,8 @@ export async function DELETE(
     .eq('id', id)
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    if (process.env.NODE_ENV !== 'production') console.error('Delete product error:', error);
+    return NextResponse.json({ error: 'فشل حذف المنتج. يرجى المحاولة مرة أخرى.' }, { status: 500 })
   }
 
   return NextResponse.json({ success: true })

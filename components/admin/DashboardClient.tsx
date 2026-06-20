@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { memo, useMemo, useCallback, useEffect, useRef } from 'react';
 import Link from 'next/link';
@@ -19,7 +19,7 @@ export const DashboardClient = memo(function DashboardClient() {
     intervalRef.current = setInterval(() => {
       refreshOrders();
       refreshProducts();
-    }, 300_000);  // Poll every 5 minutes â€” realtime subscriptions handle live updates, polling is just a safety net
+    }, 300_000);  // Poll every 5 minutes — realtime subscriptions handle live updates, polling is just a safety net
   }, [refreshOrders, refreshProducts]);
 
   const stopPolling = useCallback(() => {
@@ -74,7 +74,7 @@ export const DashboardClient = memo(function DashboardClient() {
       const parentOrder = ordersMap.get(item.order_id);
       if (parentOrder && parentOrder.status === 'Delivered') {
         const prod = productsMap.get(item.product_id);
-        const cat = (prod && prod.category) ? prod.category : 'Ø£Ø®Ø±Ù‰';
+        const cat = (prod && prod.category) ? prod.category : 'أخرى';
         const cost = item.unit_price * item.quantity;
         
         salesByCategory[cat] = (salesByCategory[cat] || 0) + cost;
@@ -108,50 +108,50 @@ export const DashboardClient = memo(function DashboardClient() {
     <div className="space-y-8 font-poppins text-start">
       <div>
         <h1 className="font-headline-lg text-headline-lg font-bold text-on-surface">
-          Ø¥Ø­ØµØ§Ø¡Ø§Øª Ù„ÙˆØ­Ø© Ø§Ù„ØªØ­ÙƒÙ…
+          إحصاءات لوحة التحكم
         </h1>
         <p className="text-on-surface-variant text-body-md mt-1">
-          Ù†Ø¸Ø±Ø© Ø¹Ø§Ù…Ø© Ø¹Ù„Ù‰ Ø£Ø¯Ø§Ø¡ Ø§Ù„Ù…ØªØ¬Ø±ØŒ Ø£Ø±Ù‚Ø§Ù… Ø§Ù„Ù…Ø¨ÙŠØ¹Ø§ØªØŒ ÙˆÙ…Ù„Ø®ØµØ§Øª Ø§Ù„Ø´Ø­Ù† ÙˆØ§Ù„ØªÙˆØµÙŠÙ„.
+          نظرة عامة على أداء المتجر، أرقام المبيعات، وملخصات الشحن والتوصيل.
         </p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <div className="bg-white border border-outline-variant/30 rounded-xl p-6 shadow-sm space-y-2">
           <div className="flex justify-between items-center text-on-surface-variant">
-            <span className="font-label-md text-label-md font-semibold uppercase tracking-wider">Ø¥Ø¬Ù…Ø§Ù„ÙŠ Ø§Ù„Ø¥ÙŠØ±Ø§Ø¯Ø§Øª</span>
+            <span className="font-label-md text-label-md font-semibold uppercase tracking-wider">إجمالي الإيرادات</span>
             <span className="material-symbols-outlined text-green-600 bg-green-50 p-2 rounded-lg text-[20px]">payments</span>
           </div>
           <h2 className="text-[28px] font-extrabold text-on-surface tracking-tight">
             {formatCurrency(stats.totalRevenue)}
           </h2>
-          <p className="text-xs text-on-surface-variant">Ù…Ù† Ø§Ù„Ø·Ù„Ø¨Ø§Øª Ø§Ù„ØªÙŠ ØªÙ… ØªÙˆØµÙŠÙ„Ù‡Ø§</p>
+          <p className="text-xs text-on-surface-variant">من الطلبات التي تم توصيلها</p>
         </div>
 
         <div className="bg-white border border-outline-variant/30 rounded-xl p-6 shadow-sm space-y-2">
           <div className="flex justify-between items-center text-on-surface-variant">
-            <span className="font-label-md text-label-md font-semibold uppercase tracking-wider">Ù‚ÙŠØ¯ Ø§Ù„ØªÙ†ÙÙŠØ° Ø§Ù„Ù†Ø´Ø·</span>
+            <span className="font-label-md text-label-md font-semibold uppercase tracking-wider">قيد التنفيذ النشط</span>
             <span className="material-symbols-outlined text-primary bg-primary/5 p-2 rounded-lg text-[20px]">timeline</span>
           </div>
           <h2 className="text-[28px] font-extrabold text-on-surface tracking-tight">
             {formatCurrency(stats.pendingRevenue)}
           </h2>
-          <p className="text-xs text-on-surface-variant">Ù…Ù† Ø§Ù„Ø·Ù„Ø¨Ø§Øª Ø§Ù„Ù…Ø¹Ù„Ù‚Ø© ÙˆÙ‚ÙŠØ¯ Ø§Ù„ØªØ­Ø¶ÙŠØ±</p>
+          <p className="text-xs text-on-surface-variant">من الطلبات المعلقة وقيد التحضير</p>
         </div>
 
         <div className="bg-white border border-outline-variant/30 rounded-xl p-6 shadow-sm space-y-2">
           <div className="flex justify-between items-center text-on-surface-variant">
-            <span className="font-label-md text-label-md font-semibold uppercase tracking-wider">Ø¥Ø¬Ù…Ø§Ù„ÙŠ Ø§Ù„Ø·Ù„Ø¨Ø§Øª</span>
+            <span className="font-label-md text-label-md font-semibold uppercase tracking-wider">إجمالي الطلبات</span>
             <span className="material-symbols-outlined text-purple-600 bg-purple-50 p-2 rounded-lg text-[20px]">shopping_bag</span>
           </div>
           <h2 className="text-[28px] font-extrabold text-on-surface tracking-tight">
             {stats.totalOrders}
           </h2>
-          <p className="text-xs text-on-surface-variant">ÙŠØ´Ù…Ù„ Ø¬Ù…ÙŠØ¹ Ø§Ù„Ø­Ø§Ù„Ø§Øª ÙˆØ§Ù„Ø³Ø¬Ù„Ø§Øª</p>
+          <p className="text-xs text-on-surface-variant">يشمل جميع الحالات والسجلات</p>
         </div>
 
         <div className="bg-white border border-outline-variant/30 rounded-xl p-6 shadow-sm space-y-2">
           <div className="flex justify-between items-center text-on-surface-variant">
-            <span className="font-label-md text-label-md font-semibold uppercase tracking-wider">Ø§Ù„Ù…Ø®Ø²ÙˆÙ† Ø¨Ø§Ù„ÙƒØªØ§Ù„ÙˆØ¬</span>
+            <span className="font-label-md text-label-md font-semibold uppercase tracking-wider">المخزون بالكتالوج</span>
             <span className="material-symbols-outlined text-amber-600 bg-amber-50 p-2 rounded-lg text-[20px]">inventory_2</span>
           </div>
           <h2 className="text-[28px] font-extrabold text-on-surface tracking-tight">
@@ -159,9 +159,9 @@ export const DashboardClient = memo(function DashboardClient() {
           </h2>
           <p className="text-xs text-on-surface-variant">
             {stats.outOfStockCount > 0 ? (
-              <span className="text-red-500 font-medium">âš ï¸ {stats.outOfStockCount} Ù†ÙØ¯ Ù…Ù† Ø§Ù„Ù…Ø®Ø²ÙˆÙ†</span>
+              <span className="text-red-500 font-medium">⚠️ {stats.outOfStockCount} نفد من المخزون</span>
             ) : (
-              <span>Ø¬Ù…ÙŠØ¹ Ø§Ù„Ù…Ù†ØªØ¬Ø§Øª Ø§Ù„Ù†Ø´Ø·Ø©</span>
+              <span>جميع المنتجات النشطة</span>
             )}
           </p>
         </div>
@@ -169,48 +169,48 @@ export const DashboardClient = memo(function DashboardClient() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="bg-white border border-outline-variant/30 rounded-xl p-6 shadow-sm lg:col-span-2 space-y-6">
-          <h3 className="font-headline-md text-headline-sm font-bold text-on-surface">Ø­Ø§Ù„Ø© Ø´Ø­Ù† ÙˆØªÙˆØµÙŠÙ„ Ø§Ù„Ø·Ù„Ø¨Ø§Øª</h3>
+          <h3 className="font-headline-md text-headline-sm font-bold text-on-surface">حالة شحن وتوصيل الطلبات</h3>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             <div className="bg-surface p-4 rounded-lg text-center border border-outline-variant/10">
               <p className="text-2xl font-black text-amber-600">{stats.pendingCount}</p>
-              <p className="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant mt-1">Ù‚ÙŠØ¯ Ø§Ù„Ù…Ø±Ø§Ø¬Ø¹Ø©</p>
+              <p className="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant mt-1">قيد المراجعة</p>
             </div>
             <div className="bg-surface p-4 rounded-lg text-center border border-outline-variant/10">
               <p className="text-2xl font-black text-blue-600">{stats.processingCount}</p>
-              <p className="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant mt-1">Ù‚ÙŠØ¯ Ø§Ù„ØªØ­Ø¶ÙŠØ±</p>
+              <p className="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant mt-1">قيد التحضير</p>
             </div>
             <div className="bg-surface p-4 rounded-lg text-center border border-outline-variant/10">
               <p className="text-2xl font-black text-green-600">{stats.deliveredCount}</p>
-              <p className="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant mt-1">ØªÙ… Ø§Ù„ØªÙˆØµÙŠÙ„</p>
+              <p className="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant mt-1">تم التوصيل</p>
             </div>
             <div className="bg-surface p-4 rounded-lg text-center border border-outline-variant/10">
               <p className="text-2xl font-black text-red-600">{stats.declinedCount}</p>
-              <p className="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant mt-1">Ù…Ø±ÙÙˆØ¶</p>
+              <p className="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant mt-1">مرفوض</p>
             </div>
           </div>
         </div>
 
         <div className="bg-white border border-outline-variant/30 rounded-xl p-6 shadow-sm space-y-6">
-          <h3 className="font-headline-md text-headline-sm font-bold text-on-surface">Ù…Ø±Ø§Ù‚Ø¨Ø© Ø§Ù„Ù…Ø®Ø²ÙˆÙ†</h3>
+          <h3 className="font-headline-md text-headline-sm font-bold text-on-surface">مراقبة المخزون</h3>
           <div className="space-y-4">
             <div className="flex justify-between items-center">
               <div className="flex items-center gap-2">
                 <span className="w-2.5 h-2.5 rounded-full bg-red-500"></span>
-                <span className="text-body-md text-on-surface font-medium">Ù†ÙØ¯ Ù…Ù† Ø§Ù„Ù…Ø®Ø²ÙˆÙ†</span>
+                <span className="text-body-md text-on-surface font-medium">نفد من المخزون</span>
               </div>
               <span className="bg-red-50 text-red-700 px-2.5 py-1 rounded text-xs font-bold">{stats.outOfStockCount}</span>
             </div>
             <div className="flex justify-between items-center">
               <div className="flex items-center gap-2">
                 <span className="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
-                <span className="text-body-md text-on-surface font-medium">Ù…Ø®Ø²ÙˆÙ† Ù…Ù†Ø®ÙØ¶ (â‰¤5)</span>
+                <span className="text-body-md text-on-surface font-medium">مخزون منخفض (≤5)</span>
               </div>
               <span className="bg-amber-50 text-amber-700 px-2.5 py-1 rounded text-xs font-bold">{stats.lowStockCount}</span>
             </div>
             <div className="flex justify-between items-center">
               <div className="flex items-center gap-2">
                 <span className="w-2.5 h-2.5 rounded-full bg-green-500"></span>
-                <span className="text-body-md text-on-surface font-medium">Ù…Ø®Ø²ÙˆÙ† Ø¬ÙŠØ¯ (&gt;5)</span>
+                <span className="text-body-md text-on-surface font-medium">مخزون جيد (&gt;5)</span>
               </div>
               <span className="bg-green-50 text-green-700 px-2.5 py-1 rounded text-xs font-bold">
                 {Math.max(0, stats.totalProductsCount - stats.outOfStockCount - stats.lowStockCount)}
@@ -222,14 +222,14 @@ export const DashboardClient = memo(function DashboardClient() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="bg-white border border-outline-variant/30 rounded-xl p-6 shadow-sm space-y-6">
-          <h3 className="font-headline-md text-headline-sm font-bold text-on-surface">Ø­Ø¬Ù… Ù…Ø¨ÙŠØ¹Ø§Øª Ø§Ù„ÙØ¦Ø§Øª</h3>
+          <h3 className="font-headline-md text-headline-sm font-bold text-on-surface">حجم مبيعات الفئات</h3>
           <div className="space-y-4 max-h-[320px] overflow-y-auto pe-2 scrollbar-thin scrollbar-thumb-outline-variant">
             {Object.keys(stats.salesByCategory).length > 0 ? (
               Object.entries(stats.salesByCategory).map(([cat, val]) => (
                 <div key={cat} className="space-y-1">
                   <div className="flex justify-between text-body-md text-sm font-medium">
                     <span className="text-on-surface">{cat}</span>
-                    <span className="text-on-surface-variant">{formatCurrency(val)} ({stats.unitsByCategory[cat]} ÙˆØ­Ø¯Ø©)</span>
+                    <span className="text-on-surface-variant">{formatCurrency(val)} ({stats.unitsByCategory[cat]} وحدة)</span>
                   </div>
                   <div className="w-full bg-surface-container-low h-2 rounded-full overflow-hidden">
                     <div 
@@ -242,21 +242,21 @@ export const DashboardClient = memo(function DashboardClient() {
                 </div>
               ))
             ) : (
-              <p className="text-sm text-on-surface-variant italic">Ù„Ù… ÙŠØªÙ… ØªØ³Ø¬ÙŠÙ„ Ø£ÙŠ Ù…Ø¹Ø§Ù…Ù„Ø§Øª Ø¨ÙŠØ¹ Ø¨Ø¹Ø¯.</p>
+              <p className="text-sm text-on-surface-variant italic">لم يتم تسجيل أي معاملات بيع بعد.</p>
             )}
           </div>
         </div>
 
         <div className="bg-white border border-outline-variant/30 rounded-xl p-6 shadow-sm lg:col-span-2 space-y-6">
-          <h3 className="font-headline-md text-headline-sm font-bold text-on-surface">Ø§Ù„Ø·Ù„Ø¨Ø§Øª Ø§Ù„ÙˆØ§Ø±Ø¯Ø© Ù…Ø¤Ø®Ø±Ø§Ù‹</h3>
+          <h3 className="font-headline-md text-headline-sm font-bold text-on-surface">الطلبات الواردة مؤخراً</h3>
           <div className="overflow-x-auto">
             <table className="w-full text-start">
               <thead>
                 <tr className="border-b border-outline-variant/10 text-on-surface-variant select-none">
-                  <th className="pb-3 text-xs uppercase tracking-wider font-bold">Ø±Ù‚Ù… Ø§Ù„ØªØªØ¨Ø¹</th>
-                  <th className="pb-3 text-xs uppercase tracking-wider font-bold">Ø§Ù„Ø¹Ù…ÙŠÙ„</th>
-                  <th className="pb-3 text-xs uppercase tracking-wider font-bold">Ø§Ù„Ø¥Ø¬Ù…Ø§Ù„ÙŠ</th>
-                  <th className="pb-3 text-xs uppercase tracking-wider font-bold text-end">Ø§Ù„Ø­Ø§Ù„Ø©</th>
+                  <th className="pb-3 text-xs uppercase tracking-wider font-bold">رقم التتبع</th>
+                  <th className="pb-3 text-xs uppercase tracking-wider font-bold">العميل</th>
+                  <th className="pb-3 text-xs uppercase tracking-wider font-bold">الإجمالي</th>
+                  <th className="pb-3 text-xs uppercase tracking-wider font-bold text-end">الحالة</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-outline-variant/5">
@@ -278,7 +278,7 @@ export const DashboardClient = memo(function DashboardClient() {
                 ) : (
                   <tr>
                     <td colSpan={4} className="py-4 text-center text-sm text-on-surface-variant italic">
-                      Ù„Ù… ÙŠØªÙ… ØªØ³Ø¬ÙŠÙ„ Ø£ÙŠ Ø·Ù„Ø¨Ø§Øª Ø¨Ø¹Ø¯.
+                      لم يتم تسجيل أي طلبات بعد.
                     </td>
                   </tr>
                 )}

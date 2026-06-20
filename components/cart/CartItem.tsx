@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { memo, useCallback } from 'react';
 import Image from 'next/image';
@@ -61,7 +61,7 @@ export const CartItem = memo(function CartItem({ item }: CartItemProps) {
               onClick={handleDecrease}
               disabled={quantity <= 1}
               className="p-1 hover:text-primary transition-colors disabled:opacity-40 cursor-pointer flex items-center justify-center"
-              aria-label="ØªÙ‚Ù„ÙŠÙ„ Ø§Ù„ÙƒÙ…ÙŠØ©"
+              aria-label="تقليل الكمية"
             >
               <span className="material-symbols-outlined text-[20px] select-none">remove</span>
             </button>
@@ -72,7 +72,7 @@ export const CartItem = memo(function CartItem({ item }: CartItemProps) {
               onClick={handleIncrease}
               disabled={quantity >= product.stock}
               className="p-1 hover:text-primary transition-colors disabled:opacity-40 cursor-pointer flex items-center justify-center"
-              aria-label="Ø²ÙŠØ§Ø¯Ø© Ø§Ù„ÙƒÙ…ÙŠØ©"
+              aria-label="زيادة الكمية"
             >
               <span className="material-symbols-outlined text-[20px] select-none">add</span>
             </button>
@@ -81,10 +81,10 @@ export const CartItem = memo(function CartItem({ item }: CartItemProps) {
           <button
             onClick={handleRemove}
             className="flex items-center gap-1 text-on-surface-variant hover:text-error transition-colors font-label-md cursor-pointer"
-            aria-label="Ø­Ø°Ù Ø§Ù„Ù…Ù†ØªØ¬"
+            aria-label="حذف المنتج"
           >
             <span className="material-symbols-outlined text-[18px] select-none">delete</span>
-            Ø­Ø°Ù
+            حذف
           </button>
         </div>
       </div>

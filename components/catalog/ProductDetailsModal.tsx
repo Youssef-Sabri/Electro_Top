@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { memo, useState, useEffect, useRef, useCallback } from 'react';
 import Image from 'next/image';
@@ -88,7 +88,7 @@ export const ProductDetailsModal = memo(function ProductDetailsModal({ product, 
           {product.stock <= 0 && (
             <div className="absolute inset-0 bg-black/40 flex items-center justify-center backdrop-blur-[1px] z-10">
               <span className="bg-electro-red text-white font-montserrat font-bold px-6 py-2.5 rounded-md uppercase tracking-wider text-sm shadow-md">
-                Ù†ÙØ°Øª Ø§Ù„ÙƒÙ…ÙŠØ©
+                نفذت الكمية
               </span>
             </div>
           )}
@@ -104,7 +104,7 @@ export const ProductDetailsModal = memo(function ProductDetailsModal({ product, 
             <button
               onClick={onClose}
               className="p-1.5 rounded-full text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors cursor-pointer"
-              aria-label="Ø¥ØºÙ„Ø§Ù‚ Ø§Ù„Ù†Ø§ÙØ°Ø©"
+              aria-label="إغلاق النافذة"
             >
               <span className="material-symbols-outlined text-[24px] select-none">close</span>
             </button>
@@ -116,18 +116,18 @@ export const ProductDetailsModal = memo(function ProductDetailsModal({ product, 
             </span>
             {product.stock > 0 ? (
               <span className="bg-green-50 text-green-700 text-xs font-semibold px-2.5 py-1 rounded-md border border-green-200">
-                Ù…ØªÙˆÙØ± ÙÙŠ Ø§Ù„Ù…Ø®Ø²ÙˆÙ†: {product.stock}
+                متوفر في المخزون: {product.stock}
               </span>
             ) : (
               <span className="bg-red-50 text-red-700 text-xs font-semibold px-2.5 py-1 rounded-md border border-red-200">
-                Ù†ÙØ°Øª Ø§Ù„ÙƒÙ…ÙŠØ©
+                نفذت الكمية
               </span>
             )}
           </div>
 
           <div className="mb-6">
             <h3 className="font-semibold text-on-surface text-[12px] uppercase tracking-wider mb-2 font-montserrat">
-              Ù†Ø¸Ø±Ø© Ø¹Ø§Ù…Ø©
+              نظرة عامة
             </h3>
             <p className="text-on-surface-variant text-label-md leading-relaxed">
               {product.description}
@@ -143,7 +143,7 @@ export const ProductDetailsModal = memo(function ProductDetailsModal({ product, 
                   onClick={handleDecrement}
                   disabled={quantity <= 1}
                   className="p-1 hover:bg-surface-container rounded transition-colors disabled:opacity-30 disabled:hover:bg-transparent cursor-pointer"
-                  aria-label="ØªÙ‚Ù„ÙŠÙ„ Ø§Ù„ÙƒÙ…ÙŠØ©"
+                  aria-label="تقليل الكمية"
                 >
                   <span className="material-symbols-outlined text-[20px] select-none">remove</span>
                 </button>
@@ -152,7 +152,7 @@ export const ProductDetailsModal = memo(function ProductDetailsModal({ product, 
                   onClick={handleIncrement}
                   disabled={quantity >= product.stock}
                   className="p-1 hover:bg-surface-container rounded transition-colors disabled:opacity-30 disabled:hover:bg-transparent cursor-pointer"
-                  aria-label="Ø²ÙŠØ§Ø¯Ø© Ø§Ù„ÙƒÙ…ÙŠØ©"
+                  aria-label="زيادة الكمية"
                 >
                   <span className="material-symbols-outlined text-[20px] select-none">add</span>
                 </button>
@@ -173,7 +173,7 @@ export const ProductDetailsModal = memo(function ProductDetailsModal({ product, 
               <span className="material-symbols-outlined text-[20px] select-none">
                 {isAdded ? 'check_circle' : 'shopping_cart'}
               </span>
-              {product.stock <= 0 ? 'Ù†ÙØ°Øª Ø§Ù„ÙƒÙ…ÙŠØ©' : isAdded ? 'ØªÙ…Øª Ø§Ù„Ø¥Ø¶Ø§ÙØ© Ù„Ù„Ø³Ù„Ø© âœ“' : `Ø¥Ø¶Ø§ÙØ© ${quantity} Ø¥Ù„Ù‰ Ø§Ù„Ø³Ù„Ø©`}
+              {product.stock <= 0 ? 'نفذت الكمية' : isAdded ? 'تمت الإضافة للسلة ✓' : `إضافة ${quantity} إلى السلة`}
             </button>
           </div>
         </div>

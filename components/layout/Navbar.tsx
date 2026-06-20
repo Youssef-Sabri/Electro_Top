@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import React, { memo, useState, useEffect, useCallback, useRef } from 'react';
 import Link from 'next/link';
@@ -53,7 +53,7 @@ export const Navbar = memo(function Navbar() {
       <div className="max-w-max-width mx-auto flex justify-between items-center px-margin-desktop py-4">
         <Link href="/" className="flex items-center gap-3 hover:opacity-90 transition-opacity">
            <Image
-             alt="Ø´Ø¹Ø§Ø± Ø¥Ù„ÙƒØªØ±Ùˆ ØªÙˆØ¨"
+             alt="شعار إلكترو توب"
              className="h-8 w-auto mix-blend-multiply"
              src="/logo.jpg"
              width={32}
@@ -63,7 +63,7 @@ export const Navbar = memo(function Navbar() {
              priority
            />
           <span className="font-headline-md text-headline-md font-extrabold text-primary tracking-tighter">
-            Ø¥Ù„ÙƒØªØ±Ùˆ ØªÙˆØ¨
+            إلكترو توب
           </span>
         </Link>
 
@@ -76,7 +76,7 @@ export const Navbar = memo(function Navbar() {
                 : 'text-on-surface-variant hover:text-primary transition-opacity'
             }`}
           >
-            Ø§Ù„Ø±Ø¦ÙŠØ³ÙŠØ©
+            الرئيسية
           </Link>
           <Link
             href="/shop"
@@ -86,7 +86,7 @@ export const Navbar = memo(function Navbar() {
                 : 'text-on-surface-variant hover:text-primary transition-opacity'
             }`}
           >
-            Ø§Ù„Ù…ØªØ¬Ø±
+            المتجر
           </Link>
           <Link
             href="/track"
@@ -96,7 +96,7 @@ export const Navbar = memo(function Navbar() {
                 : 'text-on-surface-variant hover:text-primary transition-opacity'
             }`}
           >
-            ØªØªØ¨Ø¹ Ø§Ù„Ø·Ù„Ø¨
+            تتبع الطلب
           </Link>
           <Link
             href="/support"
@@ -106,7 +106,7 @@ export const Navbar = memo(function Navbar() {
                 : 'text-on-surface-variant hover:text-primary transition-opacity'
             }`}
           >
-            Ø§Ù„Ø¯Ø¹Ù…
+            الدعم
           </Link>
           {isMounted && isAdmin && (
             <Link
@@ -114,7 +114,7 @@ export const Navbar = memo(function Navbar() {
               className="font-label-md text-label-md text-primary bg-primary/10 border border-primary/20 px-3 py-1.5 rounded-lg hover:bg-primary/20 transition-all font-semibold uppercase tracking-wider text-xs flex items-center gap-1"
             >
               <span className="material-symbols-outlined text-[16px]">admin_panel_settings</span>
-              Ù„ÙˆØ­Ø© Ø§Ù„ØªØ­ÙƒÙ…
+              لوحة التحكم
             </Link>
           )}
         </div>
@@ -123,7 +123,7 @@ export const Navbar = memo(function Navbar() {
           <form onSubmit={handleSearchSubmit} className="relative hidden lg:block">
             <input
               className="bg-surface-container-low border border-outline-variant rounded-lg pr-10 pl-4 py-2 text-label-md focus:ring-2 focus:ring-primary/10 focus:border-primary outline-none transition-all text-on-surface text-right"
-              placeholder="Ø§Ù„Ø¨Ø­Ø« Ø¹Ù† Ø§Ù„Ù…Ù†ØªØ¬Ø§Øª..."
+              placeholder="البحث عن المنتجات..."
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -163,7 +163,7 @@ export const Navbar = memo(function Navbar() {
           <form onSubmit={handleSearchSubmit} className="relative w-full">
             <input
               className="w-full bg-surface-container-low border border-outline-variant rounded-lg pr-10 pl-4 py-2 text-label-md focus:ring-2 focus:ring-primary/10 focus:border-primary outline-none transition-all text-on-surface text-right"
-              placeholder="Ø§Ù„Ø¨Ø­Ø« Ø¹Ù† Ø§Ù„Ù…Ù†ØªØ¬Ø§Øª..."
+              placeholder="البحث عن المنتجات..."
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -180,7 +180,7 @@ export const Navbar = memo(function Navbar() {
                 isHomeActive ? 'text-primary font-bold' : 'text-on-surface-variant'
               }`}
             >
-              Ø§Ù„Ø±Ø¦ÙŠØ³ÙŠØ©
+              الرئيسية
             </Link>
             <Link
               href="/shop"
@@ -189,7 +189,7 @@ export const Navbar = memo(function Navbar() {
                 pathname.startsWith('/shop') ? 'text-primary font-bold' : 'text-on-surface-variant'
               }`}
             >
-              Ø§Ù„Ù…ØªØ¬Ø±
+              المتجر
             </Link>
             <Link
               href="/track"
@@ -198,7 +198,7 @@ export const Navbar = memo(function Navbar() {
                 isTrackActive ? 'text-primary font-bold' : 'text-on-surface-variant'
               }`}
             >
-              ØªØªØ¨Ø¹ Ø§Ù„Ø·Ù„Ø¨
+              تتبع الطلب
             </Link>
             <Link
               href="/support"
@@ -207,7 +207,7 @@ export const Navbar = memo(function Navbar() {
                 pathname.startsWith('/support') ? 'text-primary font-bold' : 'text-on-surface-variant'
               }`}
             >
-              Ø§Ù„Ø¯Ø¹Ù…
+              الدعم
             </Link>
             {isMounted && isAdmin && (
               <Link
@@ -216,7 +216,7 @@ export const Navbar = memo(function Navbar() {
                 className="font-label-md text-label-md py-2 text-primary font-bold border-t border-outline-variant/20 mt-2 pt-3 flex items-center gap-1.5 animate-fade-in-up"
               >
                 <span className="material-symbols-outlined text-[18px]">admin_panel_settings</span>
-                Ù„ÙˆØ­Ø© Ø§Ù„ØªØ­ÙƒÙ…
+                لوحة التحكم
               </Link>
             )}
           </div>

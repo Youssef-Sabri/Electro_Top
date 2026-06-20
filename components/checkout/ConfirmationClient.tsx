@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useEffect, useState, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
@@ -137,7 +137,7 @@ export function ConfirmationClient() {
         <div className="flex justify-center mb-4">
           <span className="material-symbols-outlined text-primary text-[48px] animate-spin select-none">sync</span>
         </div>
-        <p className="text-on-surface-variant text-sm">Ø¬Ø§Ø±ÙŠ Ø§Ø³ØªØ±Ø¯Ø§Ø¯ ØªÙØ§ØµÙŠÙ„ ØªØ£ÙƒÙŠØ¯ Ø·Ù„Ø¨Ùƒ...</p>
+        <p className="text-on-surface-variant text-sm">جاري استرداد تفاصيل تأكيد طلبك...</p>
       </div>
     );
   }
@@ -150,16 +150,16 @@ export function ConfirmationClient() {
             <span className="material-symbols-outlined text-5xl select-none">warning</span>
           </div>
         </div>
-        <h2 className="font-headline-lg text-headline-lg mb-2">Ù„Ù… ÙŠØªÙ… Ø§Ù„Ø¹Ø«ÙˆØ± Ø¹Ù„Ù‰ Ø§Ù„Ø·Ù„Ø¨</h2>
+        <h2 className="font-headline-lg text-headline-lg mb-2">لم يتم العثور على الطلب</h2>
         <p className="text-on-surface-variant mb-8">
-          Ù„Ù… Ù†ØªÙ…ÙƒÙ† Ù…Ù† Ø§Ù„Ø¹Ø«ÙˆØ± Ø¹Ù„Ù‰ Ø£ÙŠ Ø·Ù„Ø¨ Ø¨Ø±Ù‚Ù… Ø§Ù„ØªØªØ¨Ø¹{' '}
+          لم نتمكن من العثور على أي طلب برقم التتبع{' '}
           <span className="font-semibold text-on-surface">&quot;{orderId || 'N/A'}&quot;</span>.
         </p>
         <Link
           href="/"
           className="bg-primary text-on-primary px-8 py-3 rounded-lg font-label-md hover:opacity-90 inline-block uppercase tracking-wider"
         >
-          Ø§Ù„Ø¹ÙˆØ¯Ø© Ø¥Ù„Ù‰ Ø§Ù„Ù…ØªØ¬Ø±
+          العودة إلى المتجر
         </Link>
       </div>
     );
@@ -178,13 +178,13 @@ export function ConfirmationClient() {
         </div>
       </div>
 
-      <h1 className="font-headline-lg text-headline-lg mb-2 text-on-surface">ØªÙ… ØªØ£ÙƒÙŠØ¯ Ø·Ù„Ø¨Ùƒ Ø¨Ù†Ø¬Ø§Ø­!</h1>
+      <h1 className="font-headline-lg text-headline-lg mb-2 text-on-surface">تم تأكيد طلبك بنجاح!</h1>
       <p className="text-on-surface-variant mb-12">
-        Ø¬Ø§Ø±ÙŠ ØªØ¬Ù‡ÙŠØ² Ø·Ù„Ø¨Ùƒ Ù…Ù† Ø¥Ù„ÙƒØªØ±Ùˆ ØªÙˆØ¨ Ù„Ù„Ø´Ø­Ù†.
+        جاري تجهيز طلبك من إلكترو توب للشحن.
       </p>
 
       <div className="bg-on-background p-10 rounded-xl shadow-xl mb-12 transform hover:scale-[1.02] transition-transform duration-300 relative">
-        <p className="text-surface-variant font-label-md uppercase tracking-widest mb-4">Ø±Ù‚Ù… Ø§Ù„ØªØªØ¨Ø¹ Ø§Ù„Ø®Ø§Øµ Ø¨Ùƒ</p>
+        <p className="text-surface-variant font-label-md uppercase tracking-widest mb-4">رقم التتبع الخاص بك</p>
         <div className="flex items-center justify-center gap-3 flex-wrap">
           <h2 className="font-display-lg text-display-lg text-secondary-fixed gold-glow tracking-widest uppercase">
             {order.id_unique_tracking}
@@ -193,7 +193,7 @@ export function ConfirmationClient() {
             type="button"
             onClick={() => handleCopy(order.id_unique_tracking)}
             className="flex items-center justify-center p-2 rounded-lg bg-surface/10 hover:bg-surface/20 text-white transition-all cursor-pointer border border-white/10 active:scale-95 shrink-0"
-            title="Ù†Ø³Ø® Ø¥Ù„Ù‰ Ø§Ù„Ø­Ø§ÙØ¸Ø©"
+            title="نسخ إلى الحافظة"
           >
             <span className="material-symbols-outlined text-[20px]">
               {copied ? 'check' : 'content_copy'}
@@ -202,17 +202,17 @@ export function ConfirmationClient() {
         </div>
         {copied && (
           <p className="text-[11px] text-green-400 font-semibold uppercase tracking-wider mt-2 animate-pulse">
-            ØªÙ… Ø§Ù„Ù†Ø³Ø® Ø¥Ù„Ù‰ Ø§Ù„Ø­Ø§ÙØ¸Ø©!
+            تم النسخ إلى الحافظة!
           </p>
         )}
       </div>
 
       <div className="max-w-md mx-auto mb-10 space-y-4">
         <p className="text-sm font-semibold text-on-surface leading-relaxed">
-          ðŸš¨ <span className="font-bold">ÙŠØ±Ø¬Ù‰ Ù†Ø³Ø® Ø±Ù‚Ù… Ø§Ù„ØªØªØ¨Ø¹ Ø§Ù„Ø®Ø§Øµ Ø¨Ùƒ Ø£Ùˆ Ø§Ù„ØªÙ‚Ø§Ø· Ù„Ù‚Ø·Ø© Ø´Ø§Ø´Ø©</span> Ù„Ù‡Ø°Ù‡ Ø§Ù„ØµÙØ­Ø© Ù„ØªØªØ¨Ø¹ Ø·Ù„Ø¨Ùƒ ÙˆØ§Ù„ØªØ­Ù‚Ù‚ Ù…Ù† Ø­Ø§Ù„Ø© Ø§Ù„Ø´Ø­Ù†.
+          🚨 <span className="font-bold">يرجى نسخ رقم التتبع الخاص بك أو التقاط لقطة شاشة</span> لهذه الصفحة لتتبع طلبك والتحقق من حالة الشحن.
         </p>
         <p className="text-xs text-on-surface-variant leading-relaxed">
-          Ø¥Ø°Ø§ ÙƒØ§Ù† Ù„Ø¯ÙŠÙƒ Ø£ÙŠ Ø§Ø³ØªÙØ³Ø§Ø± Ø£Ùˆ ÙˆØ§Ø¬Ù‡Øª Ø£ÙŠ Ù…Ø´ÙƒÙ„Ø©ØŒ ÙŠÙ…ÙƒÙ†Ùƒ Ø§Ù„ØªÙˆØ§ØµÙ„ Ù…Ø¹Ù†Ø§ Ù…Ø¨Ø§Ø´Ø±Ø© Ø¹Ø¨Ø± ÙˆØ§ØªØ³Ø§Ø¨ Ù„Ù„Ø­ØµÙˆÙ„ Ø¹Ù„Ù‰ Ù…Ø³Ø§Ø¹Ø¯Ø© ÙÙˆØ±ÙŠØ©:
+          إذا كان لديك أي استفسار أو واجهت أي مشكلة، يمكنك التواصل معنا مباشرة عبر واتساب للحصول على مساعدة فورية:
         </p>
         {process.env.NEXT_PUBLIC_SUPPORT_WHATSAPP && (
           <a
@@ -222,7 +222,7 @@ export function ConfirmationClient() {
             className="inline-flex items-center gap-2 bg-[#25D366] text-white px-6 py-3 rounded-full font-label-md text-xs hover:brightness-105 active:scale-95 transition-all shadow-md tracking-wider font-bold uppercase"
           >
             <span className="material-symbols-outlined text-[18px]">chat</span>
-            ØªÙˆØ§ØµÙ„ Ù…Ø¹Ù†Ø§ Ø¹Ø¨Ø± ÙˆØ§ØªØ³Ø§Ø¨
+            تواصل معنا عبر واتساب
           </a>
         )}
       </div>
@@ -230,10 +230,10 @@ export function ConfirmationClient() {
       <div className="bg-surface-container-lowest border border-outline-variant/30 rounded-xl p-8 mb-12 text-start shadow-sm">
         <div className="flex justify-between items-start mb-6 border-b border-outline-variant/30 pb-4">
           <h3 className="font-headline-md text-headline-md text-on-surface">
-            Ù…Ù„Ø®Øµ Ø§Ù„Ø·Ù„Ø¨
+            ملخص الطلب
           </h3>
           <div className="text-left">
-            <p className="text-on-surface-variant font-label-sm text-[10px] uppercase tracking-widest">Ø±Ù‚Ù… Ø§Ù„Ø·Ù„Ø¨</p>
+            <p className="text-on-surface-variant font-label-sm text-[10px] uppercase tracking-widest">رقم الطلب</p>
             <p className="font-mono text-xs font-bold text-on-surface tracking-wider">{order.id_unique_tracking}</p>
           </div>
         </div>
@@ -243,7 +243,7 @@ export function ConfirmationClient() {
           <span className="material-symbols-outlined text-[14px] text-primary select-none">calendar_today</span>
           <span>
             {new Date(order.created_at).toLocaleDateString('ar-EG', { month: 'short', day: 'numeric', year: 'numeric' })}
-            {' â€” '}
+            {' — '}
             {new Date(order.created_at).toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' })}
           </span>
         </div>
@@ -266,7 +266,7 @@ export function ConfirmationClient() {
                 rel="noopener noreferrer nofollow"
                 className="text-primary font-semibold hover:underline"
               >
-                Ø¹Ø±Ø¶ Ø§Ù„Ù…ÙˆÙ‚Ø¹ Ø¹Ù„Ù‰ Ø§Ù„Ø®Ø±ÙŠØ·Ø©
+                عرض الموقع على الخريطة
               </a>
             </div>
           )}
@@ -282,7 +282,7 @@ export function ConfirmationClient() {
                     {product ? product.name : item.product_name || item.product_id}
                   </span>
                   <div className="flex items-center gap-4">
-                    <span className="text-on-surface-variant text-xs">Ã—{item.quantity} â€” {formatCurrency(item.unit_price)}</span>
+                    <span className="text-on-surface-variant text-xs">×{item.quantity} — {formatCurrency(item.unit_price)}</span>
                     <span className="font-bold text-on-surface font-mono">
                       {formatCurrency(item.unit_price * item.quantity)}
                     </span>
@@ -291,21 +291,21 @@ export function ConfirmationClient() {
               );
             })
           ) : (
-            <p className="text-on-surface-variant text-sm">Ù„Ù… ÙŠØªÙ… Ø§Ù„Ø¹Ø«ÙˆØ± Ø¹Ù„Ù‰ Ø£ÙŠ Ù…Ù†ØªØ¬Ø§Øª Ù„Ù‡Ø°Ø§ Ø§Ù„Ø·Ù„Ø¨.</p>
+            <p className="text-on-surface-variant text-sm">لم يتم العثور على أي منتجات لهذا الطلب.</p>
           )}
 
           <div className="pt-4 border-t border-outline-variant/30 space-y-2">
             <div className="flex justify-between text-sm text-on-surface-variant">
-              <span>Ø§Ù„Ù…Ø¬Ù…ÙˆØ¹ Ø§Ù„ÙØ±Ø¹ÙŠ</span>
+              <span>المجموع الفرعي</span>
               <span className="font-mono">{formatCurrency(order.total_amount)}</span>
             </div>
             <div className="flex justify-between text-sm text-on-surface-variant">
-              <span>Ø§Ù„Ø´Ø­Ù†</span>
-              <span className="text-green-600 font-bold text-xs">Ù…Ø¬Ø§Ù†ÙŠ</span>
+              <span>الشحن</span>
+              <span className="text-green-600 font-bold text-xs">مجاني</span>
             </div>
 
             <div className="flex justify-between items-center pt-3 border-t border-outline-variant/20">
-              <span className="font-headline-md text-headline-md text-on-surface">Ø§Ù„Ø¥Ø¬Ù…Ø§Ù„ÙŠ</span>
+              <span className="font-headline-md text-headline-md text-on-surface">الإجمالي</span>
               <span className="font-headline-md text-headline-md text-primary font-mono">
                 {formatCurrency(order.total_amount)}
               </span>
@@ -314,7 +314,7 @@ export function ConfirmationClient() {
 
           <div className="pt-3 border-t border-outline-variant/10 flex items-center gap-2 text-on-surface-variant text-xs">
             <span className="material-symbols-outlined text-[14px] text-primary select-none">payments</span>
-            <span>ØªÙ… Ø§Ù„Ø¯ÙØ¹ Ø¹Ø¨Ø± Ø¥Ù†Ø³ØªØ§Ø¨Ø§ÙŠ (InstaPay)</span>
+            <span>تم الدفع عبر إنستاباي (InstaPay)</span>
           </div>
         </div>
       </div>
@@ -324,13 +324,13 @@ export function ConfirmationClient() {
           href={`/track/${order.id_unique_tracking}`}
           className="bg-primary text-on-primary px-12 py-4 rounded-lg font-label-md text-label-md hover:opacity-80 transition-opacity uppercase tracking-widest inline-block"
         >
-          ØªØªØ¨Ø¹ Ø´Ø­Ù†ØªÙŠ
+          تتبع شحنتي
         </Link>
         <Link
           href="/shop"
           className="border-2 border-primary text-primary px-12 py-4 rounded-lg font-label-md text-label-md hover:bg-primary/5 transition-colors uppercase tracking-widest inline-block"
         >
-          Ù…ÙˆØ§ØµÙ„Ø© Ø§Ù„ØªØ³ÙˆÙ‚
+          مواصلة التسوق
         </Link>
       </div>
     </div>
