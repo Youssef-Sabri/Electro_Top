@@ -108,7 +108,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   }, [loginCooldown]);
 
   const lastActivityRef = useRef(0);
-  const SESSION_TIMEOUT_MS = 30 * 60 * 1000;
+  const SESSION_TIMEOUT_MS = 55 * 60 * 1000;
 
   const resetActivityTimer = useCallback(() => {
     lastActivityRef.current = Date.now();

@@ -121,7 +121,7 @@ export async function POST(request: NextRequest) {
   if (!adminEmail || email.trim() !== adminEmail) {
     const attempts = await incrementAttempts(supabaseClient, ip);
     return NextResponse.json({
-      error: 'فشل تسجيل الدخول. غير مسموح بالدخول.',
+      error: 'فشل تسجيل الدخول. تحقق من البريد الإلكتروني وكلمة المرور.',
       attempts,
     }, { status: 401 });
   }

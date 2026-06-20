@@ -10,7 +10,6 @@ import { checkoutSchema } from '@/lib/validators';
 import type { CheckoutFormData } from '@/lib/validators';
 import { formatCurrency } from '@/lib/format-currency';
 import { processAndCompressImage } from '@/lib/image-utils';
-import { supabase } from '@/lib/supabase';
 import { Toast } from '@/components/ui/Toast';
 
 export function CheckoutForm() {
@@ -150,33 +149,34 @@ export function CheckoutForm() {
     try {
       let finalScreenshotUrl = formData.instapay_screenshot;
 
-      // 1. Upload receipt file if present to storage first
+      // 1. Upload receipt file to server-side validation endpoint
       const uploadFile = imageState.compressedUploadFile || imageState.selectedFile;
       if (uploadFile) {
-        const mime = uploadFile.type || imageState.selectedFile?.type || 'image/jpeg';
-        
-        // Restrict upload to standard whitelisted image formats (prevents HTML/SVG injection)
-        const whitelistedMimes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/heic', 'image/heif'];
-        if (!whitelistedMimes.includes(mime)) {
-          throw new Error('نوع الملف غير مدعوم. يرجى رفع صورة صالحة (JPG, PNG, WEBP, GIF, HEIC).');
-        }
+        const reader = new FileReader();
+        const dataUrl = await new Promise<string>((resolve, reject) => {
+          reader.onloadend = () => {
+            if (typeof reader.result === 'string') resolve(reader.result);
+            else reject(new Error('فشل قراءة الملف.'));
+          };
+          reader.onerror = () => reject(new Error('فشل قراءة الملف.'));
+          reader.readAsDataURL(uploadFile);
+        });
 
-        const ext = mime.split('/')[1] || 'jpg';
-        const random = Array.from(crypto.getRandomValues(new Uint8Array(16)), (b) => b.toString(36).charAt(0)).join('');
-        const fileName = `receipt-${random}.${ext}`;
+        const uploadRes = await fetch('/api/upload/receipt', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ file: dataUrl }),
+        });
 
-        const { error: uploadError } = await supabase.storage
-          .from('instapay-receipts')
-          .upload(fileName, uploadFile, { contentType: mime, metadata: { mimetype: mime } });
+        const uploadData = await uploadRes.json();
 
-        if (uploadError) {
-          if (process.env.NODE_ENV !== 'production') console.error('Receipt upload failed:', uploadError.message);
-          throw new Error('فشل رفع إيصال التحويل. يرجى المحاولة مرة أخرى.');
+        if (!uploadRes.ok) {
+          throw new Error(uploadData.error || 'فشل رفع إيصال التحويل. يرجى المحاولة مرة أخرى.');
         }
 
         // Store filename only — URL is never exposed publicly. Admin pages
         // generate time-limited signed URLs via createSignedUrl() at render time.
-        finalScreenshotUrl = fileName;
+        finalScreenshotUrl = uploadData.fileName;
       }
 
       // 2. Create order in context
