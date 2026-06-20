@@ -1,0 +1,24 @@
+import { supabase } from './supabase';
+import { Product } from '../types';
+
+export async function fetchCatalog(): Promise<{ categories: string[]; products: Product[] }> {
+  let categories: string[] = [];
+  let products: Product[] = [];
+
+  try {
+    const [
+      { data: catData, error: catError },
+      { data: prodData, error: prodError },
+    ] = await Promise.all([
+      supabase.from('categories').select('name').order('name'),
+        supabase.from('products').select('id, name, description, price, image_url, stock, is_active, category, created_at').eq('is_active', true).order('created_at'),
+    ]);
+
+    categories = catData && !catError ? catData.map((c: { name: string }) => c.name) : [];
+    products = prodData && !prodError ? prodData : [];
+  } catch (error) {
+    if (process.env.NODE_ENV !== 'production') console.error('Failed to fetch catalog data:', error);
+  }
+
+  return { categories, products };
+}

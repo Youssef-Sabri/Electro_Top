@@ -1,0 +1,344 @@
+'use client';
+
+import { useEffect, useState, useRef } from 'react';
+import { useSearchParams } from 'next/navigation';
+import Link from 'next/link';
+import { useOrders } from '../../hooks/useOrders';
+import { useProducts } from '../../hooks/useProducts';
+import { formatCurrency } from '../../lib/format-currency';
+import { getSafeUrl } from '../../lib/safe-url';
+import { Order, OrderItem } from '../../types';
+import { supabase } from '../../lib/supabase';
+
+export function ConfirmationClient() {
+  const searchParams = useSearchParams();
+  const orderId = searchParams.get('id');
+
+  const { getOrderById, getOrderItems } = useOrders();
+  const { getProductsMap } = useProducts();
+
+  const productsById = getProductsMap();
+
+  const [isHydrated, setIsHydrated] = useState(false);
+  const [order, setOrder] = useState<Order | undefined>(undefined);
+  const [items, setItems] = useState<OrderItem[]>([]);
+  const [copied, setCopied] = useState(false);
+  const copyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [pollTick, setPollTick] = useState(0);
+
+  // Poll for order status updates every 30s while tab is visible
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (document.visibilityState === 'visible') {
+        setPollTick((t) => t + 1);
+      }
+    }, 30_000);
+    return () => {
+      clearInterval(interval);
+      setPollTick(0);
+    };
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (copyTimerRef.current) clearTimeout(copyTimerRef.current);
+    };
+  }, []);
+
+  /* eslint-disable react-hooks/set-state-in-effect */
+  useEffect(() => {
+    if (!orderId) {
+      setIsHydrated(true);
+      return;
+    }
+
+    const isValidId = /^ET-[A-Z0-9]{10}$/i.test(orderId);
+
+    const fromContext = getOrderById(orderId);
+    if (fromContext) {
+      setOrder(fromContext);
+      setItems(getOrderItems(orderId));
+      setIsHydrated(true);
+      return; // Context already has the latest data — skip redundant RPC
+    }
+
+    async function fetchFromSupabase() {
+      try {
+        if (!isValidId) {
+          setIsHydrated(true);
+          return;
+        }
+
+        const { data, error } = await supabase
+          .rpc('get_order_details_for_tracking', { tracking_id: orderId });
+
+        if (data && !error) {
+          const payload = data as { order: Order; items: OrderItem[] };
+          setOrder(payload.order);
+          if (payload.items) setItems(payload.items);
+        }
+      } catch {
+        /* skip */
+      } finally {
+        setIsHydrated(true);
+      }
+    }
+
+    fetchFromSupabase();
+  }, [orderId, getOrderById, getOrderItems, pollTick]);
+  /* eslint-enable react-hooks/set-state-in-effect */
+
+  const resetCopiedAfter = () => {
+    if (copyTimerRef.current) clearTimeout(copyTimerRef.current);
+    copyTimerRef.current = setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleCopy = (text: string) => {
+    if (typeof window === 'undefined') return;
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text)
+        .then(() => {
+          setCopied(true);
+          resetCopiedAfter();
+        })
+        .catch((err) => {
+          if (process.env.NODE_ENV !== 'production') console.error('Clipboard copy failed:', err);
+          fallbackCopy(text);
+        });
+    } else {
+      fallbackCopy(text);
+    }
+  };
+
+  const fallbackCopy = (text: string) => {
+    try {
+      const textArea = document.createElement('textarea');
+      textArea.value = text;
+      textArea.style.top = '0';
+      textArea.style.left = '0';
+      textArea.style.position = 'fixed';
+      textArea.style.opacity = '0';
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+      const successful = document.execCommand('copy');
+      document.body.removeChild(textArea);
+      if (successful) {
+        setCopied(true);
+        resetCopiedAfter();
+      }
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'production') console.error('Fallback copy failed:', err);
+    }
+  };
+
+  if (!isHydrated) {
+    return (
+      <div className="max-w-3xl mx-auto text-center py-20 font-poppins">
+        <div className="flex justify-center mb-4">
+          <span className="material-symbols-outlined text-primary text-[48px] animate-spin select-none">sync</span>
+        </div>
+        <p className="text-on-surface-variant text-sm">جاري استرداد تفاصيل تأكيد طلبك...</p>
+      </div>
+    );
+  }
+
+  if (!order) {
+    return (
+      <div className="max-w-md mx-auto px-margin-mobile py-20 text-center font-poppins">
+        <div className="mb-8 flex justify-center">
+          <div className="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center border border-red-100 text-primary">
+            <span className="material-symbols-outlined text-5xl select-none">warning</span>
+          </div>
+        </div>
+        <h2 className="font-headline-lg text-headline-lg mb-2">لم يتم العثور على الطلب</h2>
+        <p className="text-on-surface-variant mb-8">
+          لم نتمكن من العثور على أي طلب برقم التتبع{' '}
+          <span className="font-semibold text-on-surface">&quot;{orderId || 'N/A'}&quot;</span>.
+        </p>
+        <Link
+          href="/"
+          className="bg-primary text-on-primary px-8 py-3 rounded-lg font-label-md hover:opacity-90 inline-block uppercase tracking-wider"
+        >
+          العودة إلى المتجر
+        </Link>
+      </div>
+    );
+  }
+
+  return (
+    <div className="max-w-3xl mx-auto text-center py-12 px-margin-mobile md:px-margin-desktop font-poppins">
+      {/* Green Checkmark Circle */}
+      <div className="mb-8 flex justify-center">
+        <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center">
+          <span
+            className="material-symbols-outlined text-5xl text-[#22C55E] select-none"
+            style={{ fontVariationSettings: "'FILL' 1" }}
+          >
+            check_circle
+          </span>
+        </div>
+      </div>
+
+      <h1 className="font-headline-lg text-headline-lg mb-2 text-on-surface">تم تأكيد طلبك بنجاح!</h1>
+      <p className="text-on-surface-variant mb-12">
+        جاري تجهيز طلبك من إلكترو توب للشحن.
+      </p>
+
+      {/* Order ID Hero Box */}
+      <div className="bg-on-background p-10 rounded-xl shadow-xl mb-12 transform hover:scale-[1.02] transition-transform duration-300 relative">
+        <p className="text-surface-variant font-label-md uppercase tracking-widest mb-4">رقم التتبع الخاص بك</p>
+        <div className="flex items-center justify-center gap-3 flex-wrap">
+          <h2 className="font-display-lg text-display-lg text-secondary-fixed gold-glow tracking-widest uppercase">
+            {order.id_unique_tracking}
+          </h2>
+          <button
+            type="button"
+            onClick={() => handleCopy(order.id_unique_tracking)}
+            className="flex items-center justify-center p-2 rounded-lg bg-surface/10 hover:bg-surface/20 text-white transition-all cursor-pointer border border-white/10 active:scale-95 shrink-0"
+            title="نسخ إلى الحافظة"
+          >
+            <span className="material-symbols-outlined text-[20px]">
+              {copied ? 'check' : 'content_copy'}
+            </span>
+          </button>
+        </div>
+        {copied && (
+          <p className="text-[11px] text-green-400 font-semibold uppercase tracking-wider mt-2 animate-pulse">
+            تم النسخ إلى الحافظة!
+          </p>
+        )}
+      </div>
+
+      {/* Warning/Save Notice & Actions */}
+      <div className="max-w-md mx-auto mb-10 space-y-4">
+        <p className="text-sm font-semibold text-on-surface leading-relaxed">
+          🚨 <span className="font-bold">يرجى نسخ رقم التتبع الخاص بك أو التقاط لقطة شاشة</span> لهذه الصفحة لتتبع طلبك والتحقق من حالة الشحن.
+        </p>
+        <p className="text-xs text-on-surface-variant leading-relaxed">
+          إذا كان لديك أي استفسار أو واجهت أي مشكلة، يمكنك التواصل معنا مباشرة عبر واتساب للحصول على مساعدة فورية:
+        </p>
+        <a
+          href={`https://wa.me/${process.env.NEXT_PUBLIC_SUPPORT_WHATSAPP || ''}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-2 bg-[#25D366] text-white px-6 py-3 rounded-full font-label-md text-xs hover:brightness-105 active:scale-95 transition-all shadow-md tracking-wider font-bold uppercase"
+        >
+          <span className="material-symbols-outlined text-[18px]">chat</span>
+          تواصل معنا عبر واتساب
+        </a>
+      </div>
+
+      {/* Order Summary receipt card */}
+      <div className="bg-surface-container-lowest border border-outline-variant/30 rounded-xl p-8 mb-12 text-start shadow-sm">
+        <div className="flex justify-between items-start mb-6 border-b border-outline-variant/30 pb-4">
+          <h3 className="font-headline-md text-headline-md text-on-surface">
+            ملخص الطلب
+          </h3>
+          <div className="text-left">
+            <p className="text-on-surface-variant font-label-sm text-[10px] uppercase tracking-widest">رقم الطلب</p>
+            <p className="font-mono text-xs font-bold text-on-surface tracking-wider">{order.id_unique_tracking}</p>
+          </div>
+        </div>
+
+        {/* Order date */}
+        <div className="flex items-center gap-2 text-on-surface-variant text-xs mb-5">
+          <span className="material-symbols-outlined text-[14px] text-primary select-none">calendar_today</span>
+          <span>
+            {new Date(order.created_at).toLocaleDateString('ar-EG', { month: 'short', day: 'numeric', year: 'numeric' })}
+            {' — '}
+            {new Date(order.created_at).toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' })}
+          </span>
+        </div>
+
+        {/* Customer Info */}
+        <div className="mb-6 space-y-2 text-sm text-on-surface-variant text-start">
+          <div className="flex gap-2">
+            <span className="material-symbols-outlined text-[16px] text-primary select-none mt-0.5">person</span>
+            <span>{order.customer_name}</span>
+          </div>
+          <div className="flex gap-2">
+            <span className="material-symbols-outlined text-[16px] text-primary select-none mt-0.5">location_on</span>
+            <span>{order.shipping_address}</span>
+          </div>
+          {order.location_link && getSafeUrl(order.location_link) && (
+            <div className="flex gap-2">
+              <span className="material-symbols-outlined text-[16px] text-primary select-none mt-0.5">map</span>
+              <a
+                href={getSafeUrl(order.location_link)!}
+                target="_blank"
+                rel="noopener noreferrer nofollow"
+                className="text-primary font-semibold hover:underline"
+              >
+                عرض الموقع على الخريطة
+              </a>
+            </div>
+          )}
+        </div>
+
+        <div className="space-y-4 border-t border-outline-variant/20 pt-4">
+          {items.length > 0 ? (
+            items.map((item) => {
+              const product = productsById.get(item.product_id);
+              return (
+                <div key={item.id} className="flex justify-between items-center text-sm">
+                  <span className="text-on-surface-variant font-medium">
+                    {product ? product.name : item.product_name || item.product_id}
+                  </span>
+                  <div className="flex items-center gap-4">
+                    <span className="text-on-surface-variant text-xs">×{item.quantity} — {formatCurrency(item.unit_price)}</span>
+                    <span className="font-bold text-on-surface font-mono">
+                      {formatCurrency(item.unit_price * item.quantity)}
+                    </span>
+                  </div>
+                </div>
+              );
+            })
+          ) : (
+            <p className="text-on-surface-variant text-sm">لم يتم العثور على أي منتجات لهذا الطلب.</p>
+          )}
+
+          <div className="pt-4 border-t border-outline-variant/30 space-y-2">
+            <div className="flex justify-between text-sm text-on-surface-variant">
+              <span>المجموع الفرعي</span>
+              <span className="font-mono">{formatCurrency(order.total_amount)}</span>
+            </div>
+            <div className="flex justify-between text-sm text-on-surface-variant">
+              <span>الشحن</span>
+              <span className="text-green-600 font-bold text-xs">مجاني</span>
+            </div>
+
+            <div className="flex justify-between items-center pt-3 border-t border-outline-variant/20">
+              <span className="font-headline-md text-headline-md text-on-surface">الإجمالي</span>
+              <span className="font-headline-md text-headline-md text-primary font-mono">
+                {formatCurrency(order.total_amount)}
+              </span>
+            </div>
+          </div>
+
+          {/* Payment method */}
+          <div className="pt-3 border-t border-outline-variant/10 flex items-center gap-2 text-on-surface-variant text-xs">
+            <span className="material-symbols-outlined text-[14px] text-primary select-none">payments</span>
+            <span>تم الدفع عبر إنستاباي (InstaPay)</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Actions */}
+      <div className="flex flex-col sm:flex-row gap-4 justify-center">
+        <Link
+          href={`/track/${order.id_unique_tracking}`}
+          className="bg-primary text-on-primary px-12 py-4 rounded-lg font-label-md text-label-md hover:opacity-80 transition-opacity uppercase tracking-widest inline-block"
+        >
+          تتبع شحنتي
+        </Link>
+        <Link
+          href="/shop"
+          className="border-2 border-primary text-primary px-12 py-4 rounded-lg font-label-md text-label-md hover:bg-primary/5 transition-colors uppercase tracking-widest inline-block"
+        >
+          مواصلة التسوق
+        </Link>
+      </div>
+    </div>
+  );
+}
