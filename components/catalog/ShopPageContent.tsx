@@ -1,6 +1,6 @@
 'use client';
 
-import { memo, useState, useMemo, useEffect, useCallback, useDeferredValue } from 'react';
+import { memo, useState, useMemo, useEffect, useCallback } from 'react';
 import dynamic from 'next/dynamic';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useProducts } from '@/hooks/useProducts';
@@ -44,35 +44,55 @@ export const ShopPageContent = memo(function ShopPageContent({ initialProducts, 
   const products = contextProducts.length > 0 ? contextProducts : initialProducts;
   const categories = contextCategories.length > 0 ? contextCategories : initialCategories;
 
-  const searchQuery = searchParams.get('search') || '';
-  const category = searchParams.get('category') || ALL_CATEGORIES;
-  const hideOutOfStock = searchParams.get('hideOut') === 'true';
-  const sortBy = (searchParams.get('sort') as SortByType) || 'name-asc';
+  // 1. Local states drive the UI instantly and synchronously (no router-lag lockups)
+  const [category, setCategory] = useState(() => searchParams.get('category') || ALL_CATEGORIES);
+  const [searchInput, setSearchInput] = useState(() => searchParams.get('search') || '');
+  const [hideOutOfStock, setHideOutOfStock] = useState(() => searchParams.get('hideOut') === 'true');
+  const [sortBy, setSortBy] = useState<SortByType>(() => (searchParams.get('sort') as SortByType) || 'name-asc');
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
-  const [searchInput, setSearchInput] = useState(searchQuery);
-
+  // 2. Debounce search input to prevent performance lag and rapid router writes
+  const [debouncedSearch, setDebouncedSearch] = useState(searchInput);
   useEffect(() => {
-    setSearchInput(searchQuery);
-  }, [searchQuery]);
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchInput);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchInput]);
 
-  const deferredSearchQuery = useDeferredValue(searchInput);
+  // 3. Sync local states to the URL in the background
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const params = new URLSearchParams(window.location.search);
 
-  const updateFilter = useCallback((key: string, value: string | boolean | null) => {
-    const params = new URLSearchParams(searchParams.toString());
-    if (value === null || value === '' || value === ALL_CATEGORIES) {
-      params.delete(key);
-    } else {
-      params.set(key, String(value));
-    }
+    if (category === ALL_CATEGORIES) params.delete('category');
+    else params.set('category', category);
+
+    if (debouncedSearch === '') params.delete('search');
+    else params.set('search', debouncedSearch);
+
+    if (!hideOutOfStock) params.delete('hideOut');
+    else params.set('hideOut', 'true');
+
+    if (sortBy === 'name-asc') params.delete('sort');
+    else params.set('sort', sortBy);
+
     router.replace(`?${params.toString()}`, { scroll: false });
-  }, [router, searchParams]);
+  }, [category, debouncedSearch, hideOutOfStock, sortBy, router]);
 
+  // 4. Sync URL changes (e.g. browser back/forward buttons) back to local states
   useEffect(() => {
-    if (searchInput !== searchQuery) {
-      updateFilter('search', searchInput);
-    }
-  }, [searchInput, searchQuery, updateFilter]);
+    const urlCategory = searchParams.get('category') || ALL_CATEGORIES;
+    const urlSearch = searchParams.get('search') || '';
+    const urlHideOut = searchParams.get('hideOut') === 'true';
+    const urlSort = (searchParams.get('sort') as SortByType) || 'name-asc';
+
+    if (urlCategory !== category) setCategory(urlCategory);
+    if (urlSearch !== searchInput) setSearchInput(urlSearch);
+    if (urlHideOut !== hideOutOfStock) setHideOutOfStock(urlHideOut);
+    if (urlSort !== sortBy) setSortBy(urlSort);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
 
   
   const categoriesList = useMemo(() => {
@@ -96,8 +116,8 @@ export const ShopPageContent = memo(function ShopPageContent({ initialProducts, 
       }
 
       let matchesSearch = true;
-      if (deferredSearchQuery) {
-        const query = deferredSearchQuery.toLowerCase();
+      if (debouncedSearch) {
+        const query = debouncedSearch.toLowerCase();
         matchesSearch =
           product.name.toLowerCase().includes(query) ||
           product.description.toLowerCase().includes(query);
@@ -105,7 +125,7 @@ export const ShopPageContent = memo(function ShopPageContent({ initialProducts, 
 
       return matchesCategory && matchesSearch;
     });
-  }, [products, category, deferredSearchQuery, hideOutOfStock]);
+  }, [products, category, debouncedSearch, hideOutOfStock]);
 
   const sortedProducts = useMemo(() => {
     const list = [...filteredProducts];
@@ -124,7 +144,7 @@ export const ShopPageContent = memo(function ShopPageContent({ initialProducts, 
 
   useEffect(() => {
     resetPage();
-  }, [searchQuery, category, hideOutOfStock, sortBy, resetPage]);
+  }, [debouncedSearch, category, hideOutOfStock, sortBy, resetPage]);
 
   const getCategoryLabel = (cat: string) => {
     if (cat === 'All') return 'جميع الأقسام';
@@ -132,11 +152,11 @@ export const ShopPageContent = memo(function ShopPageContent({ initialProducts, 
   };
 
   const handleClearFilters = useCallback(() => {
-    updateFilter('search', '');
-    updateFilter('category', 'All');
-    updateFilter('hideOut', false);
-    updateFilter('sort', 'name-asc');
-  }, [updateFilter]);
+    setCategory(ALL_CATEGORIES);
+    setSearchInput('');
+    setHideOutOfStock(false);
+    setSortBy('name-asc');
+  }, []);
 
   return (
     <div className="min-h-screen bg-white font-poppins text-on-surface">
@@ -181,7 +201,7 @@ export const ShopPageContent = memo(function ShopPageContent({ initialProducts, 
                <input
                  type="checkbox"
                  checked={hideOutOfStock}
-                 onChange={(e) => updateFilter('hideOut', e.target.checked)}
+                  onChange={(e) => setHideOutOfStock(e.target.checked)}
                  className="w-4.5 h-4.5 rounded border-gray-300 focus:ring-primary text-primary accent-primary cursor-pointer"
                />
                 إخفاء المنتجات غير المتوفرة
@@ -196,7 +216,7 @@ export const ShopPageContent = memo(function ShopPageContent({ initialProducts, 
                    label: getCategoryLabel(cat)
                  }))}
                  value={category}
-                 onChange={(val) => updateFilter('category', val)}
+                  onChange={(val) => setCategory(val)}
                  className="min-w-[200px]"
                />
               </div>
@@ -211,7 +231,7 @@ export const ShopPageContent = memo(function ShopPageContent({ initialProducts, 
                    { value: 'price-desc', label: 'السعر: من الأعلى للأقل' },
                  ]}
                  value={sortBy}
-                 onChange={(val) => updateFilter('sort', val)}
+                  onChange={(val) => setSortBy(val as SortByType)}
                />
               </div>
             </div>
