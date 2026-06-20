@@ -1,7 +1,6 @@
-import type { ResponseCookie } from 'next/dist/compiled/@edge-runtime/cookies'
-import { cookies } from 'next/headers'
 import { NextRequest, NextResponse } from 'next/server'
 import { createSupabaseServerClient } from '@/lib/supabase-server'
+import { getServerSupabase } from '@/lib/supabase-server-cookies'
 import type { SupabaseClient } from '@supabase/supabase-js'
 
 const MAX_ATTEMPTS = 5;
@@ -128,19 +127,7 @@ export async function POST(request: NextRequest) {
   }
 
   // Initialize Supabase Server Client with cookies for auth
-  const cookieStore = await cookies();
-
-  const supabaseClientWithCookies = createSupabaseServerClient({
-    get(name: string) {
-      return cookieStore.get(name)?.value
-    },
-    set(name: string, value: string, options: Record<string, unknown>) {
-      cookieStore.set(name, value, options as Partial<ResponseCookie>)
-    },
-    remove(name: string, options: Record<string, unknown>) {
-      cookieStore.set(name, '', { ...options, maxAge: -1 } as Partial<ResponseCookie>)
-    },
-  })
+  const supabaseClientWithCookies = await getServerSupabase()
 
   const { data: { user }, error: loginError } = await supabaseClientWithCookies.auth.signInWithPassword({
     email: email.trim(),

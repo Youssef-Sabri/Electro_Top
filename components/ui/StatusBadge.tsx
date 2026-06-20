@@ -9,38 +9,38 @@ export const StatusBadge = memo(function StatusBadge({ status }: StatusBadgeProp
   switch (status) {
     case 'Pending Review':
       return (
-        <span className="px-3 py-1 rounded-full bg-[#f9e37f]/10 text-[#746408] font-label-sm text-label-sm inline-flex items-center gap-1 border border-[#f9e37f]/30 select-none">
-          <span className="w-1.5 h-1.5 rounded-full bg-[#FACC15]"></span> قيد المراجعة
+        <span className="px-3 py-1 rounded-full bg-secondary-container/20 text-on-secondary-container font-label-sm text-label-sm inline-flex items-center gap-1 border border-secondary-container/30 select-none">
+          <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-status-pending)]"></span> قيد المراجعة
         </span>
       );
     case 'Accepted':
       return (
-        <span className="px-3 py-1 rounded-full bg-[#3B82F6]/10 text-[#3B82F6] font-label-sm text-label-sm inline-flex items-center gap-1 border border-[#3B82F6]/30 select-none">
-          <span className="w-1.5 h-1.5 rounded-full bg-[#3B82F6]"></span> مقبول
+        <span className="px-3 py-1 rounded-full bg-[var(--color-status-accepted)]/10 text-[var(--color-status-accepted)] font-label-sm text-label-sm inline-flex items-center gap-1 border border-[var(--color-status-accepted)]/30 select-none">
+          <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-status-accepted)]"></span> مقبول
         </span>
       );
     case 'Processing':
       return (
-        <span className="px-3 py-1 rounded-full bg-[#A855F7]/10 text-[#A855F7] font-label-sm text-label-sm inline-flex items-center gap-1 border border-[#A855F7]/30 select-none">
-          <span className="w-1.5 h-1.5 rounded-full bg-[#A855F7]"></span> قيد التحضير
+        <span className="px-3 py-1 rounded-full bg-[var(--color-status-processing)]/10 text-[var(--color-status-processing)] font-label-sm text-label-sm inline-flex items-center gap-1 border border-[var(--color-status-processing)]/30 select-none">
+          <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-status-processing)]"></span> قيد التحضير
         </span>
       );
     case 'Delivered':
       return (
-        <span className="px-3 py-1 rounded-full bg-[#22C55E]/10 text-[#22C55E] font-label-sm text-label-sm inline-flex items-center gap-1 border border-[#22C55E]/30 select-none">
-          <span className="w-1.5 h-1.5 rounded-full bg-[#22C55E]"></span> تم التوصيل
+        <span className="px-3 py-1 rounded-full bg-[var(--color-status-delivered)]/10 text-[var(--color-status-delivered)] font-label-sm text-label-sm inline-flex items-center gap-1 border border-[var(--color-status-delivered)]/30 select-none">
+          <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-status-delivered)]"></span> تم التوصيل
         </span>
       );
     case 'Declined':
       return (
-        <span className="px-3 py-1 rounded-full bg-[#EF4444]/10 text-[#EF4444] font-label-sm text-label-sm inline-flex items-center gap-1 border border-[#EF4444]/30 select-none">
-          <span className="w-1.5 h-1.5 rounded-full bg-[#EF4444]"></span> مرفوض
+        <span className="px-3 py-1 rounded-full bg-[var(--color-status-declined)]/10 text-[var(--color-status-declined)] font-label-sm text-label-sm inline-flex items-center gap-1 border border-[var(--color-status-declined)]/30 select-none">
+          <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-status-declined)]"></span> مرفوض
         </span>
       );
     case 'Check Internal Note':
       return (
-        <span className="px-3 py-1 rounded-full bg-[#14B8A6]/10 text-[#14B8A6] font-label-sm text-label-sm inline-flex items-center gap-1 border border-[#14B8A6]/30 select-none">
-          <span className="w-1.5 h-1.5 rounded-full bg-[#14B8A6]"></span> قيد الفحص
+        <span className="px-3 py-1 rounded-full bg-[var(--color-status-internal)]/10 text-[var(--color-status-internal)] font-label-sm text-label-sm inline-flex items-center gap-1 border border-[var(--color-status-internal)]/30 select-none">
+          <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-status-internal)]"></span> قيد الفحص
         </span>
       );
     default:

@@ -37,7 +37,16 @@
   --color-brand-red-dark: #A01820;
   --color-electro-gold: #C6B254;
   --color-electro-red: #CA202B;
+  --color-brand-whatsapp: #25D366;
   --color-surface-bright: #ffffff;
+
+  /* Status Badge Colors */
+  --color-status-pending: #FACC15;
+  --color-status-accepted: #3B82F6;
+  --color-status-processing: #A855F7;
+  --color-status-delivered: #22C55E;
+  --color-status-declined: #EF4444;
+  --color-status-internal: #14B8A6;
 
   /* Font Families */
   --font-montserrat: var(--font-montserrat), sans-serif;

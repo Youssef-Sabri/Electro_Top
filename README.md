@@ -60,7 +60,7 @@ The project went through **7 development phases** from initial mock infrastructu
 | **Order Confirmation** | Prominent 10-character tracking ID (e.g. `ET-X8F9K4P2W3`) with clipboard copy |
 | **Order Tracking** | Real-time order status with an interactive vertical timeline and itemized invoice |
 | **Customer Support** | Dedicated support page with direct WhatsApp contact link |
-| **Arabic RTL** | Full right-to-left layout with Arabic-optimized typography (Cairo & Tajawal fonts) |
+| **Arabic RTL** | Full right-to-left layout with Arabic-optimized typography (Montserrat & Poppins fonts) |
 | **Responsive Design** | Mobile-first; fully functional from 375px and above |
 
 ### 🔐 Admin Dashboard
@@ -92,7 +92,7 @@ The project went through **7 development phases** from initial mock infrastructu
 | **Validation** | Zod | `^4.4.3` |
 | **State Management** | React Context (Products, Orders, Cart) | — |
 | **Icons** | Google Material Symbols Outlined | CDN |
-| **Fonts** | Cairo (headings) & Tajawal (body) via `next/font` | — |
+| **Fonts** | Montserrat (headings) & Poppins (body) via `next/font` | — |
 | **Runtime** | Node.js | `18+` |
 
 ---
@@ -179,12 +179,19 @@ electro-top/
 │   ├── usePagination.ts            # Shared pagination logic
 │   └── useProducts.ts              # Products context consumer hook
 ├── lib/
+│   ├── audit-log.ts                # Admin action audit logger (Supabase-based)
+│   ├── constants.ts                # Shared constants (removed - inlined to consumers)
 │   ├── csv-export.ts               # Excel-safe CSV exporter (CSV injection mitigated)
+│   ├── csrf.ts                     # Origin/referer CSRF validation
 │   ├── fetch-catalog.ts            # Shared Supabase catalog fetch helper
 │   ├── format-currency.ts          # EGP currency formatter
+│   ├── get-order-detail.ts         # Order detail view fetch (RPC + fallback)
 │   ├── id-generator.ts             # Modulo-bias-free 10-char alphanumeric ID generator
 │   ├── image-utils.ts              # Canvas API image compression & Supabase storage helpers
-│   ├── string-utils.ts             # Initials extraction utility
+│   ├── safe-url.ts                 # URL protocol safety validator
+│   ├── string-utils.ts             # Status translation & initials extraction
+│   ├── supabase-server-cookies.ts  # Shared cookie-based server Supabase client helper
+│   ├── supabase-server.ts          # Supabase server client factory (`createServerClient`)
 │   ├── supabase.ts                 # Supabase browser client (`createBrowserClient`)
 │   └── validators.ts               # Zod validation schemas (checkout, products)
 ├── types/
@@ -393,8 +400,8 @@ The UI is anchored to **Electro Top's** brand identity — red, gold, and charco
 | `background` | `#fff8f7` | Main canvas (warm soft tint) |
 | `surface` | `#ffffff` | Cards, modals, dropdowns |
 | `on-surface` | `#271716` | Body text, descriptions, labels |
-| **Heading Font** | Cairo (700/800/900) | Bold Arabic/Latin headings |
-| **Body Font** | Tajawal (400/500/700) | Readable Arabic body text |
+| **Heading Font** | Montserrat (700/800) | Bold Arabic/Latin headings |
+| **Body Font** | Poppins (400/500/600) | Readable Arabic body text |
 
 ---
 

@@ -1,7 +1,5 @@
 import { NextResponse } from 'next/server'
-import { cookies } from 'next/headers'
-import { createSupabaseServerClient } from '@/lib/supabase-server'
-import type { ResponseCookie } from 'next/dist/compiled/@edge-runtime/cookies'
+import { getServerSupabase } from '@/lib/supabase-server-cookies'
 import { validateRequestOrigin } from '@/lib/csrf'
 
 export async function DELETE(
@@ -14,19 +12,7 @@ export async function DELETE(
 
   const { id } = await params
 
-  const cookieStore = await cookies()
-
-  const supabaseClient = createSupabaseServerClient({
-    get(name: string) {
-      return cookieStore.get(name)?.value
-    },
-    set(name: string, value: string, options: Record<string, unknown>) {
-      cookieStore.set(name, value, options as Partial<ResponseCookie>)
-    },
-    remove(name: string, options: Record<string, unknown>) {
-      cookieStore.set(name, '', { ...options, maxAge: -1 } as Partial<ResponseCookie>)
-    },
-  })
+  const supabaseClient = await getServerSupabase()
 
   const { data: { user }, error: authError } = await supabaseClient.auth.getUser()
   const adminEmail = process.env.ADMIN_EMAIL

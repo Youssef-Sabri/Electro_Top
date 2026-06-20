@@ -287,7 +287,7 @@ export function TrackingDetailClient({ id }: TrackingDetailClientProps) {
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-surface-variant">الشحن</span>
-                <span className="font-bold text-xs" style={{ color: '#4ade80' }}>مجاني</span>
+                <span className="font-bold text-xs text-[var(--color-status-delivered)]">مجاني</span>
               </div>
               <div className="flex justify-between items-center pt-3 border-t border-surface/20 mt-1">
                 <span className="font-headline-md text-headline-md">الإجمالي</span>

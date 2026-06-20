@@ -1,26 +1,9 @@
 import { NextResponse } from 'next/server'
-import { cookies } from 'next/headers'
-import { createSupabaseServerClient } from '@/lib/supabase-server'
-import type { ResponseCookie } from 'next/dist/compiled/@edge-runtime/cookies'
+import { getServerSupabase } from '@/lib/supabase-server-cookies'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { validateRequestOrigin } from '@/lib/csrf'
 
 const ALLOWED_UPDATE_FIELDS = ['name', 'description', 'price', 'stock', 'image_url', 'is_active', 'category'] as const
-
-async function getSupabaseClient() {
-  const cookieStore = await cookies()
-  return createSupabaseServerClient({
-    get(name: string) {
-      return cookieStore.get(name)?.value
-    },
-    set(name: string, value: string, options: Record<string, unknown>) {
-      cookieStore.set(name, value, options as Partial<ResponseCookie>)
-    },
-    remove(name: string, options: Record<string, unknown>) {
-      cookieStore.set(name, '', { ...options, maxAge: -1 } as Partial<ResponseCookie>)
-    },
-  })
-}
 
 async function requireAdmin(supabaseClient: SupabaseClient) {
   const { data: { user }, error: authError } = await supabaseClient.auth.getUser()
@@ -55,7 +38,7 @@ export async function PATCH(
     }
   }
 
-  const supabaseClient = await getSupabaseClient()
+  const supabaseClient = await getServerSupabase()
   const authError = await requireAdmin(supabaseClient)
   if (authError) return authError
 
@@ -82,7 +65,7 @@ export async function DELETE(
 
   const { id } = await params
 
-  const supabaseClient = await getSupabaseClient()
+  const supabaseClient = await getServerSupabase()
   const authError = await requireAdmin(supabaseClient)
   if (authError) return authError
 

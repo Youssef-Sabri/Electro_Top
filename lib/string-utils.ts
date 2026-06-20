@@ -22,3 +22,15 @@ export function translateStatus(status: string, isPublic = false): string {
   };
   return dict[displayStatus] || displayStatus;
 }
+
+export function translateHistoryStatus(status: string): string {
+  const dict: Record<string, string> = {
+    'Pending Review': 'تم تسجيل الطلب والدفع',
+    'Accepted': 'تم قبول وتأكيد الطلب',
+    'Processing': 'جاري تحضير الشحنة',
+    'Delivered': 'تم توصيل الطلب بنجاح',
+    'Declined': 'تم رفض الطلب',
+    'Check Internal Note': 'قيد الفحص الداخلي'
+  };
+  return dict[status] || status;
+}

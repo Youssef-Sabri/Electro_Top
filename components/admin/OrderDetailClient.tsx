@@ -7,7 +7,7 @@ import { useOrders } from '@/hooks/useOrders';
 import { useProducts } from '@/hooks/useProducts';
 import type { OrderStatus, Order, OrderItem, OrderStatusHistory } from '@/types';
 import { formatCurrency } from '@/lib/format-currency';
-import { getInitials, translateStatus } from '@/lib/string-utils';
+import { getInitials, translateStatus, translateHistoryStatus } from '@/lib/string-utils';
 import { getSafeUrl } from '@/lib/safe-url';
 import { getOrderDetailView } from '@/lib/get-order-detail';
 import { Toast } from '@/components/ui/Toast';
@@ -17,7 +17,6 @@ import { supabase } from '@/lib/supabase';
 
 const MAX_NOTES_LENGTH = 2000;
 
-// Constant defined outside component — never recreated on re-renders
 const STATUS_OPTIONS = [
   { value: 'Pending Review', label: 'قيد المراجعة' },
   { value: 'Accepted', label: 'مقبول' },
@@ -26,20 +25,6 @@ const STATUS_OPTIONS = [
   { value: 'Declined', label: 'مرفوض' },
   { value: 'Check Internal Note', label: 'قيد الفحص' },
 ];
-
-
-
-const translateHistoryStatus = (status: string) => {
-  const dict: Record<string, string> = {
-    'Pending Review': 'تم تسجيل الطلب والدفع',
-    'Accepted': 'تم قبول وتأكيد الطلب',
-    'Processing': 'جاري تحضير الشحنة',
-    'Delivered': 'تم توصيل الطلب بنجاح',
-    'Declined': 'تم رفض الطلب',
-    'Check Internal Note': 'قيد الفحص الداخلي'
-  };
-  return dict[status] || status;
-};
 
 interface OrderDetailClientProps {
   id: string;
@@ -689,7 +674,7 @@ export const OrderDetailClient = memo(function OrderDetailClient({ id }: OrderDe
               {order.location_link && getSafeUrl(order.location_link) && (
                 <div style={{ marginTop: '1.5mm' }}>
                   <a href={getSafeUrl(order.location_link)!}
-                    style={{ fontSize: '11pt', color: '#2563eb', wordBreak: 'break-all', textDecoration: 'underline' }}>
+                    style={{ fontSize: '11pt', color: 'var(--color-status-accepted)', wordBreak: 'break-all', textDecoration: 'underline' }}>
                     {order.location_link}
                   </a>
                 </div>

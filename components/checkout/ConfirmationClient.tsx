@@ -170,7 +170,7 @@ export function ConfirmationClient() {
       <div className="mb-8 flex justify-center">
         <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center">
           <span
-            className="material-symbols-outlined text-5xl text-[#22C55E] select-none"
+            className="material-symbols-outlined text-5xl text-[var(--color-status-delivered)] select-none"
             style={{ fontVariationSettings: "'FILL' 1" }}
           >
             check_circle
@@ -219,7 +219,7 @@ export function ConfirmationClient() {
             href={`https://wa.me/${process.env.NEXT_PUBLIC_SUPPORT_WHATSAPP}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 bg-[#25D366] text-white px-6 py-3 rounded-full font-label-md text-xs hover:brightness-105 active:scale-95 transition-all shadow-md tracking-wider font-bold uppercase"
+            className="inline-flex items-center gap-2 bg-[var(--color-brand-whatsapp)] text-white px-6 py-3 rounded-full font-label-md text-xs hover:brightness-105 active:scale-95 transition-all shadow-md tracking-wider font-bold uppercase"
           >
             <span className="material-symbols-outlined text-[18px]">chat</span>
             تواصل معنا عبر واتساب
