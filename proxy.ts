@@ -60,7 +60,7 @@ export async function proxy(request: NextRequest) {
 
   // Verify token server-side via getUser() (validates JWT, not just cookie)
   const { data: { user }, error } = await supabase.auth.getUser()
-  const adminEmail = process.env.NEXT_PUBLIC_ADMIN_EMAIL;
+  const adminEmail = process.env.ADMIN_EMAIL;
 
   // Redirect to /admin login page if token is invalid, expired, no session, or not the admin
   if (error || !user || !adminEmail || user.email !== adminEmail) {

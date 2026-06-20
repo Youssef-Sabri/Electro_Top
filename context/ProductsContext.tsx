@@ -107,13 +107,13 @@ export function ProductsProvider({ children }: { children: ReactNode }) {
   }, [loadData]);
 
   useEffect(() => {
-    const isAdmin = typeof window !== 'undefined' && window.location.pathname.startsWith('/admin');
-    if (!isAdmin) return;
-
     let channel: ReturnType<typeof supabase.channel> | null = null;
 
-    function subscribe() {
+    async function subscribeIfAdmin() {
       if (channel) return;
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+
       channel = supabase
         .channel('products-realtime')
         .on(
@@ -123,7 +123,6 @@ export function ProductsProvider({ children }: { children: ReactNode }) {
             hasFetchedRef.current = false;
             loadData(true);
           }
-
         )
         .subscribe();
     }
@@ -135,15 +134,14 @@ export function ProductsProvider({ children }: { children: ReactNode }) {
       }
     }
 
-    subscribe();
+    subscribeIfAdmin();
 
     const handleVisibility = () => {
       if (document.visibilityState === 'visible') {
-        subscribe();
+        subscribeIfAdmin();
         hasFetchedRef.current = false;
         loadData(true);
       } else {
-
         unsubscribe();
       }
     };
@@ -174,7 +172,7 @@ export function ProductsProvider({ children }: { children: ReactNode }) {
     setProducts((prev) => [...prev, newProduct]);
 
     try {
-      logAdminAction('add_product', { product_id: id, product_name: newProduct.name });
+      await logAdminAction('add_product', { product_id: id, product_name: newProduct.name });
 
       const { error } = await supabase
         .from('products')
@@ -201,17 +199,18 @@ export function ProductsProvider({ children }: { children: ReactNode }) {
     setProducts((prev) => prev.map((p) => (p.id === updated.id ? updated : p)));
 
     try {
-      logAdminAction('update_product', { product_id: updated.id, product_name: updated.name });
+      await logAdminAction('update_product', { product_id: updated.id, product_name: updated.name });
 
-      const { error } = await supabase
-        .from('products')
-        .update(updated)
-        .eq('id', updated.id);
+      const response = await fetch(`/api/admin/products/${updated.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updated),
+      });
 
-      if (error) {
+      if (!response.ok) {
         setProducts(originalProducts);
-        if (process.env.NODE_ENV !== 'production') console.error('Failed to update product in Supabase:', error.message);
-        throw new Error('فشل تحديث المنتج. يرجى المحاولة مرة أخرى.');
+        const data = await response.json();
+        throw new Error(data.error || 'فشل تحديث المنتج. يرجى المحاولة مرة أخرى.');
       }
 
       if (hasImageChanged) {
@@ -232,17 +231,14 @@ export function ProductsProvider({ children }: { children: ReactNode }) {
     setProducts((prev) => prev.filter((p) => p.id !== id));
 
     try {
-      logAdminAction('delete_product', { product_id: id, product_name: oldProduct.name });
+      await logAdminAction('delete_product', { product_id: id, product_name: oldProduct.name });
 
-      const { error } = await supabase
-        .from('products')
-        .delete()
-        .eq('id', id);
+      const response = await fetch(`/api/admin/products/${id}`, { method: 'DELETE' });
 
-      if (error) {
+      if (!response.ok) {
         setProducts(originalProducts);
-        if (process.env.NODE_ENV !== 'production') console.error('Failed to delete product from Supabase:', error.message);
-        throw new Error('فشل حذف المنتج. يرجى المحاولة مرة أخرى.');
+        const data = await response.json();
+        throw new Error(data.error || 'فشل حذف المنتج. يرجى المحاولة مرة أخرى.');
       }
 
       await deleteProductImage(oldProduct.image_url);
@@ -327,7 +323,7 @@ export function ProductsProvider({ children }: { children: ReactNode }) {
     setProducts([]);
     setCategories([]);
     try {
-      logAdminAction('clear_all_products', { count: previousProducts.length });
+      await logAdminAction('clear_all_products', { count: previousProducts.length });
 
       await clearAllProductImages();
       const { error } = await supabase

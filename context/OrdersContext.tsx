@@ -278,7 +278,7 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
     setStatusHistory((prevHistory) => [...prevHistory, newHistoryEntry]);
 
     try {
-      logAdminAction('update_order_status', { order_id: orderId, new_status: status });
+      await logAdminAction('update_order_status', { order_id: orderId, new_status: status });
 
       const [{ error: oErr }, { error: hErr }] = await Promise.all([
         supabase.from('orders').update({ status }).eq('id_unique_tracking', orderId),
@@ -287,13 +287,12 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
       if (oErr || hErr) {
         setOrders(previousOrders);
         setStatusHistory(previousHistory);
-        if (oErr) if (process.env.NODE_ENV !== 'production') console.error('Failed to update status in Supabase database:', oErr);
-        if (hErr) if (process.env.NODE_ENV !== 'production') console.error('Failed to write history logs to Supabase database:', hErr);
+        throw new Error(oErr?.message || hErr?.message || 'Failed to update order status');
       }
     } catch (e) {
       setOrders(previousOrders);
       setStatusHistory(previousHistory);
-      if (process.env.NODE_ENV !== 'production') console.error(e);
+      throw e;
     }
   }, []);
 
@@ -313,7 +312,7 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
     );
 
     try {
-      logAdminAction('update_admin_notes', { order_id: orderId, notes_length: notes.length });
+      await logAdminAction('update_admin_notes', { order_id: orderId, notes_length: notes.length });
 
       const { error } = await supabase
         .from('orders')
@@ -322,11 +321,11 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
 
       if (error) {
         setOrders(previousOrders);
-        if (process.env.NODE_ENV !== 'production') console.error('Failed to update admin notes in Supabase database:', error);
+        throw new Error(error.message);
       }
     } catch (e) {
       setOrders(previousOrders);
-      if (process.env.NODE_ENV !== 'production') console.error(e);
+      throw e;
     }
   }, []);
 
@@ -340,26 +339,20 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
     setStatusHistory([]);
 
     try {
-      logAdminAction('clear_all_orders', { count: previousOrders.length });
+      await logAdminAction('clear_all_orders', { count: previousOrders.length });
 
       await clearAllReceipts();
 
-      await Promise.all([
-        supabase.from('order_items').delete().neq('id', ''),
-        supabase.from('order_status_history').delete().neq('id', ''),
-      ]);
-      const { error: oErr } = await supabase.from('orders').delete().neq('id_unique_tracking', '');
-      if (oErr) {
-        setOrders(previousOrders);
-        setOrderItems(previousItems);
-        setStatusHistory(previousHistory);
-        if (process.env.NODE_ENV !== 'production') console.error('Failed to delete orders from Supabase');
+      const response = await fetch('/api/admin/orders/clear', { method: 'DELETE' });
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Failed to clear orders');
       }
     } catch (e) {
       setOrders(previousOrders);
       setOrderItems(previousItems);
       setStatusHistory(previousHistory);
-      if (process.env.NODE_ENV !== 'production') console.error('Failed to clear data from Supabase:', e);
+      throw e;
     }
   }, []);
 
@@ -372,24 +365,18 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
     setStatusHistory((prev) => prev.filter((h) => h.order_id !== orderId));
 
     try {
-      logAdminAction('delete_order', { order_id: orderId, customer: orderToDelete.customer_name });
+      await logAdminAction('delete_order', { order_id: orderId, customer: orderToDelete.customer_name });
 
-      const { error } = await supabase
-        .from('orders')
-        .delete()
-        .eq('id_unique_tracking', orderId);
-
-      if (error) {
-        if (process.env.NODE_ENV !== 'production') console.error('Failed to delete order from Supabase:', error);
-        await loadData();
-        return;
+      const response = await fetch(`/api/admin/orders/${orderId}`, { method: 'DELETE' });
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Failed to delete order');
       }
 
       if (orderToDelete.instapay_screenshot) {
         await deleteReceiptImage(orderToDelete.instapay_screenshot);
       }
     } catch (e) {
-      if (process.env.NODE_ENV !== 'production') console.error(e);
       await loadData();
       throw e;
     }

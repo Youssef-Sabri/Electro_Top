@@ -25,6 +25,14 @@ export const OrdersLedger = memo(function OrdersLedger() {
   const [isClearPasswordOpen, setIsClearPasswordOpen] = useState(false);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [orderToDeleteId, setOrderToDeleteId] = useState<string | null>(null);
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+
+  useEffect(() => {
+    if (toast) {
+      const timer = setTimeout(() => setToast(null), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [toast]);
 
   const handleExportCSV = useCallback(() => {
     const headers = [
@@ -377,7 +385,11 @@ export const OrdersLedger = memo(function OrdersLedger() {
         message="يرجى إدخال كلمة مرور المسؤول لتأكيد حذف جميع الطلبات. هذا الإجراء لا يمكن التراجع عنه."
         confirmLabel="تأكيد وحذف الكل"
         onConfirm={async () => {
-          clearAllOrders();
+          try {
+            await clearAllOrders();
+          } catch {
+            setToast({ message: 'فشل حذف الطلبات. الرجاء المحاولة مرة أخرى.', type: 'error' });
+          }
           setIsClearPasswordOpen(false);
         }}
         onCancel={() => setIsClearPasswordOpen(false)}
@@ -387,9 +399,14 @@ export const OrdersLedger = memo(function OrdersLedger() {
         isOpen={isDeleteConfirmOpen}
         title="حذف الطلب"
         message={`هل أنت متأكد من رغبتك في حذف الطلب #${orderToDeleteId} نهائياً من النظام؟ هذا الإجراء لا يمكن التراجع عنه وسيؤدي لحذف تفاصيل الطلب وسجل حالته بالكامل.`}
-        onConfirm={() => {
+        onConfirm={async () => {
           if (orderToDeleteId) {
-            deleteOrder(orderToDeleteId);
+            try {
+              await deleteOrder(orderToDeleteId);
+              setToast({ message: `تم حذف الطلب #${orderToDeleteId} بنجاح!`, type: 'success' });
+            } catch {
+              setToast({ message: 'فشل حذف الطلب. الرجاء المحاولة مرة أخرى.', type: 'error' });
+            }
           }
           setIsDeleteConfirmOpen(false);
           setOrderToDeleteId(null);
@@ -400,6 +417,16 @@ export const OrdersLedger = memo(function OrdersLedger() {
         }}
         confirmLabel="نعم، احذف الطلب"
       />
+
+      {toast && (
+        <div
+          className={`fixed bottom-4 left-1/2 z-50 -translate-x-1/2 rounded-lg px-6 py-3 text-white shadow-lg transition-all ${
+            toast.type === 'success' ? 'bg-green-600' : 'bg-red-600'
+          }`}
+        >
+          {toast.message}
+        </div>
+      )}
     </section>
   );
 });

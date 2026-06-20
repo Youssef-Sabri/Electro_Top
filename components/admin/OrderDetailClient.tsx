@@ -216,12 +216,12 @@ export const OrderDetailClient = memo(function OrderDetailClient({ id }: OrderDe
     setIsConfirmOpen(true);
   };
 
-  const handleConfirmSave = () => {
+  const handleConfirmSave = async () => {
     if (!order) return;
     setIsConfirmOpen(false);
     setIsSaving(true);
     try {
-      updateOrderStatus(order.id_unique_tracking, selectedStatus);
+      await updateOrderStatus(order.id_unique_tracking, selectedStatus);
       
       // Update local state variables immediately
       setOrder((prev) => prev ? { ...prev, status: selectedStatus } : null);
@@ -247,7 +247,7 @@ export const OrderDetailClient = memo(function OrderDetailClient({ id }: OrderDe
     }
   };
 
-  const handleNotesBlur = () => {
+  const handleNotesBlur = async () => {
     if (!order) return;
     // Only save if the notes value actually changed — avoids redundant DB writes on every click away
     if (notesValue === lastSavedNotes.current) return;
@@ -259,7 +259,7 @@ export const OrderDetailClient = memo(function OrderDetailClient({ id }: OrderDe
     }
     try {
       lastSavedNotes.current = notesValue;
-      updateAdminNotes(order.id_unique_tracking, notesValue);
+      await updateAdminNotes(order.id_unique_tracking, notesValue);
       setOrder((prev) => prev ? { ...prev, admin_notes: notesValue } : null);
       setToastMessage('تم حفظ ملاحظات المسؤول تلقائياً ✓');
       setToastType('success');

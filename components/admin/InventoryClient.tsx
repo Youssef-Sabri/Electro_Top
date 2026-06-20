@@ -401,11 +401,16 @@ export const InventoryClient = memo(function InventoryClient() {
   };
 
   // Delete product action
-  const handleDeleteConfirm = () => {
-    if (deletingProduct) {
-      deleteProduct(deletingProduct.id);
-      showToast(`تم حذف المنتج "${deletingProduct.name}" بنجاح!`);
-      setDeletingProduct(null);
+  const handleDeleteConfirm = async () => {
+    if (!deletingProduct) return;
+    const productName = deletingProduct.name;
+    const productId = deletingProduct.id;
+    setDeletingProduct(null);
+    try {
+      await deleteProduct(productId);
+      showToast(`تم حذف المنتج "${productName}" بنجاح!`);
+    } catch {
+      showToast('فشل حذف المنتج. الرجاء المحاولة مرة أخرى.');
     }
   };
 
@@ -419,13 +424,17 @@ export const InventoryClient = memo(function InventoryClient() {
       confirmLabel: product.is_active ? 'تعطيل' : 'تنشيط',
       cancelLabel: 'إلغاء',
       isDestructive: product.is_active,
-      onConfirm: () => {
-        updateProduct({
-          ...product,
-          is_active: !product.is_active,
-        });
-        showToast(`المنتج "${product.name}" أصبح الآن ${!product.is_active ? 'نشطاً' : 'غير نشط'}!`);
+      onConfirm: async () => {
         setConfirmModal((prev) => ({ ...prev, isOpen: false }));
+        try {
+          await updateProduct({
+            ...product,
+            is_active: !product.is_active,
+          });
+          showToast(`المنتج "${product.name}" أصبح الآن ${!product.is_active ? 'نشطاً' : 'غير نشط'}!`);
+        } catch {
+          showToast(`فشل ${product.is_active ? 'تعطيل' : 'تنشيط'} المنتج. الرجاء المحاولة مرة أخرى.`);
+        }
       },
     });
   };

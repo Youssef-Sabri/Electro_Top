@@ -5,8 +5,6 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 
-const ADMIN_EMAIL = process.env.NEXT_PUBLIC_ADMIN_EMAIL;
-
 interface AdminLayoutProps {
   children: React.ReactNode;
 }
@@ -44,15 +42,22 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     let active = true;
 
     async function checkSession() {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (active) {
-        if (session && session.user?.email !== ADMIN_EMAIL) {
-          await supabase.auth.signOut();
-          setIsAuthenticated(false);
-        } else {
-          setIsAuthenticated(!!session);
+      try {
+        const res = await fetch('/api/admin/verify');
+        if (active) {
+          if (res.ok) {
+            setIsAuthenticated(true);
+          } else {
+            await supabase.auth.signOut();
+            setIsAuthenticated(false);
+          }
+          setIsMounted(true);
         }
-        setIsMounted(true);
+      } catch {
+        if (active) {
+          setIsAuthenticated(false);
+          setIsMounted(true);
+        }
       }
     }
 
@@ -60,11 +65,18 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       if (active) {
-        if (session && session.user?.email !== ADMIN_EMAIL) {
-          await supabase.auth.signOut();
-          setIsAuthenticated(false);
+        if (session) {
+          const res = await fetch('/api/admin/verify');
+          if (active) {
+            if (res.ok) {
+              setIsAuthenticated(true);
+            } else {
+              await supabase.auth.signOut();
+              setIsAuthenticated(false);
+            }
+          }
         } else {
-          setIsAuthenticated(!!session);
+          setIsAuthenticated(false);
         }
       }
     });

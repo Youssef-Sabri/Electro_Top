@@ -346,8 +346,8 @@ Create a `.env.local` file in the project root:
 NEXT_PUBLIC_SUPABASE_URL=https://your-project-id.supabase.co
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=your_supabase_anon_key
 
-# Admin Access Configuration
-NEXT_PUBLIC_ADMIN_EMAIL=admin@example.com
+# Admin Access Configuration (server-only — NOT prefixed with NEXT_PUBLIC_)
+ADMIN_EMAIL=admin@example.com
 
 # InstaPay Payment Configuration
 NEXT_PUBLIC_INSTAPAY_ACCOUNT_NAME=Your Store Name

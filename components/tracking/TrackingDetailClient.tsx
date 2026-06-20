@@ -9,7 +9,6 @@ import { useProducts } from '@/hooks/useProducts';
 import { StatusTimeline } from '@/components/tracking/StatusTimeline';
 import { formatCurrency } from '@/lib/format-currency';
 import { getSafeUrl } from '@/lib/safe-url';
-import { supabase } from '@/lib/supabase';
 import type { Order, OrderItem, OrderStatusHistory } from '@/types';
 import { translateStatus } from '@/lib/string-utils';
 
@@ -66,10 +65,10 @@ export function TrackingDetailClient({ id }: TrackingDetailClientProps) {
           return;
         }
 
-        const { data, error } = await supabase.rpc('get_order_details_for_tracking', { tracking_id: id });
+        const response = await fetch(`/api/track/${id}`);
 
-        if (data && !error) {
-          const payload = data as { order: Order; items: OrderItem[]; history: OrderStatusHistory[] };
+        if (response.ok) {
+          const payload = await response.json() as { order: Order; items: OrderItem[]; history: OrderStatusHistory[] };
           setOrder(payload.order);
           setOrderItems(payload.items);
           setStatusHistory(payload.history);

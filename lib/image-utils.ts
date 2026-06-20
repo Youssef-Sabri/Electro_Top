@@ -15,10 +15,6 @@ const ALLOWED_IMAGE_TYPES: Record<string, string> = {
   'image/heif': 'heif',
 };
 
-function getAllowedExtension(mimeType: string): string {
-  return ALLOWED_IMAGE_TYPES[mimeType] || 'webp';
-}
-
 const MAX_FILE_SIZE_MB = 5;
 
 async function compressFile(file: File): Promise<{ compressedFile: File; info: string }> {
@@ -89,37 +85,22 @@ export async function processAndCompressImage(file: File): Promise<ImageProcessR
 export async function uploadProductImage(file: File): Promise<{ imageUrl: string; info: string }> {
   const { compressedFile, info } = await compressFile(file);
 
-  const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024;
-  if (compressedFile.size > MAX_FILE_SIZE_BYTES) {
-    throw new Error('حجم الملف كبير جداً. الحد الأقصى 5 ميجابايت.');
+  const formData = new FormData();
+  formData.append('file', compressedFile);
+
+  const response = await fetch('/api/admin/upload', { method: 'POST', body: formData });
+
+  if (!response.ok) {
+    const data = await response.json();
+    throw new Error(data.error || 'فشل رفع الصورة إلى التخزين.');
   }
 
-  const ext = getAllowedExtension(compressedFile.type);
-  const randomPart = crypto.getRandomValues(new Uint32Array(1))[0].toString(36);
-  const fileName = `product-${randomPart}.${ext}`;
-
-  const { error: uploadError } = await supabase.storage
-    .from('product-images')
-    .upload(fileName, compressedFile, { 
-      contentType: compressedFile.type, 
-      upsert: false,
-      // Note: fileSizeLimit is backend-enforced on bucket settings in Supabase dashboard
-    });
-
-  if (uploadError) {
-    if (process.env.NODE_ENV !== 'production') console.error('Product image upload failed:', uploadError.message);
-    throw new Error('فشل رفع الصورة إلى التخزين.');
-  }
-
-  const { data: { publicUrl } } = supabase.storage
-    .from('product-images')
-    .getPublicUrl(fileName);
-
-  if (!publicUrl) {
+  const { imageUrl } = await response.json();
+  if (!imageUrl) {
     throw new Error('فشل استرداد رابط الصورة بعد الرفع.');
   }
 
-  return { imageUrl: publicUrl, info };
+  return { imageUrl, info };
 }
 
 function extractFileName(imageUrl: string): string {
