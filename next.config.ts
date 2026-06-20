@@ -1,5 +1,4 @@
 import type { NextConfig } from "next";
-import withBundleAnalyzer from "@next/bundle-analyzer";
 
 const isDev = process.env.NODE_ENV === 'development';
 
@@ -75,14 +74,12 @@ const nextConfig: NextConfig = {
             key: 'Strict-Transport-Security',
             value: 'max-age=31536000; includeSubDomains; preload',
           },
-            {
-            key: 'Content-Security-Policy',
-            value: `default-src 'self'; script-src 'self' 'unsafe-inline'; worker-src 'self' blob:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://${supabaseHost}; connect-src 'self' https://${supabaseHost} wss://${supabaseHost}; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self'; report-uri /api/csp-report`,
-          },
+            // Note: Content-Security-Policy is set dynamically in middleware (proxy.ts)
+            // with per-request nonces. The static config cannot support nonces.
         ],
       },
     ];
   },
 };
 
-export default process.env.ANALYZE === 'true' ? withBundleAnalyzer()(nextConfig) : nextConfig;
+export default nextConfig;

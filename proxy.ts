@@ -1,16 +1,63 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { createSupabaseServerClient } from '@/lib/supabase-server'
 
+function getExpectedHost(): string | null {
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL
+  if (!siteUrl) return null
+  try {
+    const parsed = new URL(siteUrl)
+    return parsed.host
+  } catch {
+    return null
+  }
+}
+
+function generateNonce(): string {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
+  let result = ''
+  const array = new Uint8Array(16)
+  crypto.getRandomValues(array)
+  for (let i = 0; i < 16; i++) {
+    result += chars[array[i] % chars.length]
+  }
+  return result
+}
+
+function buildCsp(nonce: string, supabaseHost: string): string {
+  return [
+    `default-src 'self'`,
+    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'`,
+    `worker-src 'self' blob:`,
+    `style-src 'self' 'unsafe-inline' https://fonts.googleapis.com`,
+    `font-src 'self' https://fonts.gstatic.com`,
+    `img-src 'self' data: blob: https://${supabaseHost}`,
+    `connect-src 'self' https://${supabaseHost} wss://${supabaseHost}`,
+    `frame-src 'none'`,
+    `object-src 'none'`,
+    `base-uri 'self'`,
+    `form-action 'self'`,
+    `report-uri /api/csp-report`,
+  ].join('; ')
+}
+
 export async function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname
-  const { hostname, port } = request.nextUrl
+  const isAdminRoute = pathname.startsWith('/admin') || pathname.startsWith('/api/admin')
+
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
+  let supabaseHost = '*.supabase.co'
+  try {
+    supabaseHost = new URL(supabaseUrl).hostname
+  } catch {}
+
+  const nonce = generateNonce()
 
   // Host header validation — prevents DNS rebinding and host-poisoning attacks.
-  // In production, only the canonical domain is allowed.
+  // Uses NEXT_PUBLIC_SITE_URL as the single source of truth for the expected host.
   if (process.env.NODE_ENV === 'production') {
     const requestHost = request.headers.get('host') || '';
-    const expectedHost = port ? `${hostname}:${port}` : hostname;
-    if (requestHost !== expectedHost) {
+    const expectedHost = getExpectedHost();
+    if (expectedHost && requestHost !== expectedHost) {
       return new NextResponse('Forbidden', { status: 403 });
     }
   }
@@ -37,41 +84,45 @@ export async function proxy(request: NextRequest) {
     }
   }
 
-  // Allow access to the login page and login API without a session
+  // Set CSP header with nonce and pass nonce to Next.js via x-nonce
+  const response = NextResponse.next()
+  response.headers.set('x-nonce', nonce)
+  response.headers.set('Content-Security-Policy', buildCsp(nonce, supabaseHost))
+
+  // Allow admin login page and API without session
   if (pathname === '/admin' || pathname === '/api/admin/login') {
-    return NextResponse.next()
+    return response
   }
 
-  const response = NextResponse.next()
+  // Only check admin auth for admin routes
+  if (isAdminRoute) {
+    const supabase = createSupabaseServerClient({
+      get(name: string) {
+        return request.cookies.get(name)?.value
+      },
+      set(name: string, value: string, options: Record<string, unknown>) {
+        request.cookies.set(name, value)
+        response.cookies.set(name, value, options)
+      },
+      remove(name: string, options: Record<string, unknown>) {
+        request.cookies.set(name, '')
+        response.cookies.set(name, '', options)
+      },
+    })
 
-  const supabase = createSupabaseServerClient({
-    get(name: string) {
-      return request.cookies.get(name)?.value
-    },
-    set(name: string, value: string, options: Record<string, unknown>) {
-      request.cookies.set(name, value)
-      response.cookies.set(name, value, options)
-    },
-    remove(name: string, options: Record<string, unknown>) {
-      request.cookies.set(name, '')
-      response.cookies.set(name, '', options)
-    },
-  })
+    const { data: { user }, error } = await supabase.auth.getUser()
+    const adminEmail = process.env.ADMIN_EMAIL;
 
-  // Verify token server-side via getUser() (validates JWT, not just cookie)
-  const { data: { user }, error } = await supabase.auth.getUser()
-  const adminEmail = process.env.ADMIN_EMAIL;
-
-  // Redirect to /admin login page if token is invalid, expired, no session, or not the admin
-  if (error || !user || !adminEmail || user.email !== adminEmail) {
-    const url = new URL('/admin', request.url)
-    return NextResponse.redirect(url)
+    if (error || !user || !adminEmail || user.email !== adminEmail) {
+      const url = new URL('/admin', request.url)
+      return NextResponse.redirect(url)
+    }
   }
 
   return response
 }
 
 export const config = {
-  matcher: ['/admin/:path*', '/api/admin/:path*'],
+  matcher: ['/((?!_next/static|_next/image|favicon.ico).*)'],
 }
 
