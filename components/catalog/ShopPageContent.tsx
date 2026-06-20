@@ -1,6 +1,6 @@
 'use client';
 
-import { memo, useState, useMemo, useEffect, useCallback } from 'react';
+import { memo, useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import dynamic from 'next/dynamic';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useProducts } from '@/hooks/useProducts';
@@ -33,6 +33,7 @@ export const ShopPageContent = memo(function ShopPageContent({ initialProducts, 
   const { products: contextProducts, categories: contextCategories, initializeData, isLoaded } = useProducts();
   const searchParams = useSearchParams();
   const router = useRouter();
+  const isInitialSync = useRef(false);
 
 
   useEffect(() => {
@@ -62,6 +63,7 @@ export const ShopPageContent = memo(function ShopPageContent({ initialProducts, 
 
   // 3. Sync local states to the URL in the background
   useEffect(() => {
+    if (!isInitialSync.current) return;
     if (typeof window === 'undefined') return;
     const params = new URLSearchParams(window.location.search);
 
@@ -94,6 +96,7 @@ export const ShopPageContent = memo(function ShopPageContent({ initialProducts, 
     if (urlSearch !== searchInput) setSearchInput(urlSearch);
     if (urlHideOut !== hideOutOfStock) setHideOutOfStock(urlHideOut);
     if (urlSort !== sortBy) setSortBy(urlSort);
+    isInitialSync.current = true;
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams]);
 
