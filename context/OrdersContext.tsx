@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { createContext, useState, useEffect, useMemo, useCallback, useRef, ReactNode } from 'react';
 import type { Order, OrderItem, OrderStatusHistory, OrderStatus, CartItem } from '@/types';
@@ -87,7 +87,7 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
         { data: oiData, error: oiError },
         { data: hData, error: hError },
       ] = await Promise.all([
-        supabase.from('orders').select('id_unique_tracking, status, customer_name, phone_number, shipping_address, total_amount, created_at').order('created_at', { ascending: false }),
+        supabase.from('orders').select('id_unique_tracking, status, customer_name, phone_number, shipping_address, total_amount, created_at, admin_notes, location_link, instapay_screenshot, instapay_phone_number').order('created_at', { ascending: false }),
         supabase.from('order_items').select('id, order_id, product_id, quantity, unit_price'),
         supabase.from('order_status_history').select('id, order_id, status, timestamp'),
       ]);
@@ -236,11 +236,11 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
       await supabase.from('orders').delete().eq('id_unique_tracking', trackingId).maybeSingle();
       if (oiErr) {
         if (process.env.NODE_ENV !== 'production') console.error('Failed to insert order items records:', oiErr);
-        throw new Error('فشل حفظ منتجات الطلب. يرجى المحاولة مرة أخرى.');
+        throw new Error('ÙØ´Ù„ Ø­ÙØ¸ Ù…Ù†ØªØ¬Ø§Øª Ø§Ù„Ø·Ù„Ø¨. ÙŠØ±Ø¬Ù‰ Ø§Ù„Ù…Ø­Ø§ÙˆÙ„Ø© Ù…Ø±Ø© Ø£Ø®Ø±Ù‰.');
       }
       if (hErr) {
         if (process.env.NODE_ENV !== 'production') console.error('Failed to insert status history logs:', hErr);
-        throw new Error('فشل حفظ سجل الطلب. يرجى المحاولة مرة أخرى.');
+        throw new Error('ÙØ´Ù„ Ø­ÙØ¸ Ø³Ø¬Ù„ Ø§Ù„Ø·Ù„Ø¨. ÙŠØ±Ø¬Ù‰ Ø§Ù„Ù…Ø­Ø§ÙˆÙ„Ø© Ù…Ø±Ø© Ø£Ø®Ø±Ù‰.');
       }
     }
 
@@ -304,7 +304,6 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
 
     const previousOrders = ordersRef.current;
 
-    // Optimistic Update
     setOrders((prevOrders) =>
       prevOrders.map((order) =>
         order.id_unique_tracking === orderId ? { ...order, admin_notes: notes } : order

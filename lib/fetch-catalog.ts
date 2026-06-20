@@ -1,7 +1,17 @@
-import { supabase } from '@/lib/supabase';
+import { createSupabaseServerClient } from '@/lib/supabase-server';
 import type { Product } from '@/types';
 
+// Server-safe Supabase client for public reads (no auth cookies needed)
+function createPublicClient() {
+  return createSupabaseServerClient({
+    get() { return undefined },
+    set() {},
+    remove() {},
+  });
+}
+
 export async function fetchCatalog(): Promise<{ categories: string[]; products: Product[] }> {
+  const supabase = createPublicClient();
   let categories: string[] = [];
   let products: Product[] = [];
 
@@ -11,7 +21,7 @@ export async function fetchCatalog(): Promise<{ categories: string[]; products: 
       { data: prodData, error: prodError },
     ] = await Promise.all([
       supabase.from('categories').select('name').order('name'),
-        supabase.from('products').select('id, name, description, price, image_url, stock, is_active, category, created_at').eq('is_active', true).order('created_at'),
+      supabase.from('products').select('id, name, description, price, image_url, stock, is_active, category, created_at').eq('is_active', true).order('created_at'),
     ]);
 
     categories = catData && !catError ? catData.map((c: { name: string }) => c.name) : [];

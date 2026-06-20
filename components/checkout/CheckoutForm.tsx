@@ -1,6 +1,6 @@
-'use client';
+﻿'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -40,7 +40,6 @@ export function CheckoutForm() {
   const [honeypot, setHoneypot] = useState('');
   const pageLoadTimeRef = useRef<number>(0);
 
-  // Initialize page load time on component mount
   useEffect(() => {
     pageLoadTimeRef.current = Date.now();
   }, []);
@@ -75,7 +74,7 @@ export function CheckoutForm() {
         instapay_screenshot: dataUrl,
       }));
     } catch (err: unknown) {
-      const errorMsg = err instanceof Error ? err.message : 'فشل معالجة الصورة. يرجى محاولة رفع ملف آخر.';
+      const errorMsg = err instanceof Error ? err.message : 'ÙØ´Ù„ Ù…Ø¹Ø§Ù„Ø¬Ø© Ø§Ù„ØµÙˆØ±Ø©. ÙŠØ±Ø¬Ù‰ Ù…Ø­Ø§ÙˆÙ„Ø© Ø±ÙØ¹ Ù…Ù„Ù Ø¢Ø®Ø±.';
       setErrors((prev) => ({
         ...prev,
         instapay_screenshot: errorMsg,
@@ -102,7 +101,7 @@ export function CheckoutForm() {
   if (!uiState.isHydrated || (items.length === 0 && !uiState.isSubmitting)) {
     return (
       <div className="max-w-max-width mx-auto px-margin-mobile md:px-margin-desktop py-20 text-center font-poppins">
-        <p className="text-on-surface-variant text-sm">جاري تحميل الدفع...</p>
+        <p className="text-on-surface-variant text-sm">Ø¬Ø§Ø±ÙŠ ØªØ­Ù…ÙŠÙ„ Ø§Ù„Ø¯ÙØ¹...</p>
       </div>
     );
   }
@@ -113,7 +112,6 @@ export function CheckoutForm() {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
     
-    // Clear error for this field
     if (errors[name as keyof CheckoutFormData]) {
       setErrors((prev) => ({ ...prev, [name]: undefined }));
     }
@@ -123,20 +121,19 @@ export function CheckoutForm() {
     e.preventDefault();
     setUiState((prev) => ({ ...prev, isSubmitting: true }));
 
-    // Honeypot check — if a bot filled the hidden field, silently ignore the submission
+    // Honeypot check â€” if a bot filled the hidden field, silently ignore the submission
     if (honeypot) {
       setUiState((prev) => ({ ...prev, isSubmitting: false }));
       return;
     }
 
-    // Time-based bot detection — reject submissions < 2 seconds after page load
+    // Time-based bot detection â€” reject submissions < 2 seconds after page load
     const elapsedMs = Date.now() - pageLoadTimeRef.current;
     if (elapsedMs < 2000) {
       setUiState((prev) => ({ ...prev, isSubmitting: false }));
       return;
     }
 
-    // Validate using Zod
     const validationResult = checkoutSchema.safeParse(formData);
 
     if (!validationResult.success) {
@@ -161,7 +158,7 @@ export function CheckoutForm() {
         // Restrict upload to standard whitelisted image formats (prevents HTML/SVG injection)
         const whitelistedMimes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/heic', 'image/heif'];
         if (!whitelistedMimes.includes(mime)) {
-          throw new Error('نوع الملف غير مدعوم. يرجى رفع صورة صالحة (JPG, PNG, WEBP, GIF, HEIC).');
+          throw new Error('Ù†ÙˆØ¹ Ø§Ù„Ù…Ù„Ù ØºÙŠØ± Ù…Ø¯Ø¹ÙˆÙ…. ÙŠØ±Ø¬Ù‰ Ø±ÙØ¹ ØµÙˆØ±Ø© ØµØ§Ù„Ø­Ø© (JPG, PNG, WEBP, GIF, HEIC).');
         }
 
         const ext = mime.split('/')[1] || 'jpg';
@@ -174,10 +171,10 @@ export function CheckoutForm() {
 
         if (uploadError) {
           if (process.env.NODE_ENV !== 'production') console.error('Receipt upload failed:', uploadError.message);
-          throw new Error('فشل رفع إيصال التحويل. يرجى المحاولة مرة أخرى.');
+          throw new Error('ÙØ´Ù„ Ø±ÙØ¹ Ø¥ÙŠØµØ§Ù„ Ø§Ù„ØªØ­ÙˆÙŠÙ„. ÙŠØ±Ø¬Ù‰ Ø§Ù„Ù…Ø­Ø§ÙˆÙ„Ø© Ù…Ø±Ø© Ø£Ø®Ø±Ù‰.');
         }
 
-        // Store filename only — URL is never exposed publicly. Admin pages
+        // Store filename only â€” URL is never exposed publicly. Admin pages
         // generate time-limited signed URLs via createSignedUrl() at render time.
         finalScreenshotUrl = fileName;
       }
@@ -197,15 +194,15 @@ export function CheckoutForm() {
       router.push(`/checkout/confirmation?id=${newOrder.id_unique_tracking}`);
     } catch (err) {
       if (process.env.NODE_ENV !== 'production') console.error('Failed to place order:', err);
-      setToastMessage(err instanceof Error ? err.message : 'حدث خطأ أثناء إرسال طلبك. يرجى المحاولة مرة أخرى.');
+      setToastMessage(err instanceof Error ? err.message : 'Ø­Ø¯Ø« Ø®Ø·Ø£ Ø£Ø«Ù†Ø§Ø¡ Ø¥Ø±Ø³Ø§Ù„ Ø·Ù„Ø¨Ùƒ. ÙŠØ±Ø¬Ù‰ Ø§Ù„Ù…Ø­Ø§ÙˆÙ„Ø© Ù…Ø±Ø© Ø£Ø®Ø±Ù‰.');
       setUiState((prev) => ({ ...prev, isSubmitting: false }));
     }
   };
 
   return (
     <form onSubmit={handleSubmit} className="max-w-max-width mx-auto px-margin-mobile md:px-margin-desktop font-poppins">
-      {/* Honeypot field for bot prevention — renamed from "website" to less obvious name, hidden with display:none */}
-      <div aria-hidden="true" style={{ display: 'none' }}>
+      {/* Honeypot field for bot prevention â€” positioned off-screen to avoid modern bots detecting display:none */}
+      <div aria-hidden="true" className="absolute -left-[9999px] opacity-0 pointer-events-none" style={{ position: 'absolute', left: '-9999px', height: 0, overflow: 'hidden' }}>
         <label htmlFor="company_phone">Company Phone</label>
         <input
           id="company_phone"
@@ -226,34 +223,32 @@ export function CheckoutForm() {
         />
       )}
 
-      {/* Return to Cart Link */}
       <Link href="/cart" className="group flex items-center gap-2 text-primary font-label-md mb-6 w-fit">
         <span className="material-symbols-outlined select-none rotate-180">arrow_back</span>
-        <span className="group-hover:underline">العودة إلى السلة</span>
+        <span className="group-hover:underline">Ø§Ù„Ø¹ÙˆØ¯Ø© Ø¥Ù„Ù‰ Ø§Ù„Ø³Ù„Ø©</span>
       </Link>
 
       <h1 className="font-headline-lg text-headline-lg mb-8 text-on-background text-start">
-        الدفع الآمن
+        Ø§Ù„Ø¯ÙØ¹ Ø§Ù„Ø¢Ù…Ù†
       </h1>
 
-      {/* InstaPay Transfer Details Card */}
       <div className="bg-primary/5 border border-primary/20 rounded-xl p-6 mb-8 text-start">
         <div className="flex items-start gap-4">
           <div className="w-12 h-12 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0">
             <span className="material-symbols-outlined text-[28px] select-none">account_balance_wallet</span>
           </div>
           <div>
-            <h2 className="text-body-lg font-bold text-on-surface mb-2">تعليمات الدفع عبر إنستاباي (InstaPay)</h2>
+            <h2 className="text-body-lg font-bold text-on-surface mb-2">ØªØ¹Ù„ÙŠÙ…Ø§Øª Ø§Ù„Ø¯ÙØ¹ Ø¹Ø¨Ø± Ø¥Ù†Ø³ØªØ§Ø¨Ø§ÙŠ (InstaPay)</h2>
             <p className="text-sm text-on-surface-variant mb-4 leading-relaxed">
-              إكمال طلبك، يرجى تحويل المبلغ الإجمالي إلى حساب إنستاباي التالي وتحميل صورة إيصال التحويل أدناه:
+              Ø¥ÙƒÙ…Ø§Ù„ Ø·Ù„Ø¨ÙƒØŒ ÙŠØ±Ø¬Ù‰ ØªØ­ÙˆÙŠÙ„ Ø§Ù„Ù…Ø¨Ù„Øº Ø§Ù„Ø¥Ø¬Ù…Ø§Ù„ÙŠ Ø¥Ù„Ù‰ Ø­Ø³Ø§Ø¨ Ø¥Ù†Ø³ØªØ§Ø¨Ø§ÙŠ Ø§Ù„ØªØ§Ù„ÙŠ ÙˆØªØ­Ù…ÙŠÙ„ ØµÙˆØ±Ø© Ø¥ÙŠØµØ§Ù„ Ø§Ù„ØªØ­ÙˆÙŠÙ„ Ø£Ø¯Ù†Ø§Ù‡:
             </p>
             <div className="flex flex-wrap gap-x-8 gap-y-3 bg-white p-4 rounded-lg border border-outline-variant/40 max-w-2xl text-start">
               <div>
-                <span className="text-xs text-on-surface-variant block uppercase font-bold tracking-wider">اسم الحساب في إنستاباي</span>
+                <span className="text-xs text-on-surface-variant block uppercase font-bold tracking-wider">Ø§Ø³Ù… Ø§Ù„Ø­Ø³Ø§Ø¨ ÙÙŠ Ø¥Ù†Ø³ØªØ§Ø¨Ø§ÙŠ</span>
                 <span className="text-body-md font-bold text-on-surface">{instapayAccountName}</span>
               </div>
               <div>
-                <span className="text-xs text-on-surface-variant block uppercase font-bold tracking-wider">رقم هاتف إنستاباي</span>
+                <span className="text-xs text-on-surface-variant block uppercase font-bold tracking-wider">Ø±Ù‚Ù… Ù‡Ø§ØªÙ Ø¥Ù†Ø³ØªØ§Ø¨Ø§ÙŠ</span>
                 <span className="text-body-md font-bold text-primary flex items-center gap-1.5">
                   {instapayPhone}
                 </span>
@@ -264,18 +259,16 @@ export function CheckoutForm() {
       </div>
 
       <div className="flex flex-col lg:flex-row gap-gutter">
-        {/* Right Side in RTL: Form Fields (2/3 width) */}
         <div className="lg:w-2/3 bg-white border border-gray-100 rounded-xl p-8 shadow-sm text-start space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Full Name */}
             <div className="space-y-2">
-              <label className="font-label-md text-on-surface block font-bold">الاسم الكامل</label>
+              <label className="font-label-md text-on-surface block font-bold">Ø§Ù„Ø§Ø³Ù… Ø§Ù„ÙƒØ§Ù…Ù„</label>
               <input
                 className={`w-full border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/10 focus:border-primary transition-all bg-white text-on-background font-body-md ${
                   errors.customer_name ? 'border-error ring-1 ring-error/20' : 'border-gray-300'
                 }`}
                 name="customer_name"
-                placeholder="مثال: محمد علي"
+                placeholder="Ù…Ø«Ø§Ù„: Ù…Ø­Ù…Ø¯ Ø¹Ù„ÙŠ"
                 type="text"
                 value={formData.customer_name}
                 onChange={handleChange}
@@ -286,9 +279,8 @@ export function CheckoutForm() {
               )}
             </div>
 
-            {/* Phone Number */}
             <div className="space-y-2">
-              <label className="font-label-md text-on-surface block font-bold">رقم الهاتف</label>
+              <label className="font-label-md text-on-surface block font-bold">Ø±Ù‚Ù… Ø§Ù„Ù‡Ø§ØªÙ</label>
               <input
                 className={`w-full border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/10 focus:border-primary transition-all bg-white text-on-background font-body-md text-left ${
                   errors.phone_number ? 'border-error ring-1 ring-error/20' : 'border-gray-300'
@@ -302,7 +294,7 @@ export function CheckoutForm() {
                 disabled={uiState.isSubmitting}
               />
               <p className="text-[11px] text-on-surface-variant font-medium mt-1">
-                يفضل أن يكون نشطاً على واتساب
+                ÙŠÙØ¶Ù„ Ø£Ù† ÙŠÙƒÙˆÙ† Ù†Ø´Ø·Ø§Ù‹ Ø¹Ù„Ù‰ ÙˆØ§ØªØ³Ø§Ø¨
               </p>
               {errors.phone_number && (
                 <p className="text-xs text-error font-medium">{errors.phone_number}</p>
@@ -310,15 +302,14 @@ export function CheckoutForm() {
             </div>
           </div>
 
-          {/* Shipping Address */}
           <div className="space-y-2">
-            <label className="font-label-md text-on-surface block font-bold">عنوان الشحن بالتفصيل</label>
+            <label className="font-label-md text-on-surface block font-bold">Ø¹Ù†ÙˆØ§Ù† Ø§Ù„Ø´Ø­Ù† Ø¨Ø§Ù„ØªÙØµÙŠÙ„</label>
             <input
               className={`w-full border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/10 focus:border-primary transition-all bg-white text-on-background font-body-md ${
                 errors.shipping_address ? 'border-error ring-1 ring-error/20' : 'border-gray-300'
               }`}
               name="shipping_address"
-              placeholder="مثال: 12 شارع جمال عبد الناصر، سيدي بشر، الإسكندرية"
+              placeholder="Ù…Ø«Ø§Ù„: 12 Ø´Ø§Ø±Ø¹ Ø¬Ù…Ø§Ù„ Ø¹Ø¨Ø¯ Ø§Ù„Ù†Ø§ØµØ±ØŒ Ø³ÙŠØ¯ÙŠ Ø¨Ø´Ø±ØŒ Ø§Ù„Ø¥Ø³ÙƒÙ†Ø¯Ø±ÙŠØ©"
               type="text"
               value={formData.shipping_address}
               onChange={handleChange}
@@ -330,10 +321,9 @@ export function CheckoutForm() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Location Link (Optional) */}
             <div className="space-y-2">
               <label className="font-label-md text-on-surface block font-bold">
-                رابط الموقع الجغرافي <span className="text-on-surface-variant font-normal text-xs">(اختياري - رابط جوجل ماب)</span>
+                Ø±Ø§Ø¨Ø· Ø§Ù„Ù…ÙˆÙ‚Ø¹ Ø§Ù„Ø¬ØºØ±Ø§ÙÙŠ <span className="text-on-surface-variant font-normal text-xs">(Ø§Ø®ØªÙŠØ§Ø±ÙŠ - Ø±Ø§Ø¨Ø· Ø¬ÙˆØ¬Ù„ Ù…Ø§Ø¨)</span>
               </label>
               <input
                 className="w-full border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/10 focus:border-primary transition-all bg-white text-on-background font-body-md border-gray-300 text-left"
@@ -347,10 +337,9 @@ export function CheckoutForm() {
               />
             </div>
 
-            {/* InstaPay Phone Number (Optional) */}
             <div className="space-y-2">
               <label className="font-label-md text-on-surface block font-bold">
-                رقم الهاتف المحول منه إنستاباي <span className="text-on-surface-variant font-normal text-xs">(اختياري)</span>
+                Ø±Ù‚Ù… Ø§Ù„Ù‡Ø§ØªÙ Ø§Ù„Ù…Ø­ÙˆÙ„ Ù…Ù†Ù‡ Ø¥Ù†Ø³ØªØ§Ø¨Ø§ÙŠ <span className="text-on-surface-variant font-normal text-xs">(Ø§Ø®ØªÙŠØ§Ø±ÙŠ)</span>
               </label>
               <input
                 className="w-full border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/10 focus:border-primary transition-all bg-white text-on-background font-body-md border-gray-300 text-left"
@@ -363,16 +352,15 @@ export function CheckoutForm() {
                 disabled={uiState.isSubmitting}
               />
               <p className="text-[11px] text-on-surface-variant font-medium mt-1 leading-relaxed">
-                ⓘ املأ هذا الحقل فقط إذا كان رقم الهاتف الذي قمت بالتحويل منه مختلفاً عن رقم الاتصال الأساسي.
+                â“˜ Ø§Ù…Ù„Ø£ Ù‡Ø°Ø§ Ø§Ù„Ø­Ù‚Ù„ ÙÙ‚Ø· Ø¥Ø°Ø§ ÙƒØ§Ù† Ø±Ù‚Ù… Ø§Ù„Ù‡Ø§ØªÙ Ø§Ù„Ø°ÙŠ Ù‚Ù…Øª Ø¨Ø§Ù„ØªØ­ÙˆÙŠÙ„ Ù…Ù†Ù‡ Ù…Ø®ØªÙ„ÙØ§Ù‹ Ø¹Ù† Ø±Ù‚Ù… Ø§Ù„Ø§ØªØµØ§Ù„ Ø§Ù„Ø£Ø³Ø§Ø³ÙŠ.
               </p>
             </div>
           </div>
 
-          {/* InstaPay Screenshot Upload */}
           <div className="space-y-2">
             <label className="font-label-md text-on-surface block font-bold">
-              لقطة شاشة تحويل إنستاباي <span className="text-red-500 font-bold">*</span>{' '}
-              <span className="text-on-surface-variant font-normal text-xs">(إيصال التحويل - الحد الأقصى 5 ميجابايت، ويتم ضغطه تلقائياً)</span>
+              Ù„Ù‚Ø·Ø© Ø´Ø§Ø´Ø© ØªØ­ÙˆÙŠÙ„ Ø¥Ù†Ø³ØªØ§Ø¨Ø§ÙŠ <span className="text-red-500 font-bold">*</span>{' '}
+              <span className="text-on-surface-variant font-normal text-xs">(Ø¥ÙŠØµØ§Ù„ Ø§Ù„ØªØ­ÙˆÙŠÙ„ - Ø§Ù„Ø­Ø¯ Ø§Ù„Ø£Ù‚ØµÙ‰ 5 Ù…ÙŠØ¬Ø§Ø¨Ø§ÙŠØªØŒ ÙˆÙŠØªÙ… Ø¶ØºØ·Ù‡ ØªÙ„Ù‚Ø§Ø¦ÙŠØ§Ù‹)</span>
             </label>
             <div className="flex items-center gap-3">
               <input
@@ -385,7 +373,7 @@ export function CheckoutForm() {
               {imageState.isCompressing && (
                 <span className="text-xs text-primary font-medium flex items-center gap-1 shrink-0 animate-pulse">
                   <span className="material-symbols-outlined text-base select-none">compress</span>
-                  جاري الضغط...
+                  Ø¬Ø§Ø±ÙŠ Ø§Ù„Ø¶ØºØ·...
                 </span>
               )}
                {!imageState.isCompressing && formData.instapay_screenshot && (
@@ -393,7 +381,7 @@ export function CheckoutForm() {
                    {/* eslint-disable-next-line @next/next/no-img-element -- data-URI preview */}
                    <img
                      src={formData.instapay_screenshot}
-                     alt="معاينة إيصال إنستاباي"
+                     alt="Ù…Ø¹Ø§ÙŠÙ†Ø© Ø¥ÙŠØµØ§Ù„ Ø¥Ù†Ø³ØªØ§Ø¨Ø§ÙŠ"
                      className="object-cover w-full h-full"
                    />
                  </div>
@@ -411,14 +399,12 @@ export function CheckoutForm() {
           </div>
         </div>{/* end lg:w-2/3 left panel */}
 
-        {/* Left Side in RTL: Order Review Summary card (1/3 width) */}
         <div className="lg:w-1/3">
           <div className="bg-on-background text-white rounded-xl p-8 shadow-xl sticky top-24 text-start">
             <h2 className="font-headline-md text-headline-md mb-6 text-surface-bright pb-4 border-b border-surface-variant/20">
-              المراجعة النهائية
+              Ø§Ù„Ù…Ø±Ø§Ø¬Ø¹Ø© Ø§Ù„Ù†Ù‡Ø§Ø¦ÙŠØ©
             </h2>
             
-            {/* Itemized list */}
             <div className="space-y-4 mb-8 max-h-[300px] overflow-y-auto pe-1">
               {items.map((item) => (
                 <div key={item.product.id} className="flex gap-4 items-center">
@@ -435,29 +421,27 @@ export function CheckoutForm() {
                   </div>
                   <div className="flex-grow min-w-0">
                     <p className="font-label-md truncate text-white">{item.product.name}</p>
-                    <p className="text-surface-variant/70 text-[12px]">الكمية: {item.quantity}</p>
+                    <p className="text-surface-variant/70 text-[12px]">Ø§Ù„ÙƒÙ…ÙŠØ©: {item.quantity}</p>
                   </div>
                   <p className="font-bold shrink-0">{formatCurrency(item.product.price * item.quantity)}</p>
                 </div>
               ))}
             </div>
 
-            {/* Price breakdown */}
             <div className="space-y-3 mb-8 pt-4 border-t border-surface-variant/20">
               <div className="flex justify-between font-label-md text-surface-variant">
-                <span>المجموع الفرعي</span>
+                <span>Ø§Ù„Ù…Ø¬Ù…ÙˆØ¹ Ø§Ù„ÙØ±Ø¹ÙŠ</span>
                 <span>{formatCurrency(total)}</span>
               </div>
 
               <div className="flex justify-between font-label-md text-secondary-fixed">
-                <span className="font-bold">المبلغ الإجمالي المطلوب</span>
+                <span className="font-bold">Ø§Ù„Ù…Ø¨Ù„Øº Ø§Ù„Ø¥Ø¬Ù…Ø§Ù„ÙŠ Ø§Ù„Ù…Ø·Ù„ÙˆØ¨</span>
                 <span className="text-[28px] font-display-lg gold-glow font-mono">
                   {formatCurrency(total)}
                 </span>
               </div>
             </div>
 
-            {/* Place Order submit button */}
             <button
               type="submit"
               disabled={uiState.isSubmitting}
@@ -466,10 +450,10 @@ export function CheckoutForm() {
               {uiState.isSubmitting ? (
                 <>
                   <span className="material-symbols-outlined animate-spin select-none">sync</span>
-                  جاري إرسال الطلب...
+                  Ø¬Ø§Ø±ÙŠ Ø¥Ø±Ø³Ø§Ù„ Ø§Ù„Ø·Ù„Ø¨...
                 </>
               ) : (
-                'تأكيد الطلب الآن'
+                'ØªØ£ÙƒÙŠØ¯ Ø§Ù„Ø·Ù„Ø¨ Ø§Ù„Ø¢Ù†'
               )}
             </button>
 

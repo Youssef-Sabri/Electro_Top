@@ -6,7 +6,7 @@ export async function POST(request: NextRequest) {
     const report = await request.json();
     const violation = report?.['csp-report'] || report;
 
-    console.error('[CSP Violation]', JSON.stringify(violation));
+    if (process.env.NODE_ENV !== 'production') console.error('[CSP Violation]', JSON.stringify(violation));
 
     const supabaseClient = createSupabaseServerClient({
       get() { return undefined },

@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { memo, useState, useEffect, useCallback, useRef } from 'react';
 import Link from 'next/link';
@@ -51,10 +51,9 @@ export const Navbar = memo(function Navbar() {
   return (
     <nav className="sticky top-0 w-full z-50 bg-surface/80 backdrop-blur-md border-b border-outline-variant/30 shadow-sm">
       <div className="max-w-max-width mx-auto flex justify-between items-center px-margin-desktop py-4">
-        {/* Brand */}
         <Link href="/" className="flex items-center gap-3 hover:opacity-90 transition-opacity">
            <Image
-             alt="شعار إلكترو توب"
+             alt="Ø´Ø¹Ø§Ø± Ø¥Ù„ÙƒØªØ±Ùˆ ØªÙˆØ¨"
              className="h-8 w-auto mix-blend-multiply"
              src="/logo.jpg"
              width={32}
@@ -64,11 +63,10 @@ export const Navbar = memo(function Navbar() {
              priority
            />
           <span className="font-headline-md text-headline-md font-extrabold text-primary tracking-tighter">
-            إلكترو توب
+            Ø¥Ù„ÙƒØªØ±Ùˆ ØªÙˆØ¨
           </span>
         </Link>
 
-        {/* Navigation Links */}
         <div className="hidden md:flex items-center gap-8">
           <Link
             href="/"
@@ -78,7 +76,7 @@ export const Navbar = memo(function Navbar() {
                 : 'text-on-surface-variant hover:text-primary transition-opacity'
             }`}
           >
-            الرئيسية
+            Ø§Ù„Ø±Ø¦ÙŠØ³ÙŠØ©
           </Link>
           <Link
             href="/shop"
@@ -88,7 +86,7 @@ export const Navbar = memo(function Navbar() {
                 : 'text-on-surface-variant hover:text-primary transition-opacity'
             }`}
           >
-            المتجر
+            Ø§Ù„Ù…ØªØ¬Ø±
           </Link>
           <Link
             href="/track"
@@ -98,7 +96,7 @@ export const Navbar = memo(function Navbar() {
                 : 'text-on-surface-variant hover:text-primary transition-opacity'
             }`}
           >
-            تتبع الطلب
+            ØªØªØ¨Ø¹ Ø§Ù„Ø·Ù„Ø¨
           </Link>
           <Link
             href="/support"
@@ -108,7 +106,7 @@ export const Navbar = memo(function Navbar() {
                 : 'text-on-surface-variant hover:text-primary transition-opacity'
             }`}
           >
-            الدعم
+            Ø§Ù„Ø¯Ø¹Ù…
           </Link>
           {isMounted && isAdmin && (
             <Link
@@ -116,18 +114,16 @@ export const Navbar = memo(function Navbar() {
               className="font-label-md text-label-md text-primary bg-primary/10 border border-primary/20 px-3 py-1.5 rounded-lg hover:bg-primary/20 transition-all font-semibold uppercase tracking-wider text-xs flex items-center gap-1"
             >
               <span className="material-symbols-outlined text-[16px]">admin_panel_settings</span>
-              لوحة التحكم
+              Ù„ÙˆØ­Ø© Ø§Ù„ØªØ­ÙƒÙ…
             </Link>
           )}
         </div>
 
-        {/* Search & Actions */}
         <div className="flex items-center gap-6">
-          {/* Search bar */}
           <form onSubmit={handleSearchSubmit} className="relative hidden lg:block">
             <input
               className="bg-surface-container-low border border-outline-variant rounded-lg pr-10 pl-4 py-2 text-label-md focus:ring-2 focus:ring-primary/10 focus:border-primary outline-none transition-all text-on-surface text-right"
-              placeholder="البحث عن المنتجات..."
+              placeholder="Ø§Ù„Ø¨Ø­Ø« Ø¹Ù† Ø§Ù„Ù…Ù†ØªØ¬Ø§Øª..."
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -137,7 +133,6 @@ export const Navbar = memo(function Navbar() {
             </span>
           </form>
 
-          {/* Cart Trigger */}
           <Link href="/cart" className="relative hover:opacity-80 transition-opacity flex items-center">
             <span className="material-symbols-outlined text-primary text-[28px] select-none">
               shopping_cart
@@ -149,7 +144,6 @@ export const Navbar = memo(function Navbar() {
             )}
           </Link>
 
-          {/* Mobile Menu Trigger */}
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             className="md:hidden text-on-surface hover:text-primary transition-colors flex items-center cursor-pointer"
@@ -162,7 +156,6 @@ export const Navbar = memo(function Navbar() {
         </div>
       </div>
 
-      {/* Mobile Menu Drawer */}
       {isMobileMenuOpen && (
         <div className="md:hidden bg-surface border-t border-outline-variant/30 py-4 px-margin-mobile space-y-4"
           style={{ animation: 'slideDown 0.2s ease-out forwards' }}
@@ -170,7 +163,7 @@ export const Navbar = memo(function Navbar() {
           <form onSubmit={handleSearchSubmit} className="relative w-full">
             <input
               className="w-full bg-surface-container-low border border-outline-variant rounded-lg pr-10 pl-4 py-2 text-label-md focus:ring-2 focus:ring-primary/10 focus:border-primary outline-none transition-all text-on-surface text-right"
-              placeholder="البحث عن المنتجات..."
+              placeholder="Ø§Ù„Ø¨Ø­Ø« Ø¹Ù† Ø§Ù„Ù…Ù†ØªØ¬Ø§Øª..."
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -187,7 +180,7 @@ export const Navbar = memo(function Navbar() {
                 isHomeActive ? 'text-primary font-bold' : 'text-on-surface-variant'
               }`}
             >
-              الرئيسية
+              Ø§Ù„Ø±Ø¦ÙŠØ³ÙŠØ©
             </Link>
             <Link
               href="/shop"
@@ -196,7 +189,7 @@ export const Navbar = memo(function Navbar() {
                 pathname.startsWith('/shop') ? 'text-primary font-bold' : 'text-on-surface-variant'
               }`}
             >
-              المتجر
+              Ø§Ù„Ù…ØªØ¬Ø±
             </Link>
             <Link
               href="/track"
@@ -205,7 +198,7 @@ export const Navbar = memo(function Navbar() {
                 isTrackActive ? 'text-primary font-bold' : 'text-on-surface-variant'
               }`}
             >
-              تتبع الطلب
+              ØªØªØ¨Ø¹ Ø§Ù„Ø·Ù„Ø¨
             </Link>
             <Link
               href="/support"
@@ -214,7 +207,7 @@ export const Navbar = memo(function Navbar() {
                 pathname.startsWith('/support') ? 'text-primary font-bold' : 'text-on-surface-variant'
               }`}
             >
-              الدعم
+              Ø§Ù„Ø¯Ø¹Ù…
             </Link>
             {isMounted && isAdmin && (
               <Link
@@ -223,7 +216,7 @@ export const Navbar = memo(function Navbar() {
                 className="font-label-md text-label-md py-2 text-primary font-bold border-t border-outline-variant/20 mt-2 pt-3 flex items-center gap-1.5 animate-fade-in-up"
               >
                 <span className="material-symbols-outlined text-[18px]">admin_panel_settings</span>
-                لوحة التحكم
+                Ù„ÙˆØ­Ø© Ø§Ù„ØªØ­ÙƒÙ…
               </Link>
             )}
           </div>

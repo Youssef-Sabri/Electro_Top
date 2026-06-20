@@ -41,6 +41,7 @@ export default function RootLayout({
       className={`${cairo.variable} ${tajawal.variable} h-full antialiased`}
     >
       <head>
+        <meta name="referrer" content="strict-origin-when-cross-origin" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         {/* Lazy-load Google Material Symbols Outlined icon font (non-render-blocking) */}
@@ -52,6 +53,24 @@ export default function RootLayout({
         <link
           href={materialSymbolsUrl}
           rel="stylesheet"
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'Store',
+              name: 'إلكترو توب',
+              description: 'الموزع المعتمد لمنتجات السويدي، شنايدر، سيمنز، هيميل، جيويس، وشينت. مستلزمات كهربائية ممتازة مع إمكانية الدفع كزائر وتتبع الطلبات.',
+              url: process.env.NEXT_PUBLIC_SITE_URL || 'https://electrotop-eg.com',
+              telephone: process.env.NEXT_PUBLIC_SUPPORT_PHONE || '+20 103 344 3324',
+              areaServed: 'EG',
+              hasOfferCatalog: {
+                '@type': 'OfferCatalog',
+                name: 'المستلزمات الكهربائية',
+              },
+            }),
+          }}
         />
       </head>
       <body className="min-h-full bg-background text-on-surface font-body-md flex flex-col">

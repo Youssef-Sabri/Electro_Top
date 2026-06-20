@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { memo, useEffect, useState, useMemo, useRef } from 'react';
 import Link from 'next/link';
@@ -17,25 +17,26 @@ import { supabase } from '@/lib/supabase';
 
 const MAX_NOTES_LENGTH = 2000;
 
-// Constant defined outside component — never recreated on re-renders
+// Constant defined outside component â€” never recreated on re-renders
 const STATUS_OPTIONS = [
-  { value: 'Pending Review', label: 'قيد المراجعة' },
-  { value: 'Accepted', label: 'مقبول' },
-  { value: 'Processing', label: 'قيد التحضير' },
-  { value: 'Delivered', label: 'تم التوصيل' },
-  { value: 'Declined', label: 'مرفوض' },
-  { value: 'Check Internal Note', label: 'قيد الفحص' },
+  { value: 'Pending Review', label: 'Ù‚ÙŠØ¯ Ø§Ù„Ù…Ø±Ø§Ø¬Ø¹Ø©' },
+  { value: 'Accepted', label: 'Ù…Ù‚Ø¨ÙˆÙ„' },
+  { value: 'Processing', label: 'Ù‚ÙŠØ¯ Ø§Ù„ØªØ­Ø¶ÙŠØ±' },
+  { value: 'Delivered', label: 'ØªÙ… Ø§Ù„ØªÙˆØµÙŠÙ„' },
+  { value: 'Declined', label: 'Ù…Ø±ÙÙˆØ¶' },
+  { value: 'Check Internal Note', label: 'Ù‚ÙŠØ¯ Ø§Ù„ÙØ­Øµ' },
 ];
 
 
 
 const translateHistoryStatus = (status: string) => {
   const dict: Record<string, string> = {
-    'Pending Review': 'تم تسجيل الطلب والدفع',
-    'Accepted': 'تم قبول وتأكيد الطلب',
-    'Processing': 'جاري تحضير الشحنة',
-    'Delivered': 'تم توصيل الطلب بنجاح',
-    'Declined': 'تم رفض الطلب'
+    'Pending Review': 'ØªÙ… ØªØ³Ø¬ÙŠÙ„ Ø§Ù„Ø·Ù„Ø¨ ÙˆØ§Ù„Ø¯ÙØ¹',
+    'Accepted': 'ØªÙ… Ù‚Ø¨ÙˆÙ„ ÙˆØªØ£ÙƒÙŠØ¯ Ø§Ù„Ø·Ù„Ø¨',
+    'Processing': 'Ø¬Ø§Ø±ÙŠ ØªØ­Ø¶ÙŠØ± Ø§Ù„Ø´Ø­Ù†Ø©',
+    'Delivered': 'ØªÙ… ØªÙˆØµÙŠÙ„ Ø§Ù„Ø·Ù„Ø¨ Ø¨Ù†Ø¬Ø§Ø­',
+    'Declined': 'ØªÙ… Ø±ÙØ¶ Ø§Ù„Ø·Ù„Ø¨',
+    'Check Internal Note': 'Ù‚ÙŠØ¯ Ø§Ù„ÙØ­Øµ Ø§Ù„Ø¯Ø§Ø®Ù„ÙŠ'
   };
   return dict[status] || status;
 };
@@ -48,7 +49,7 @@ export const OrderDetailClient = memo(function OrderDetailClient({ id }: OrderDe
   const { getOrderById, getOrderItems, getStatusHistory, updateOrderStatus, updateAdminNotes } = useOrders();
   const { getProductsMap } = useProducts();
 
-  // Single batch lookup — avoids per-item function call overhead for 50+ items
+  // Single batch lookup â€” avoids per-item function call overhead for 50+ items
   const productsById = getProductsMap();
 
   const [order, setOrder] = useState<Order | null>(null);
@@ -234,12 +235,12 @@ export const OrderDetailClient = memo(function OrderDetailClient({ id }: OrderDe
       };
       setStatusHistory((prev) => [...prev, newHistoryEntry]);
 
-      setToastMessage('تم حفظ تغييرات الطلب بنجاح ✓');
+      setToastMessage('ØªÙ… Ø­ÙØ¸ ØªØºÙŠÙŠØ±Ø§Øª Ø§Ù„Ø·Ù„Ø¨ Ø¨Ù†Ø¬Ø§Ø­ âœ“');
       setToastType('success');
       setShowToast(true);
     } catch (err) {
       if (process.env.NODE_ENV !== 'production') console.error(err);
-      setToastMessage('فشل حفظ تغييرات الطلب');
+      setToastMessage('ÙØ´Ù„ Ø­ÙØ¸ ØªØºÙŠÙŠØ±Ø§Øª Ø§Ù„Ø·Ù„Ø¨');
       setToastType('error');
       setShowToast(true);
     } finally {
@@ -249,10 +250,10 @@ export const OrderDetailClient = memo(function OrderDetailClient({ id }: OrderDe
 
   const handleNotesBlur = async () => {
     if (!order) return;
-    // Only save if the notes value actually changed — avoids redundant DB writes on every click away
+    // Only save if the notes value actually changed â€” avoids redundant DB writes on every click away
     if (notesValue === lastSavedNotes.current) return;
     if (notesValue.length > MAX_NOTES_LENGTH) {
-      setToastMessage('ملاحظات المسؤول تجاوزت الحد الأقصى المسموح به (2000 حرف).');
+      setToastMessage('Ù…Ù„Ø§Ø­Ø¸Ø§Øª Ø§Ù„Ù…Ø³Ø¤ÙˆÙ„ ØªØ¬Ø§ÙˆØ²Øª Ø§Ù„Ø­Ø¯ Ø§Ù„Ø£Ù‚ØµÙ‰ Ø§Ù„Ù…Ø³Ù…ÙˆØ­ Ø¨Ù‡ (2000 Ø­Ø±Ù).');
       setToastType('error');
       setShowToast(true);
       return;
@@ -261,7 +262,7 @@ export const OrderDetailClient = memo(function OrderDetailClient({ id }: OrderDe
       lastSavedNotes.current = notesValue;
       await updateAdminNotes(order.id_unique_tracking, notesValue);
       setOrder((prev) => prev ? { ...prev, admin_notes: notesValue } : null);
-      setToastMessage('تم حفظ ملاحظات المسؤول تلقائياً ✓');
+      setToastMessage('ØªÙ… Ø­ÙØ¸ Ù…Ù„Ø§Ø­Ø¸Ø§Øª Ø§Ù„Ù…Ø³Ø¤ÙˆÙ„ ØªÙ„Ù‚Ø§Ø¦ÙŠØ§Ù‹ âœ“');
       setToastType('success');
       setShowToast(true);
     } catch (err) {
@@ -272,7 +273,7 @@ export const OrderDetailClient = memo(function OrderDetailClient({ id }: OrderDe
   if (loading) {
     return (
       <div className="py-20 text-center font-poppins text-on-surface-variant">
-        <p className="text-sm">جاري جلب تفاصيل الطلب...</p>
+        <p className="text-sm">Ø¬Ø§Ø±ÙŠ Ø¬Ù„Ø¨ ØªÙØ§ØµÙŠÙ„ Ø§Ù„Ø·Ù„Ø¨...</p>
       </div>
     );
   }
@@ -287,14 +288,14 @@ export const OrderDetailClient = memo(function OrderDetailClient({ id }: OrderDe
             </div>
           </div>
           <div className="space-y-2 text-center">
-            <h2 className="text-2xl font-montserrat font-extrabold text-on-surface">لم يتم العثور على الطلب</h2>
+            <h2 className="text-2xl font-montserrat font-extrabold text-on-surface">Ù„Ù… ÙŠØªÙ… Ø§Ù„Ø¹Ø«ÙˆØ± Ø¹Ù„Ù‰ Ø§Ù„Ø·Ù„Ø¨</h2>
             <p className="text-sm text-on-surface-variant">
-              رقم تتبع الطلب <span className="font-semibold text-on-surface">&quot;{id}&quot;</span> غير موجود في قاعدة بيانات الطلبات.
+              Ø±Ù‚Ù… ØªØªØ¨Ø¹ Ø§Ù„Ø·Ù„Ø¨ <span className="font-semibold text-on-surface">&quot;{id}&quot;</span> ØºÙŠØ± Ù…ÙˆØ¬ÙˆØ¯ ÙÙŠ Ù‚Ø§Ø¹Ø¯Ø© Ø¨ÙŠØ§Ù†Ø§Øª Ø§Ù„Ø·Ù„Ø¨Ø§Øª.
             </p>
           </div>
           <div className="text-center pt-2">
             <Link href="/admin/orders" className="bg-primary text-on-primary px-8 py-3 rounded-lg font-label-md hover:opacity-90 inline-block uppercase tracking-wider">
-              العودة إلى جميع الطلبات
+              Ø§Ù„Ø¹ÙˆØ¯Ø© Ø¥Ù„Ù‰ Ø¬Ù…ÙŠØ¹ Ø§Ù„Ø·Ù„Ø¨Ø§Øª
             </Link>
           </div>
         </div>
@@ -316,28 +317,26 @@ export const OrderDetailClient = memo(function OrderDetailClient({ id }: OrderDe
   return (
     <>
       <section className="space-y-gutter font-poppins text-start print:hidden">
-      {/* Back navigation */}
       <div className="flex items-center gap-4">
         <Link href="/admin/orders" className="flex items-center gap-2 text-primary font-label-md hover:translate-x-[4px] transition-transform">
-          <span className="material-symbols-outlined select-none rotate-180">arrow_back</span> العودة إلى جميع الطلبات
+          <span className="material-symbols-outlined select-none rotate-180">arrow_back</span> Ø§Ù„Ø¹ÙˆØ¯Ø© Ø¥Ù„Ù‰ Ø¬Ù…ÙŠØ¹ Ø§Ù„Ø·Ù„Ø¨Ø§Øª
         </Link>
       </div>
 
-      {/* Title block */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 text-start">
         <div>
           <h2 className="font-headline-lg text-headline-lg text-on-surface">
-            تفاصيل الطلب <span className="text-secondary-fixed-dim">#{order.id_unique_tracking}</span>
+            ØªÙØ§ØµÙŠÙ„ Ø§Ù„Ø·Ù„Ø¨ <span className="text-secondary-fixed-dim">#{order.id_unique_tracking}</span>
           </h2>
           <p className="text-on-surface-variant font-body-md text-body-md">
-            تم تقديمه في {orderDate} الساعة {orderTime}
+            ØªÙ… ØªÙ‚Ø¯ÙŠÙ…Ù‡ ÙÙŠ {orderDate} Ø§Ù„Ø³Ø§Ø¹Ø© {orderTime}
           </p>
         </div>
         <div className="flex gap-3">
           <button
             onClick={() => {
               const originalTitle = document.title;
-              document.title = `فاتورة-${order.id_unique_tracking}`;
+              document.title = `ÙØ§ØªÙˆØ±Ø©-${order.id_unique_tracking}`;
               
               // Short delay to allow browser/OS print interface to register the updated title
               if (printTimerRef.current) clearTimeout(printTimerRef.current);
@@ -355,33 +354,30 @@ export const OrderDetailClient = memo(function OrderDetailClient({ id }: OrderDe
             }}
             className="px-4 py-2 border-2 border-primary text-primary rounded-lg font-label-md text-label-md hover:bg-primary/5 transition-colors cursor-pointer"
           >
-            طباعة الفاتورة
+            Ø·Ø¨Ø§Ø¹Ø© Ø§Ù„ÙØ§ØªÙˆØ±Ø©
           </button>
           <button
             onClick={handleSaveChanges}
             disabled={isSaving}
             className="px-4 py-2 bg-primary text-on-primary rounded-lg font-label-md text-label-md hover:opacity-90 transition-opacity cursor-pointer font-semibold uppercase tracking-wider"
           >
-            {isSaving ? 'جاري الحفظ...' : 'حفظ التغييرات'}
+            {isSaving ? 'Ø¬Ø§Ø±ÙŠ Ø§Ù„Ø­ÙØ¸...' : 'Ø­ÙØ¸ Ø§Ù„ØªØºÙŠÙŠØ±Ø§Øª'}
           </button>
         </div>
       </div>
 
 
-      {/* Grid columns */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-gutter">
-        {/* Left Column: Items and Admin Notes (2/3 width) */}
         <div className="lg:col-span-2 space-y-gutter">
-          {/* Order Items card */}
           <div className="bg-surface-container-lowest rounded-xl border border-outline-variant/30 shadow-sm p-6 overflow-hidden text-start">
-            <h3 className="font-headline-md text-headline-md mb-6 text-on-surface">عناصر الطلب</h3>
+            <h3 className="font-headline-md text-headline-md mb-6 text-on-surface">Ø¹Ù†Ø§ØµØ± Ø§Ù„Ø·Ù„Ø¨</h3>
             <table className="w-full text-start">
               <thead>
                 <tr className="border-b border-outline-variant/30 select-none">
-                  <th className="pb-4 font-label-md text-label-md text-on-surface-variant text-start">المنتج</th>
-                  <th className="pb-4 font-label-md text-label-md text-on-surface-variant text-center">الكمية</th>
-                  <th className="pb-4 font-label-md text-label-md text-on-surface-variant text-end">السعر</th>
-                  <th className="pb-4 font-label-md text-label-md text-on-surface-variant text-end">المجموع الفرعي</th>
+                  <th className="pb-4 font-label-md text-label-md text-on-surface-variant text-start">Ø§Ù„Ù…Ù†ØªØ¬</th>
+                  <th className="pb-4 font-label-md text-label-md text-on-surface-variant text-center">Ø§Ù„ÙƒÙ…ÙŠØ©</th>
+                  <th className="pb-4 font-label-md text-label-md text-on-surface-variant text-end">Ø§Ù„Ø³Ø¹Ø±</th>
+                  <th className="pb-4 font-label-md text-label-md text-on-surface-variant text-end">Ø§Ù„Ù…Ø¬Ù…ÙˆØ¹ Ø§Ù„ÙØ±Ø¹ÙŠ</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-outline-variant/10">
@@ -411,7 +407,7 @@ export const OrderDetailClient = memo(function OrderDetailClient({ id }: OrderDe
                           </div>
                           <div>
                             <p className="font-label-md text-label-md text-on-surface font-semibold">
-                              {product ? product.name : 'عنصر غير معروف'}
+                              {product ? product.name : 'Ø¹Ù†ØµØ± ØºÙŠØ± Ù…Ø¹Ø±ÙˆÙ'}
                             </p>
                           </div>
                         </div>
@@ -434,17 +430,17 @@ export const OrderDetailClient = memo(function OrderDetailClient({ id }: OrderDe
             {/* Pricing calculations */}
             <div className="mt-8 pt-6 border-t border-outline-variant/30 space-y-2 text-sm">
               <div className="flex justify-between font-body-md text-body-md">
-                <span className="text-on-surface-variant">المجموع الفرعي</span>
+                <span className="text-on-surface-variant">Ø§Ù„Ù…Ø¬Ù…ÙˆØ¹ Ø§Ù„ÙØ±Ø¹ÙŠ</span>
                 <span className="text-on-surface font-semibold">{formatCurrency(order.total_amount)}</span>
               </div>
               <div className="flex justify-between font-body-md text-body-md">
-                <span className="text-on-surface-variant">الشحن (عادي)</span>
-                <span className="text-green-600 font-bold text-xs">مجاني</span>
+                <span className="text-on-surface-variant">Ø§Ù„Ø´Ø­Ù† (Ø¹Ø§Ø¯ÙŠ)</span>
+                <span className="text-green-600 font-bold text-xs">Ù…Ø¬Ø§Ù†ÙŠ</span>
               </div>
 
               
               <div className="flex justify-between pt-4 font-headline-md text-headline-md border-t border-outline-variant/10 items-end">
-                <span className="text-on-surface font-bold text-base">الإجمالي</span>
+                <span className="text-on-surface font-bold text-base">Ø§Ù„Ø¥Ø¬Ù…Ø§Ù„ÙŠ</span>
                 <span className="text-secondary-fixed-dim font-montserrat font-bold text-xl">
                   {formatCurrency(order.total_amount)}
                 </span>
@@ -452,12 +448,11 @@ export const OrderDetailClient = memo(function OrderDetailClient({ id }: OrderDe
             </div>
           </div>
 
-          {/* Internal Admin Notes */}
           <div className="bg-surface-container-lowest rounded-xl border border-outline-variant/30 shadow-sm p-6 text-start">
-            <h3 className="font-headline-md text-headline-md mb-4 text-on-surface">ملاحظات المسؤول الداخلية</h3>
+            <h3 className="font-headline-md text-headline-md mb-4 text-on-surface">Ù…Ù„Ø§Ø­Ø¸Ø§Øª Ø§Ù„Ù…Ø³Ø¤ÙˆÙ„ Ø§Ù„Ø¯Ø§Ø®Ù„ÙŠØ©</h3>
             <textarea
               className="w-full bg-surface p-4 border border-outline-variant rounded-lg font-body-md text-body-md focus:ring-2 focus:ring-primary/10 focus:border-primary outline-none text-on-surface"
-              placeholder="أضف ملاحظة خاصة بشأن تنفيذ هذا الطلب..."
+              placeholder="Ø£Ø¶Ù Ù…Ù„Ø§Ø­Ø¸Ø© Ø®Ø§ØµØ© Ø¨Ø´Ø£Ù† ØªÙ†ÙÙŠØ° Ù‡Ø°Ø§ Ø§Ù„Ø·Ù„Ø¨..."
               rows={4}
               maxLength={2000}
               value={notesValue}
@@ -465,17 +460,15 @@ export const OrderDetailClient = memo(function OrderDetailClient({ id }: OrderDe
               onBlur={handleNotesBlur}
             ></textarea>
             <p className="text-on-surface-variant font-label-sm text-label-sm mt-2 select-none">
-              هذه الملاحظات مرئية فقط لفريق الإدارة وتُحفظ تلقائياً عند إلغاء التركيز.
+              Ù‡Ø°Ù‡ Ø§Ù„Ù…Ù„Ø§Ø­Ø¸Ø§Øª Ù…Ø±Ø¦ÙŠØ© ÙÙ‚Ø· Ù„ÙØ±ÙŠÙ‚ Ø§Ù„Ø¥Ø¯Ø§Ø±Ø© ÙˆØªÙØ­ÙØ¸ ØªÙ„Ù‚Ø§Ø¦ÙŠØ§Ù‹ Ø¹Ù†Ø¯ Ø¥Ù„ØºØ§Ø¡ Ø§Ù„ØªØ±ÙƒÙŠØ².
             </p>
           </div>
         </div>
 
-        {/* Right Column: Status and Info panels (1/3 width) */}
         <div className="space-y-gutter text-start">
-          {/* Status Control */}
           <div className="bg-surface-container-lowest rounded-xl border border-outline-variant/30 shadow-sm p-6">
             <h3 className="font-label-md text-label-md uppercase tracking-widest text-on-surface-variant mb-4 font-bold border-b border-outline-variant/10 pb-2">
-              التحكم في الحالة
+              Ø§Ù„ØªØ­ÙƒÙ… ÙÙŠ Ø§Ù„Ø­Ø§Ù„Ø©
             </h3>
             <div className="space-y-4">
               <CustomDropdown
@@ -487,10 +480,9 @@ export const OrderDetailClient = memo(function OrderDetailClient({ id }: OrderDe
             </div>
           </div>
 
-          {/* Customer Info */}
           <div className="bg-surface-container-lowest rounded-xl border border-outline-variant/30 shadow-sm p-6">
             <h3 className="font-label-md text-label-md uppercase tracking-widest text-on-surface-variant mb-4 font-bold border-b border-outline-variant/10 pb-2">
-              معلومات العميل
+              Ù…Ø¹Ù„ÙˆÙ…Ø§Øª Ø§Ù„Ø¹Ù…ÙŠÙ„
             </h3>
             
             <div className="flex items-center gap-4 mb-6">
@@ -505,7 +497,7 @@ export const OrderDetailClient = memo(function OrderDetailClient({ id }: OrderDe
             <div className="space-y-4 text-sm">
               <div>
                 <p className="font-label-sm text-label-sm text-on-surface-variant uppercase font-bold tracking-wider mb-1">
-                  عنوان الشحن
+                  Ø¹Ù†ÙˆØ§Ù† Ø§Ù„Ø´Ø­Ù†
                 </p>
                 <p className="font-body-md text-body-md text-on-surface whitespace-pre-line leading-relaxed">
                   {order.shipping_address}
@@ -513,7 +505,7 @@ export const OrderDetailClient = memo(function OrderDetailClient({ id }: OrderDe
               </div>
               <div>
                 <p className="font-label-sm text-label-sm text-on-surface-variant uppercase font-bold tracking-wider mb-1">
-                  الهاتف
+                  Ø§Ù„Ù‡Ø§ØªÙ
                 </p>
                 <p className="font-body-md text-body-md text-on-surface">{order.phone_number}</p>
               </div>
@@ -521,7 +513,7 @@ export const OrderDetailClient = memo(function OrderDetailClient({ id }: OrderDe
               {order.instapay_phone_number && (
                 <div>
                   <p className="font-label-sm text-label-sm text-on-surface-variant uppercase font-bold tracking-wider mb-1">
-                    رقم هاتف إنستا باي
+                    Ø±Ù‚Ù… Ù‡Ø§ØªÙ Ø¥Ù†Ø³ØªØ§ Ø¨Ø§ÙŠ
                   </p>
                   <p className="font-body-md text-body-md text-on-surface">{order.instapay_phone_number}</p>
                 </div>
@@ -530,7 +522,7 @@ export const OrderDetailClient = memo(function OrderDetailClient({ id }: OrderDe
               {order.location_link && getSafeUrl(order.location_link) && (
                 <div>
                   <p className="font-label-sm text-label-sm text-on-surface-variant uppercase font-bold tracking-wider mb-1">
-                    رابط الموقع
+                    Ø±Ø§Ø¨Ø· Ø§Ù„Ù…ÙˆÙ‚Ø¹
                   </p>
                   <a
                     href={getSafeUrl(order.location_link)!}
@@ -539,7 +531,7 @@ export const OrderDetailClient = memo(function OrderDetailClient({ id }: OrderDe
                     className="group inline-flex items-center gap-1.5 text-primary font-body-md text-body-md font-semibold"
                   >
                     <span className="material-symbols-outlined text-[18px]">map</span>
-                    <span className="group-hover:underline">عرض الموقع الدقيق</span>
+                    <span className="group-hover:underline">Ø¹Ø±Ø¶ Ø§Ù„Ù…ÙˆÙ‚Ø¹ Ø§Ù„Ø¯Ù‚ÙŠÙ‚</span>
                   </a>
                 </div>
               )}
@@ -547,18 +539,18 @@ export const OrderDetailClient = memo(function OrderDetailClient({ id }: OrderDe
               {signedScreenshotUrl && (
                 <div className="pt-2 border-t border-outline-variant/20">
                   <p className="font-label-sm text-label-sm text-on-surface-variant uppercase font-bold tracking-wider mb-2">
-                    إيصال إنستا باي
+                    Ø¥ÙŠØµØ§Ù„ Ø¥Ù†Ø³ØªØ§ Ø¨Ø§ÙŠ
                   </p>
                   <div className="relative border border-outline-variant/30 rounded-lg overflow-hidden bg-surface-container-low max-h-60 flex items-center justify-center">
                     {/* eslint-disable-next-line @next/next/no-img-element -- signed URL, not optimized */}
                     <img
                       src={signedScreenshotUrl}
-                      alt="لقطة شاشة إيصال إنستا باي"
+                      alt="Ù„Ù‚Ø·Ø© Ø´Ø§Ø´Ø© Ø¥ÙŠØµØ§Ù„ Ø¥Ù†Ø³ØªØ§ Ø¨Ø§ÙŠ"
                       className="object-contain w-full h-auto cursor-zoom-in"
                       loading="lazy"
                       referrerPolicy="no-referrer"
                       onClick={handleOpenScreenshot}
-                      title="انقر لعرض الصورة بالحجم الكامل"
+                      title="Ø§Ù†Ù‚Ø± Ù„Ø¹Ø±Ø¶ Ø§Ù„ØµÙˆØ±Ø© Ø¨Ø§Ù„Ø­Ø¬Ù… Ø§Ù„ÙƒØ§Ù…Ù„"
                     />
                   </div>
                 </div>
@@ -566,10 +558,9 @@ export const OrderDetailClient = memo(function OrderDetailClient({ id }: OrderDe
             </div>
           </div>
 
-          {/* Status History Timeline */}
           <div className="bg-surface-container-lowest rounded-xl border border-outline-variant/30 shadow-sm p-6">
             <h3 className="font-label-md text-label-md uppercase tracking-widest text-on-surface-variant mb-6 font-bold border-b border-outline-variant/10 pb-2 select-none">
-              سجل الحالة
+              Ø³Ø¬Ù„ Ø§Ù„Ø­Ø§Ù„Ø©
             </h3>
             
             {sortedHistory.length > 0 ? (
@@ -604,13 +595,12 @@ export const OrderDetailClient = memo(function OrderDetailClient({ id }: OrderDe
                 })}
               </div>
             ) : (
-              <p className="text-xs text-on-surface-variant italic">لم يتم تسجيل أي تحديثات للحالة بعد.</p>
+              <p className="text-xs text-on-surface-variant italic">Ù„Ù… ÙŠØªÙ… ØªØ³Ø¬ÙŠÙ„ Ø£ÙŠ ØªØ­Ø¯ÙŠØ«Ø§Øª Ù„Ù„Ø­Ø§Ù„Ø© Ø¨Ø¹Ø¯.</p>
             )}
           </div>
         </div>
       </div>
 
-      {/* Toast notifications */}
       {showToast && (
         <Toast
           message={toastMessage}
@@ -620,19 +610,17 @@ export const OrderDetailClient = memo(function OrderDetailClient({ id }: OrderDe
         />
       )}
 
-      {/* Confirmation Modal */}
       <ConfirmationModal
         isOpen={isConfirmOpen}
-        title="تأكيد تحديث الطلب"
-        message={`هل أنت متأكد من رغبتك في تحديث حالة الطلب #${order?.id_unique_tracking} إلى "${translateStatus(selectedStatus)}"؟`}
+        title="ØªØ£ÙƒÙŠØ¯ ØªØ­Ø¯ÙŠØ« Ø§Ù„Ø·Ù„Ø¨"
+        message={`Ù‡Ù„ Ø£Ù†Øª Ù…ØªØ£ÙƒØ¯ Ù…Ù† Ø±ØºØ¨ØªÙƒ ÙÙŠ ØªØ­Ø¯ÙŠØ« Ø­Ø§Ù„Ø© Ø§Ù„Ø·Ù„Ø¨ #${order?.id_unique_tracking} Ø¥Ù„Ù‰ "${translateStatus(selectedStatus)}"ØŸ`}
         onConfirm={handleConfirmSave}
         onCancel={() => setIsConfirmOpen(false)}
-        confirmLabel="حفظ التغييرات"
-        cancelLabel="إلغاء"
+        confirmLabel="Ø­ÙØ¸ Ø§Ù„ØªØºÙŠÙŠØ±Ø§Øª"
+        cancelLabel="Ø¥Ù„ØºØ§Ø¡"
       />
       </section>
 
-          {/* Print-only Invoice */}
       <div className="hidden print:block" dir="rtl">
         <style>{`
           @media print {
@@ -655,17 +643,16 @@ export const OrderDetailClient = memo(function OrderDetailClient({ id }: OrderDe
             fontSize: '14pt', color: '#222', background: 'white',
           }}
         >
-          {/* Header */}
           <div style={{
             display: 'flex', justifyContent: 'space-between', alignItems: 'center',
             borderBottom: '2px solid #999', paddingBottom: '3mm', marginBottom: '5mm',
           }}>
             <div>
               <div style={{ fontSize: '22pt', fontWeight: 800, color: '#222' }}>
-                إلكترو توب
+                Ø¥Ù„ÙƒØªØ±Ùˆ ØªÙˆØ¨
               </div>
               <div style={{ fontSize: '11pt', color: '#666', marginTop: '1mm', lineHeight: 1.6 }}>
-                توريدات كهربائية — 21 شارع السبع بنات، المنشية، الإسكندرية<br/>
+                ØªÙˆØ±ÙŠØ¯Ø§Øª ÙƒÙ‡Ø±Ø¨Ø§Ø¦ÙŠØ© â€” 21 Ø´Ø§Ø±Ø¹ Ø§Ù„Ø³Ø¨Ø¹ Ø¨Ù†Ø§ØªØŒ Ø§Ù„Ù…Ù†Ø´ÙŠØ©ØŒ Ø§Ù„Ø¥Ø³ÙƒÙ†Ø¯Ø±ÙŠØ©<br/>
                 <span dir="ltr">+20 103 344 3324</span>
               </div>
             </div>
@@ -678,25 +665,24 @@ export const OrderDetailClient = memo(function OrderDetailClient({ id }: OrderDe
                 {order.id_unique_tracking}
               </div>
               <div style={{ color: '#666', marginTop: '1mm', lineHeight: 1.6, fontSize: '12pt' }}>
-                {orderDate} — {orderTime}
+                {orderDate} â€” {orderTime}
               </div>
             </div>
           </div>
 
-          {/* Customer + Shipping */}
           <div className="no-break" style={{
             display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '5mm', marginBottom: '5mm',
           }}>
             <div style={{ border: '1.5px solid #ddd', borderRadius: '2mm', padding: '3mm 4mm' }}>
-              <div style={{ fontSize: '11pt', fontWeight: 700, color: '#555', marginBottom: '1.5mm' }}>بيانات العميل</div>
+              <div style={{ fontSize: '11pt', fontWeight: 700, color: '#555', marginBottom: '1.5mm' }}>Ø¨ÙŠØ§Ù†Ø§Øª Ø§Ù„Ø¹Ù…ÙŠÙ„</div>
               <div style={{ fontSize: '15pt', fontWeight: 600, color: '#222' }}>{order.customer_name}</div>
-              <div style={{ fontSize: '13pt', color: '#444', marginTop: '1mm' }}>هاتف: <span dir="ltr">{order.phone_number}</span></div>
+              <div style={{ fontSize: '13pt', color: '#444', marginTop: '1mm' }}>Ù‡Ø§ØªÙ: <span dir="ltr">{order.phone_number}</span></div>
               {order.instapay_phone_number && (
-                <div style={{ fontSize: '13pt', color: '#444', marginTop: '0.5mm' }}>إنستا باي: <span dir="ltr">{order.instapay_phone_number}</span></div>
+                <div style={{ fontSize: '13pt', color: '#444', marginTop: '0.5mm' }}>Ø¥Ù†Ø³ØªØ§ Ø¨Ø§ÙŠ: <span dir="ltr">{order.instapay_phone_number}</span></div>
               )}
             </div>
             <div style={{ border: '1.5px solid #ddd', borderRadius: '2mm', padding: '3mm 4mm' }}>
-              <div style={{ fontSize: '11pt', fontWeight: 700, color: '#555', marginBottom: '1.5mm' }}>عنوان الشحن</div>
+              <div style={{ fontSize: '11pt', fontWeight: 700, color: '#555', marginBottom: '1.5mm' }}>Ø¹Ù†ÙˆØ§Ù† Ø§Ù„Ø´Ø­Ù†</div>
               <div style={{ fontSize: '13pt', color: '#222', lineHeight: 1.6, whiteSpace: 'pre-line' }}>
                 {order.shipping_address}
               </div>
@@ -711,14 +697,13 @@ export const OrderDetailClient = memo(function OrderDetailClient({ id }: OrderDe
             </div>
           </div>
 
-          {/* Items Table */}
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13pt', marginBottom: '5mm' }}>
             <thead>
               <tr style={{ background: '#eee' }}>
-                <th style={{ padding: '2mm 2.5mm', textAlign: 'right', fontWeight: 700, color: '#333' }}>المنتج</th>
-                <th style={{ padding: '2mm 2.5mm', textAlign: 'center', fontWeight: 700, color: '#333', width: '16mm' }}>الكمية</th>
-                <th style={{ padding: '2mm 2.5mm', textAlign: 'left', fontWeight: 700, color: '#333', width: '24mm' }}>السعر</th>
-                <th style={{ padding: '2mm 2.5mm', textAlign: 'left', fontWeight: 700, color: '#333', width: '28mm' }}>المجموع</th>
+                <th style={{ padding: '2mm 2.5mm', textAlign: 'right', fontWeight: 700, color: '#333' }}>Ø§Ù„Ù…Ù†ØªØ¬</th>
+                <th style={{ padding: '2mm 2.5mm', textAlign: 'center', fontWeight: 700, color: '#333', width: '16mm' }}>Ø§Ù„ÙƒÙ…ÙŠØ©</th>
+                <th style={{ padding: '2mm 2.5mm', textAlign: 'left', fontWeight: 700, color: '#333', width: '24mm' }}>Ø§Ù„Ø³Ø¹Ø±</th>
+                <th style={{ padding: '2mm 2.5mm', textAlign: 'left', fontWeight: 700, color: '#333', width: '28mm' }}>Ø§Ù„Ù…Ø¬Ù…ÙˆØ¹</th>
               </tr>
             </thead>
             <tbody>
@@ -737,33 +722,32 @@ export const OrderDetailClient = memo(function OrderDetailClient({ id }: OrderDe
             </tbody>
           </table>
 
-          {/* Totals + Footer */}
           <div style={{
             marginTop: '5mm',
             borderTop: '2px solid #999', paddingTop: '3mm',
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13pt', color: '#444', padding: '1mm 0' }}>
-              <span>المجموع الفرعي</span>
+              <span>Ø§Ù„Ù…Ø¬Ù…ÙˆØ¹ Ø§Ù„ÙØ±Ø¹ÙŠ</span>
               <span>{formatCurrency(order.total_amount)}</span>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13pt', color: '#444', padding: '1mm 0' }}>
-              <span>الشحن</span>
-              <span style={{ fontWeight: 700 }}>مجاني</span>
+              <span>Ø§Ù„Ø´Ø­Ù†</span>
+              <span style={{ fontWeight: 700 }}>Ù…Ø¬Ø§Ù†ÙŠ</span>
             </div>
             <div style={{
               display: 'flex', justifyContent: 'space-between',
               fontSize: '18pt', fontWeight: 900, color: '#222',
               borderTop: '2px solid #222', paddingTop: '2mm', marginTop: '1mm',
             }}>
-              <span>الإجمالي المدفوع</span>
+              <span>Ø§Ù„Ø¥Ø¬Ù…Ø§Ù„ÙŠ Ø§Ù„Ù…Ø¯ÙÙˆØ¹</span>
               <span>{formatCurrency(order.total_amount)}</span>
             </div>
             <div style={{ textAlign: 'center', fontSize: '13pt', color: '#666', marginTop: '5mm' }}>
-              تم الدفع عن طريق إنستاباي (InstaPay)
+              ØªÙ… Ø§Ù„Ø¯ÙØ¹ Ø¹Ù† Ø·Ø±ÙŠÙ‚ Ø¥Ù†Ø³ØªØ§Ø¨Ø§ÙŠ (InstaPay)
             </div>
             <div style={{ textAlign: 'center', fontSize: '11pt', color: '#888', borderTop: '1.5px solid #ddd', marginTop: '3mm', paddingTop: '3mm' }}>
-              <div style={{ fontWeight: 600 }}>شكراً لاختياركم إلكترو توب!</div>
-              <div>للاستفسارات والدعم: <span dir="ltr">+20 103 344 3324</span></div>
+              <div style={{ fontWeight: 600 }}>Ø´ÙƒØ±Ø§Ù‹ Ù„Ø§Ø®ØªÙŠØ§Ø±ÙƒÙ… Ø¥Ù„ÙƒØªØ±Ùˆ ØªÙˆØ¨!</div>
+              <div>Ù„Ù„Ø§Ø³ØªÙØ³Ø§Ø±Ø§Øª ÙˆØ§Ù„Ø¯Ø¹Ù…: <span dir="ltr">+20 103 344 3324</span></div>
             </div>
           </div>
         </div>

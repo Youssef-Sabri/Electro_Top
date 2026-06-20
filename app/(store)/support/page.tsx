@@ -42,15 +42,17 @@ export default function SupportPage() {
                 الدعم الأسرع! راسلنا مباشرة عبر واتساب للطلبات، الاستفسارات، أو لتأكيد التحويل المالي.
               </p>
             </div>
-            <a
-              href={`https://wa.me/${whatsappNumber}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3.5 px-6 rounded-xl font-label-md flex items-center justify-center gap-2 transition-colors cursor-pointer"
-            >
-              <span className="material-symbols-outlined text-[20px] select-none">chat</span>
-              مراسلتنا عبر واتساب
-            </a>
+            {whatsappNumber && (
+              <a
+                href={`https://wa.me/${whatsappNumber}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3.5 px-6 rounded-xl font-label-md flex items-center justify-center gap-2 transition-colors cursor-pointer"
+              >
+                <span className="material-symbols-outlined text-[20px] select-none">chat</span>
+                مراسلتنا عبر واتساب
+              </a>
+            )}
           </div>
 
           {/* Facebook Card */}

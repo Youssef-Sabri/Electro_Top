@@ -2,11 +2,16 @@ import { NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import { createSupabaseServerClient } from '@/lib/supabase-server'
 import type { ResponseCookie } from 'next/dist/compiled/@edge-runtime/cookies'
+import { validateRequestOrigin } from '@/lib/csrf'
 
 export async function DELETE(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  if (!validateRequestOrigin(request)) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  }
+
   const { id } = await params
 
   const cookieStore = await cookies()
@@ -28,6 +33,15 @@ export async function DELETE(
 
   if (authError || !user || !adminEmail || user.email !== adminEmail) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  const [{ error: itemsError }, { error: historyError }] = await Promise.all([
+    supabaseClient.from('order_items').delete().eq('order_id', id),
+    supabaseClient.from('order_status_history').delete().eq('order_id', id),
+  ])
+
+  if (itemsError || historyError) {
+    return NextResponse.json({ error: 'Failed to delete order related records' }, { status: 500 })
   }
 
   const { error } = await supabaseClient

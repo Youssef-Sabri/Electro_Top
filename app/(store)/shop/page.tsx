@@ -1,15 +1,14 @@
-import { Suspense } from 'react';
+﻿import { Suspense } from 'react';
 import { Metadata } from 'next';
 import { ShopPageContent } from '@/components/catalog/ShopPageContent';
 import { Spinner } from '@/components/ui/Spinner';
 import { fetchCatalog } from '@/lib/fetch-catalog';
 
 export const metadata: Metadata = {
-  title: 'المتجر والمنتجات | إلكترو توب',
-  description: 'تصفح تشكيلتنا الواسعة من المنتجات الكهربائية عالية الجودة.',
+  title: 'Ø§Ù„Ù…ØªØ¬Ø± ÙˆØ§Ù„Ù…Ù†ØªØ¬Ø§Øª | Ø¥Ù„ÙƒØªØ±Ùˆ ØªÙˆØ¨',
+  description: 'ØªØµÙØ­ ØªØ´ÙƒÙŠÙ„ØªÙ†Ø§ Ø§Ù„ÙˆØ§Ø³Ø¹Ø© Ù…Ù† Ø§Ù„Ù…Ù†ØªØ¬Ø§Øª Ø§Ù„ÙƒÙ‡Ø±Ø¨Ø§Ø¦ÙŠØ© Ø¹Ø§Ù„ÙŠØ© Ø§Ù„Ø¬ÙˆØ¯Ø©.',
 };
 
-// Cache page on Next.js CDN edge for 60 seconds (Incremental Static Regeneration - ISR)
 export const revalidate = 60;
 
 async function ShopCatalogLoader() {
@@ -26,7 +25,7 @@ export default function ShopPage() {
       <div className="min-h-screen flex items-center justify-center font-poppins bg-white">
         <div className="flex flex-col items-center">
           <Spinner className="h-10 w-10 mb-4" />
-          <p className="text-gray-500 text-sm">جاري تحميل كتالوج إلكترو توب...</p>
+          <p className="text-gray-500 text-sm">Ø¬Ø§Ø±ÙŠ ØªØ­Ù…ÙŠÙ„ ÙƒØªØ§Ù„ÙˆØ¬ Ø¥Ù„ÙƒØªØ±Ùˆ ØªÙˆØ¨...</p>
         </div>
       </div>
     }>

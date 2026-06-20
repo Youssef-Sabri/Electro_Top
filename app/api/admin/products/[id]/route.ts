@@ -3,6 +3,9 @@ import { cookies } from 'next/headers'
 import { createSupabaseServerClient } from '@/lib/supabase-server'
 import type { ResponseCookie } from 'next/dist/compiled/@edge-runtime/cookies'
 import type { SupabaseClient } from '@supabase/supabase-js'
+import { validateRequestOrigin } from '@/lib/csrf'
+
+const ALLOWED_UPDATE_FIELDS = ['name', 'description', 'price', 'stock', 'image_url', 'is_active', 'category'] as const
 
 async function getSupabaseClient() {
   const cookieStore = await cookies()
@@ -32,6 +35,10 @@ export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  if (!validateRequestOrigin(request)) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  }
+
   const { id } = await params
 
   let body: Record<string, unknown>
@@ -41,13 +48,20 @@ export async function PATCH(
     return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 })
   }
 
+  const allowed: Record<string, unknown> = {}
+  for (const key of ALLOWED_UPDATE_FIELDS) {
+    if (key in body) {
+      allowed[key] = body[key]
+    }
+  }
+
   const supabaseClient = await getSupabaseClient()
   const authError = await requireAdmin(supabaseClient)
   if (authError) return authError
 
   const { error } = await supabaseClient
     .from('products')
-    .update(body)
+    .update(allowed)
     .eq('id', id)
 
   if (error) {
@@ -58,9 +72,13 @@ export async function PATCH(
 }
 
 export async function DELETE(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  if (!validateRequestOrigin(request)) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  }
+
   const { id } = await params
 
   const supabaseClient = await getSupabaseClient()

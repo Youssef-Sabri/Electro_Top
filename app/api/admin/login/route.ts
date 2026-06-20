@@ -8,6 +8,8 @@ const MAX_ATTEMPTS = 5;
 const WINDOW_MS = 60_000;
 
 function getClientIp(request: NextRequest): string {
+  const realIp = request.headers.get('x-real-ip');
+  if (realIp) return realIp;
   const forwarded = request.headers.get('x-forwarded-for');
   if (forwarded) return forwarded.split(',')[0].trim();
   return '127.0.0.1';

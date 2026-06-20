@@ -41,6 +41,8 @@ export const CustomDropdown = memo(function CustomDropdown({ options, value, onC
        <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
+        aria-haspopup="listbox"
+        aria-expanded={isOpen}
         className="w-full flex justify-between items-center bg-white border border-gray-300 rounded-lg px-4 py-2 text-sm font-semibold text-on-surface hover:border-primary focus:border-primary outline-none transition-all duration-200 cursor-pointer shadow-sm"
       >
         <span>
@@ -53,7 +55,7 @@ export const CustomDropdown = memo(function CustomDropdown({ options, value, onC
       </button>
 
        {isOpen && (
-        <div className="absolute right-0 mt-1.5 w-full bg-white border border-outline-variant/30 rounded-lg shadow-xl py-1 z-50 animate-[modalAppear_0.15s_ease-out] overflow-hidden">
+        <div className="absolute right-0 mt-1.5 w-full bg-white border border-outline-variant/30 rounded-lg shadow-xl py-1 z-50 animate-[modalAppear_0.15s_ease-out] overflow-hidden" role="listbox">
           <div className="max-h-60 overflow-y-auto">
             {options.map((opt) => (
               <button

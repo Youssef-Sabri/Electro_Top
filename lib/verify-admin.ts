@@ -5,10 +5,7 @@ export async function verifyAdminPassword(password: string): Promise<boolean> {
   const { data: sessionData } = await supabase.auth.getSession();
   if (!user?.email || !sessionData.session) return false;
 
-  const { error } = await supabase.auth.signInWithPassword({
-    email: user.email,
-    password,
-  });
+  const { error } = await supabase.auth.reauthenticate();
 
   if (error) return false;
 

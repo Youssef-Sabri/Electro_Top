@@ -1,0 +1,1 @@
+export const ADMIN_NOTES_MAX_LENGTH = 2000

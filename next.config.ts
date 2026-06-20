@@ -34,6 +34,20 @@ const nextConfig: NextConfig = {
         hostname: supabaseHost,
         pathname: '/storage/v1/object/public/**',
       },
+      ...(isDev
+        ? [
+            {
+              protocol: 'http' as const,
+              hostname: 'localhost',
+              pathname: '/**',
+            },
+            {
+              protocol: 'http' as const,
+              hostname: '127.0.0.1',
+              pathname: '/**',
+            },
+          ]
+        : []),
     ],
   },
   async headers() {

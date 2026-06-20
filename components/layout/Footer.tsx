@@ -59,15 +59,17 @@ export const Footer = memo(function Footer() {
               <span className="material-symbols-outlined text-[18px]">phone</span>
               <span dir="ltr">{phoneNumber}</span>
             </a>
-            <a
-              href={`https://wa.me/${whatsappNumber}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center md:justify-end gap-2 text-surface-variant hover:text-secondary-fixed transition-colors font-medium text-sm"
-            >
-              <span className="material-symbols-outlined text-[18px]">chat</span>
-              <span>مراسلتنا عبر واتساب</span>
-            </a>
+            {whatsappNumber && (
+              <a
+                href={`https://wa.me/${whatsappNumber}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center md:justify-end gap-2 text-surface-variant hover:text-secondary-fixed transition-colors font-medium text-sm"
+              >
+                <span className="material-symbols-outlined text-[18px]">chat</span>
+                <span>مراسلتنا عبر واتساب</span>
+              </a>
+            )}
           </div>
         </div>
       </div>

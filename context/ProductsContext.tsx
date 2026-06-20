@@ -10,7 +10,7 @@ import { logAdminAction } from '@/lib/audit-log';
 
 const categorySchema = z.string().min(1, 'اسم الفئة مطلوب').max(50, 'اسم الفئة يجب ألا يتجاوز 50 حرفاً');
 
-interface ProductsContextType {
+export interface ProductsContextType {
   products: Product[];
   categories: string[];
   addProduct: (product: Omit<Product, 'id' | 'created_at'>) => void;

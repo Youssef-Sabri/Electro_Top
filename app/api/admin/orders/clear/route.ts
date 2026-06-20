@@ -2,8 +2,13 @@ import { NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import { createSupabaseServerClient } from '@/lib/supabase-server'
 import type { ResponseCookie } from 'next/dist/compiled/@edge-runtime/cookies'
+import { validateRequestOrigin } from '@/lib/csrf'
 
-export async function DELETE() {
+export async function DELETE(request: Request) {
+  if (!validateRequestOrigin(request)) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  }
+
   const cookieStore = await cookies()
 
   const supabaseClient = createSupabaseServerClient({

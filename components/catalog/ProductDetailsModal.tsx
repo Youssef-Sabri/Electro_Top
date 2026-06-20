@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { memo, useState, useEffect, useRef, useCallback } from 'react';
 import Image from 'next/image';
@@ -32,7 +32,6 @@ export const ProductDetailsModal = memo(function ProductDetailsModal({ product, 
     };
     window.addEventListener('keydown', handleKeyDown);
 
-    // Body scroll lock
     const originalOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
 
@@ -75,7 +74,6 @@ export const ProductDetailsModal = memo(function ProductDetailsModal({ product, 
         className="relative w-full max-w-2xl bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col md:flex-row max-h-[90vh] md:h-[500px] border border-outline-variant/20"
         style={{ animation: 'modalAppear 0.2s ease-out forwards' }}
       >
-        {/* Right Side: Image */}
         <div className="relative w-full md:w-5/12 h-[220px] md:h-full bg-white flex-shrink-0 border-e border-outline-variant/10">
           <Image
             src={product.image_url}
@@ -90,15 +88,13 @@ export const ProductDetailsModal = memo(function ProductDetailsModal({ product, 
           {product.stock <= 0 && (
             <div className="absolute inset-0 bg-black/40 flex items-center justify-center backdrop-blur-[1px] z-10">
               <span className="bg-electro-red text-white font-montserrat font-bold px-6 py-2.5 rounded-md uppercase tracking-wider text-sm shadow-md">
-                نفذت الكمية
+                Ù†ÙØ°Øª Ø§Ù„ÙƒÙ…ÙŠØ©
               </span>
             </div>
           )}
         </div>
  
-        {/* Left Side (formerly Right): Content */}
         <div className="p-6 flex flex-col flex-grow overflow-y-auto h-[calc(90vh-220px)] md:h-full text-start font-poppins">
-          {/* Title & Close */}
           <div className="flex justify-between items-start mb-4">
             <div>
               <h2 className="font-headline-md text-[20px] md:text-[22px] text-on-surface leading-tight font-bold">
@@ -108,32 +104,30 @@ export const ProductDetailsModal = memo(function ProductDetailsModal({ product, 
             <button
               onClick={onClose}
               className="p-1.5 rounded-full text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors cursor-pointer"
-              aria-label="إغلاق النافذة"
+              aria-label="Ø¥ØºÙ„Ø§Ù‚ Ø§Ù„Ù†Ø§ÙØ°Ø©"
             >
               <span className="material-symbols-outlined text-[24px] select-none">close</span>
             </button>
           </div>
  
-          {/* Price & Stock */}
           <div className="flex items-center gap-4 mb-5">
             <span className="text-electro-gold font-bold text-[22px] md:text-[24px] font-montserrat">
               {formatCurrency(product.price)}
             </span>
             {product.stock > 0 ? (
               <span className="bg-green-50 text-green-700 text-xs font-semibold px-2.5 py-1 rounded-md border border-green-200">
-                متوفر في المخزون: {product.stock}
+                Ù…ØªÙˆÙØ± ÙÙŠ Ø§Ù„Ù…Ø®Ø²ÙˆÙ†: {product.stock}
               </span>
             ) : (
               <span className="bg-red-50 text-red-700 text-xs font-semibold px-2.5 py-1 rounded-md border border-red-200">
-                نفذت الكمية
+                Ù†ÙØ°Øª Ø§Ù„ÙƒÙ…ÙŠØ©
               </span>
             )}
           </div>
 
-          {/* Description */}
           <div className="mb-6">
             <h3 className="font-semibold text-on-surface text-[12px] uppercase tracking-wider mb-2 font-montserrat">
-              نظرة عامة
+              Ù†Ø¸Ø±Ø© Ø¹Ø§Ù…Ø©
             </h3>
             <p className="text-on-surface-variant text-label-md leading-relaxed">
               {product.description}
@@ -142,7 +136,6 @@ export const ProductDetailsModal = memo(function ProductDetailsModal({ product, 
 
 
 
-          {/* Action Row */}
           <div className="mt-auto pt-6 border-t border-outline-variant/30 flex flex-col sm:flex-row gap-4 items-stretch">
             {product.stock > 0 && (
               <div className="flex items-center border border-outline-variant/40 rounded-lg overflow-hidden shrink-0 bg-surface-container-lowest justify-between h-[48px] px-2">
@@ -150,7 +143,7 @@ export const ProductDetailsModal = memo(function ProductDetailsModal({ product, 
                   onClick={handleDecrement}
                   disabled={quantity <= 1}
                   className="p-1 hover:bg-surface-container rounded transition-colors disabled:opacity-30 disabled:hover:bg-transparent cursor-pointer"
-                  aria-label="تقليل الكمية"
+                  aria-label="ØªÙ‚Ù„ÙŠÙ„ Ø§Ù„ÙƒÙ…ÙŠØ©"
                 >
                   <span className="material-symbols-outlined text-[20px] select-none">remove</span>
                 </button>
@@ -159,7 +152,7 @@ export const ProductDetailsModal = memo(function ProductDetailsModal({ product, 
                   onClick={handleIncrement}
                   disabled={quantity >= product.stock}
                   className="p-1 hover:bg-surface-container rounded transition-colors disabled:opacity-30 disabled:hover:bg-transparent cursor-pointer"
-                  aria-label="زيادة الكمية"
+                  aria-label="Ø²ÙŠØ§Ø¯Ø© Ø§Ù„ÙƒÙ…ÙŠØ©"
                 >
                   <span className="material-symbols-outlined text-[20px] select-none">add</span>
                 </button>
@@ -180,7 +173,7 @@ export const ProductDetailsModal = memo(function ProductDetailsModal({ product, 
               <span className="material-symbols-outlined text-[20px] select-none">
                 {isAdded ? 'check_circle' : 'shopping_cart'}
               </span>
-              {product.stock <= 0 ? 'نفذت الكمية' : isAdded ? 'تمت الإضافة للسلة ✓' : `إضافة ${quantity} إلى السلة`}
+              {product.stock <= 0 ? 'Ù†ÙØ°Øª Ø§Ù„ÙƒÙ…ÙŠØ©' : isAdded ? 'ØªÙ…Øª Ø§Ù„Ø¥Ø¶Ø§ÙØ© Ù„Ù„Ø³Ù„Ø© âœ“' : `Ø¥Ø¶Ø§ÙØ© ${quantity} Ø¥Ù„Ù‰ Ø§Ù„Ø³Ù„Ø©`}
             </button>
           </div>
         </div>
