@@ -77,7 +77,10 @@ export const ShopPageContent = memo(function ShopPageContent({ initialProducts, 
     if (sortBy === 'name-asc') params.delete('sort');
     else params.set('sort', sortBy);
 
-    router.replace(`?${params.toString()}`, { scroll: false });
+    const nextUrl = `?${params.toString()}`;
+    if (nextUrl !== window.location.search) {
+      router.replace(nextUrl, { scroll: false });
+    }
   }, [category, debouncedSearch, hideOutOfStock, sortBy, router]);
 
   // 4. Sync URL changes (e.g. browser back/forward buttons) back to local states
