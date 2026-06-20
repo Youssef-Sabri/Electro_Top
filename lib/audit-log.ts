@@ -1,4 +1,4 @@
-import { supabase } from './supabase';
+import { supabase } from '@/lib/supabase';
 
 export async function logAdminAction(action: string, details?: Record<string, unknown>) {
   const { data: { user } } = await supabase.auth.getUser();

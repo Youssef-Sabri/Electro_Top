@@ -1,5 +1,5 @@
-import { supabase } from './supabase';
-import { Order, OrderItem, OrderStatusHistory } from '../types';
+import { supabase } from '@/lib/supabase';
+import type { Order, OrderItem, OrderStatusHistory } from '@/types';
 
 export interface OrderDetailView {
   order: Order | null;

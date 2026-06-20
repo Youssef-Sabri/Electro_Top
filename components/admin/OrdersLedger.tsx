@@ -2,17 +2,17 @@
 
 import { memo, useState, useMemo, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { useOrders } from '../../hooks/useOrders';
-import { useProducts } from '../../hooks/useProducts';
-import { usePagination } from '../../hooks/usePagination';
-import { formatCurrency } from '../../lib/format-currency';
-import { getInitials } from '../../lib/string-utils';
-import { exportToCSV } from '../../lib/csv-export';
-import { calculateOrderMetrics } from '../../lib/order-utils';
-import { StatusBadge } from '../ui/StatusBadge';
-import { CustomDropdown } from '../ui/CustomDropdown';
-import { ConfirmationModal } from '../ui/ConfirmationModal';
-import { PasswordConfirmModal } from '../ui/PasswordConfirmModal';
+import { useOrders } from '@/hooks/useOrders';
+import { useProducts } from '@/hooks/useProducts';
+import { usePagination } from '@/hooks/usePagination';
+import { formatCurrency } from '@/lib/format-currency';
+import { getInitials } from '@/lib/string-utils';
+import { exportToCSV } from '@/lib/csv-export';
+import { calculateOrderMetrics } from '@/lib/order-utils';
+import { StatusBadge } from '@/components/ui/StatusBadge';
+import { CustomDropdown } from '@/components/ui/CustomDropdown';
+import { ConfirmationModal } from '@/components/ui/ConfirmationModal';
+import { PasswordConfirmModal } from '@/components/ui/PasswordConfirmModal';
 
 export const OrdersLedger = memo(function OrdersLedger() {
   const { orders, getOrderItems, clearAllOrders, deleteOrder } = useOrders();

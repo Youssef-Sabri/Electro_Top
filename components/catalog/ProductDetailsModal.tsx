@@ -2,9 +2,9 @@
 
 import { memo, useState, useEffect, useRef, useCallback } from 'react';
 import Image from 'next/image';
-import { Product } from '../../types';
-import { useCart } from '../../hooks/useCart';
-import { formatCurrency } from '../../lib/format-currency';
+import type { Product } from '@/types';
+import { useCart } from '@/hooks/useCart';
+import { formatCurrency } from '@/lib/format-currency';
 
 interface ProductDetailsModalProps {
   product: Product;

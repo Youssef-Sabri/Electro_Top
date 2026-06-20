@@ -1,7 +1,7 @@
 import { Metadata } from 'next';
 import { Suspense } from 'react';
-import { ConfirmationClient } from '../../../../components/checkout/ConfirmationClient';
-import { Spinner } from '../../../../components/ui/Spinner';
+import { ConfirmationClient } from '@/components/checkout/ConfirmationClient';
+import { Spinner } from '@/components/ui/Spinner';
 
 export const metadata: Metadata = {
   title: 'تم تأكيد الطلب | إلكترو توب',

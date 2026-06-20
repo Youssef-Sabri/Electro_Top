@@ -2,17 +2,17 @@
 
 import { memo, useState, useMemo, useEffect, useDeferredValue } from 'react';
 import Image from 'next/image';
-import { useProducts } from '../../hooks/useProducts';
-import { usePagination } from '../../hooks/usePagination';
-import { formatCurrency } from '../../lib/format-currency';
-import type { Product } from '../../types';
-import { ProductFormData, productFormSchema } from '../../lib/validators';
-import { CustomDropdown } from '../ui/CustomDropdown';
-import { ConfirmationModal } from '../ui/ConfirmationModal';
-import { PasswordConfirmModal } from '../ui/PasswordConfirmModal';
-import { Toast } from '../ui/Toast';
-import { exportToCSV } from '../../lib/csv-export';
-import { uploadProductImage, processAndCompressImage, deleteProductImage } from '../../lib/image-utils';
+import { useProducts } from '@/hooks/useProducts';
+import { usePagination } from '@/hooks/usePagination';
+import { formatCurrency } from '@/lib/format-currency';
+import type { Product } from '@/types';
+import { ProductFormData, productFormSchema } from '@/lib/validators';
+import { CustomDropdown } from '@/components/ui/CustomDropdown';
+import { ConfirmationModal } from '@/components/ui/ConfirmationModal';
+import { PasswordConfirmModal } from '@/components/ui/PasswordConfirmModal';
+import { Toast } from '@/components/ui/Toast';
+import { exportToCSV } from '@/lib/csv-export';
+import { uploadProductImage, processAndCompressImage, deleteProductImage } from '@/lib/image-utils';
 
 export const InventoryClient = memo(function InventoryClient() {
 

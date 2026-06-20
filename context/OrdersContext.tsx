@@ -1,12 +1,12 @@
 'use client';
 
 import { createContext, useState, useEffect, useMemo, useCallback, useRef, ReactNode } from 'react';
-import { Order, OrderItem, OrderStatusHistory, OrderStatus, CartItem } from '../types';
-import { generateOrderId } from '../lib/id-generator';
-import { CheckoutFormData } from '../lib/validators';
-import { supabase } from '../lib/supabase';
-import { clearAllReceipts, deleteReceiptImage } from '../lib/image-utils';
-import { logAdminAction } from '../lib/audit-log';
+import type { Order, OrderItem, OrderStatusHistory, OrderStatus, CartItem } from '@/types';
+import { generateOrderId } from '@/lib/id-generator';
+import type { CheckoutFormData } from '@/lib/validators';
+import { supabase } from '@/lib/supabase';
+import { clearAllReceipts, deleteReceiptImage } from '@/lib/image-utils';
+import { logAdminAction } from '@/lib/audit-log';
 
 const VALID_ORDER_STATUSES: readonly OrderStatus[] = [
   'Pending Review', 'Accepted', 'Processing', 'Delivered', 'Declined', 'Check Internal Note',

@@ -1,5 +1,5 @@
 import { memo } from 'react';
-import { OrderStatus } from '../../types';
+import type { OrderStatus } from '@/types';
 
 interface StatusBadgeProps {
   status: OrderStatus;

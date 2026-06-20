@@ -1,5 +1,5 @@
 import { Metadata } from 'next';
-import { TrackingDetailClient } from '../../../../components/tracking/TrackingDetailClient';
+import { TrackingDetailClient } from '@/components/tracking/TrackingDetailClient';
 
 export const metadata: Metadata = {
   title: 'حالة الطلب | إلكترو توب',

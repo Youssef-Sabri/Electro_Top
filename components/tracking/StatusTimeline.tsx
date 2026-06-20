@@ -1,7 +1,7 @@
 'use client';
 
 import { memo } from 'react';
-import { OrderStatus, OrderStatusHistory } from '../../types';
+import type { OrderStatus, OrderStatusHistory } from '@/types';
 
 interface StatusTimelineProps {
   currentStatus: OrderStatus;

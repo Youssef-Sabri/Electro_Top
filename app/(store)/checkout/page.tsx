@@ -1,5 +1,5 @@
 import { Metadata } from 'next';
-import { CheckoutForm } from '../../../components/checkout/CheckoutForm';
+import { CheckoutForm } from '@/components/checkout/CheckoutForm';
 
 export const metadata: Metadata = {
   title: 'الدفع كزائر | إلكترو توب',

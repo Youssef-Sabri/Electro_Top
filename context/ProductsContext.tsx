@@ -2,11 +2,11 @@
 
 import { createContext, useState, useEffect, useMemo, useCallback, useRef, ReactNode } from 'react';
 import { z } from 'zod';
-import { Product } from '../types';
-import { supabase } from '../lib/supabase';
+import type { Product } from '@/types';
+import { supabase } from '@/lib/supabase';
 
-import { deleteProductImage, clearAllProductImages } from '../lib/image-utils';
-import { logAdminAction } from '../lib/audit-log';
+import { deleteProductImage, clearAllProductImages } from '@/lib/image-utils';
+import { logAdminAction } from '@/lib/audit-log';
 
 const categorySchema = z.string().min(1, 'اسم الفئة مطلوب').max(50, 'اسم الفئة يجب ألا يتجاوز 50 حرفاً');
 

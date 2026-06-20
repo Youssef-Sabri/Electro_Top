@@ -1,7 +1,7 @@
 'use client';
 
 import { memo, useState, useEffect, useRef } from 'react';
-import { verifyAdminPassword } from '../../lib/verify-admin';
+import { verifyAdminPassword } from '@/lib/verify-admin';
 
 interface PasswordConfirmModalProps {
   isOpen: boolean;

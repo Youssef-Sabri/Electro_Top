@@ -7,7 +7,7 @@ export const metadata: Metadata = {
 };
 
 const DashboardClient = dynamic(
-  () => import('../../components/admin/DashboardClient').then((mod) => mod.DashboardClient),
+  () => import('@/components/admin/DashboardClient').then((mod) => mod.DashboardClient),
   {
     loading: () => (
       <div className="w-full py-20 text-center font-poppins text-on-surface-variant">

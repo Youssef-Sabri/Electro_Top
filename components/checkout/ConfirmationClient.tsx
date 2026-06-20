@@ -3,12 +3,12 @@
 import { useEffect, useState, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { useOrders } from '../../hooks/useOrders';
-import { useProducts } from '../../hooks/useProducts';
-import { formatCurrency } from '../../lib/format-currency';
-import { getSafeUrl } from '../../lib/safe-url';
-import { Order, OrderItem } from '../../types';
-import { supabase } from '../../lib/supabase';
+import { useOrders } from '@/hooks/useOrders';
+import { useProducts } from '@/hooks/useProducts';
+import { formatCurrency } from '@/lib/format-currency';
+import { getSafeUrl } from '@/lib/safe-url';
+import type { Order, OrderItem } from '@/types';
+import { supabase } from '@/lib/supabase';
 
 export function ConfirmationClient() {
   const searchParams = useSearchParams();

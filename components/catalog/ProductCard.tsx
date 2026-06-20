@@ -2,10 +2,10 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
-import { Product } from '../../types';
-import { useCart } from '../../hooks/useCart';
-import { Toast } from '../ui/Toast';
-import { formatCurrency } from '../../lib/format-currency';
+import type { Product } from '@/types';
+import { useCart } from '@/hooks/useCart';
+import { Toast } from '@/components/ui/Toast';
+import { formatCurrency } from '@/lib/format-currency';
 
 interface ProductCardProps {
   product: Product;

@@ -2,9 +2,9 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { useCart } from '../../hooks/useCart';
-import { CartItem } from './CartItem';
-import { formatCurrency } from '../../lib/format-currency';
+import { useCart } from '@/hooks/useCart';
+import { CartItem } from '@/components/cart/CartItem';
+import { formatCurrency } from '@/lib/format-currency';
 
 export function CartClient() {
   const { items, total, itemCount } = useCart();

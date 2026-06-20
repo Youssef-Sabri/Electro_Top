@@ -1,11 +1,11 @@
 'use client';
 
 import { memo, useMemo, useCallback, useEffect, useRef } from 'react';
-import { useOrders } from '../../hooks/useOrders';
-import { useProducts } from '../../hooks/useProducts';
-import { formatCurrency } from '../../lib/format-currency';
-import { calculateOrderMetrics } from '../../lib/order-utils';
-import { StatusBadge } from '../ui/StatusBadge';
+import { useOrders } from '@/hooks/useOrders';
+import { useProducts } from '@/hooks/useProducts';
+import { formatCurrency } from '@/lib/format-currency';
+import { calculateOrderMetrics } from '@/lib/order-utils';
+import { StatusBadge } from '@/components/ui/StatusBadge';
 
 export const DashboardClient = memo(function DashboardClient() {
   const { orders, orderItems, refreshOrders } = useOrders();

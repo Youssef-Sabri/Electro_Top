@@ -3,14 +3,14 @@
 import { memo, useState, useMemo, useEffect, useCallback, useDeferredValue } from 'react';
 import dynamic from 'next/dynamic';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { useProducts } from '../../hooks/useProducts';
-import { usePagination } from '../../hooks/usePagination';
-import { ProductCard } from './ProductCard';
-import { Product } from '../../types';
-import { CustomDropdown } from '../ui/CustomDropdown';
+import { useProducts } from '@/hooks/useProducts';
+import { usePagination } from '@/hooks/usePagination';
+import { ProductCard } from '@/components/catalog/ProductCard';
+import type { Product } from '@/types';
+import { CustomDropdown } from '@/components/ui/CustomDropdown';
 
 const ProductDetailsModal = dynamic(
-  () => import('./ProductDetailsModal').then((mod) => mod.ProductDetailsModal),
+  () => import('@/components/catalog/ProductDetailsModal').then((mod) => mod.ProductDetailsModal),
   { ssr: false }
 );
 

@@ -1,10 +1,10 @@
 'use client';
 
 import { ReactNode, Suspense, useEffect, useRef } from 'react';
-import { useCart } from '../../hooks/useCart';
-import { useProducts } from '../../hooks/useProducts';
-import { Navbar } from '../../components/layout/Navbar';
-import { Footer } from '../../components/layout/Footer';
+import { useCart } from '@/hooks/useCart';
+import { useProducts } from '@/hooks/useProducts';
+import { Navbar } from '@/components/layout/Navbar';
+import { Footer } from '@/components/layout/Footer';
 
 // Synchronizes cart items with latest product data when products change in DB.
 // Removes deleted/inactive items, updates prices, and clamps quantities to stock.

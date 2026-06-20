@@ -3,8 +3,8 @@
 import { memo, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useProducts } from '../../hooks/useProducts';
-import { Product } from '../../types';
+import { useProducts } from '@/hooks/useProducts';
+import type { Product } from '@/types';
 
 interface LandingPageProps {
   initialCategories?: string[];

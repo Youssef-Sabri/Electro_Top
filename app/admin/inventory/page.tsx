@@ -7,7 +7,7 @@ export const metadata: Metadata = {
 };
 
 const InventoryClient = dynamic(
-  () => import('../../../components/admin/InventoryClient').then((mod) => mod.InventoryClient),
+  () => import('@/components/admin/InventoryClient').then((mod) => mod.InventoryClient),
   {
     loading: () => (
       <div className="w-full py-20 text-center font-poppins text-on-surface-variant">

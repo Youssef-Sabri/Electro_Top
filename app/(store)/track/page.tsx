@@ -1,5 +1,5 @@
 import { Metadata } from 'next';
-import { TrackingSearch } from '../../../components/tracking/TrackingSearch';
+import { TrackingSearch } from '@/components/tracking/TrackingSearch';
 
 export const metadata: Metadata = {
   title: 'تتبع طلبك | إلكترو توب',

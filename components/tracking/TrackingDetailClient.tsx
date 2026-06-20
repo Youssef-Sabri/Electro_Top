@@ -4,14 +4,14 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useOrders } from '../../hooks/useOrders';
-import { useProducts } from '../../hooks/useProducts';
-import { StatusTimeline } from './StatusTimeline';
-import { formatCurrency } from '../../lib/format-currency';
-import { getSafeUrl } from '../../lib/safe-url';
-import { supabase } from '../../lib/supabase';
-import { Order, OrderItem, OrderStatusHistory } from '../../types';
-import { translateStatus } from '../../lib/string-utils';
+import { useOrders } from '@/hooks/useOrders';
+import { useProducts } from '@/hooks/useProducts';
+import { StatusTimeline } from '@/components/tracking/StatusTimeline';
+import { formatCurrency } from '@/lib/format-currency';
+import { getSafeUrl } from '@/lib/safe-url';
+import { supabase } from '@/lib/supabase';
+import type { Order, OrderItem, OrderStatusHistory } from '@/types';
+import { translateStatus } from '@/lib/string-utils';
 
 interface TrackingDetailClientProps {
   id: string;

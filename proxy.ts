@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from 'next/server'
-import { createSupabaseServerClient } from './lib/supabase-server'
+import { createSupabaseServerClient } from '@/lib/supabase-server'
 
 export async function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname

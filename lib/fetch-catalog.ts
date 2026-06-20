@@ -1,5 +1,5 @@
-import { supabase } from './supabase';
-import { Product } from '../types';
+import { supabase } from '@/lib/supabase';
+import type { Product } from '@/types';
 
 export async function fetchCatalog(): Promise<{ categories: string[]; products: Product[] }> {
   let categories: string[] = [];

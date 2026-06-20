@@ -2,13 +2,13 @@ import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
 import { Cairo, Tajawal } from 'next/font/google';
 import './globals.css';
-import { CartProvider } from '../context/CartContext';
-import { ProductsProvider } from '../context/ProductsContext';
-import { OrdersProvider } from '../context/OrdersContext';
-import { ErrorBoundary } from '../components/ui/ErrorBoundary';
+import { CartProvider } from '@/context/CartContext';
+import { ProductsProvider } from '@/context/ProductsContext';
+import { OrdersProvider } from '@/context/OrdersContext';
+import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
 
 
-const materialSymbolsUrl = 'https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap';
+const materialSymbolsUrl = 'https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=block';
 
 const cairo = Cairo({
   subsets: ['arabic', 'latin'],

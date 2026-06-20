@@ -3,17 +3,17 @@
 import { memo, useEffect, useState, useMemo, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useOrders } from '../../hooks/useOrders';
-import { useProducts } from '../../hooks/useProducts';
-import { OrderStatus, Order, OrderItem, OrderStatusHistory } from '../../types';
-import { formatCurrency } from '../../lib/format-currency';
-import { getInitials, translateStatus } from '../../lib/string-utils';
-import { getSafeUrl } from '../../lib/safe-url';
-import { getOrderDetailView } from '../../lib/get-order-detail';
-import { Toast } from '../ui/Toast';
-import { CustomDropdown } from '../ui/CustomDropdown';
-import { ConfirmationModal } from '../ui/ConfirmationModal';
-import { supabase } from '../../lib/supabase';
+import { useOrders } from '@/hooks/useOrders';
+import { useProducts } from '@/hooks/useProducts';
+import type { OrderStatus, Order, OrderItem, OrderStatusHistory } from '@/types';
+import { formatCurrency } from '@/lib/format-currency';
+import { getInitials, translateStatus } from '@/lib/string-utils';
+import { getSafeUrl } from '@/lib/safe-url';
+import { getOrderDetailView } from '@/lib/get-order-detail';
+import { Toast } from '@/components/ui/Toast';
+import { CustomDropdown } from '@/components/ui/CustomDropdown';
+import { ConfirmationModal } from '@/components/ui/ConfirmationModal';
+import { supabase } from '@/lib/supabase';
 
 const MAX_NOTES_LENGTH = 2000;
 

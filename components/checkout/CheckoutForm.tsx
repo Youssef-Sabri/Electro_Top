@@ -4,13 +4,14 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useCart } from '../../hooks/useCart';
-import { useOrders } from '../../hooks/useOrders';
-import { checkoutSchema, CheckoutFormData } from '../../lib/validators';
-import { formatCurrency } from '../../lib/format-currency';
-import { processAndCompressImage } from '../../lib/image-utils';
-import { supabase } from '../../lib/supabase';
-import { Toast } from '../ui/Toast';
+import { useCart } from '@/hooks/useCart';
+import { useOrders } from '@/hooks/useOrders';
+import { checkoutSchema } from '@/lib/validators';
+import type { CheckoutFormData } from '@/lib/validators';
+import { formatCurrency } from '@/lib/format-currency';
+import { processAndCompressImage } from '@/lib/image-utils';
+import { supabase } from '@/lib/supabase';
+import { Toast } from '@/components/ui/Toast';
 
 export function CheckoutForm() {
   const router = useRouter();

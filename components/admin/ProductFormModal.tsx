@@ -1,10 +1,10 @@
 'use client';
 
 import { memo, useState, useEffect } from 'react';
-import type { Product } from '../../types';
-import { ProductFormData, productFormSchema } from '../../lib/validators';
-import { CustomDropdown } from '../ui/CustomDropdown';
-import { processAndCompressImage, uploadProductImage, deleteProductImage } from '../../lib/image-utils';
+import type { Product } from '@/types';
+import { ProductFormData, productFormSchema } from '@/lib/validators';
+import { CustomDropdown } from '@/components/ui/CustomDropdown';
+import { processAndCompressImage, uploadProductImage, deleteProductImage } from '@/lib/image-utils';
 
 interface ProductFormModalProps {
   isOpen: boolean;

@@ -2,9 +2,9 @@
 
 import { memo, useCallback } from 'react';
 import Image from 'next/image';
-import { CartItem as CartItemType } from '../../types';
-import { useCart } from '../../hooks/useCart';
-import { formatCurrency } from '../../lib/format-currency';
+import type { CartItem as CartItemType } from '@/types';
+import { useCart } from '@/hooks/useCart';
+import { formatCurrency } from '@/lib/format-currency';
 
 interface CartItemProps {
   item: CartItemType;

@@ -7,7 +7,7 @@ export const metadata: Metadata = {
 };
 
 const OrderDetailClient = dynamic(
-  () => import('../../../../components/admin/OrderDetailClient').then((mod) => mod.OrderDetailClient),
+  () => import('@/components/admin/OrderDetailClient').then((mod) => mod.OrderDetailClient),
   {
     loading: () => (
       <div className="w-full py-20 text-center font-poppins text-on-surface-variant">

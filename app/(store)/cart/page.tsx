@@ -1,5 +1,5 @@
 import { Metadata } from 'next';
-import { CartClient } from '../../../components/cart/CartClient';
+import { CartClient } from '@/components/cart/CartClient';
 
 export const metadata: Metadata = {
   title: 'عربة التسوق الخاصة بك | إلكترو توب',

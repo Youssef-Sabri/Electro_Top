@@ -1,6 +1,7 @@
+import type { ResponseCookie } from 'next/dist/compiled/@edge-runtime/cookies'
 import { cookies } from 'next/headers'
 import { NextRequest, NextResponse } from 'next/server'
-import { createSupabaseServerClient } from '../../../../lib/supabase-server'
+import { createSupabaseServerClient } from '@/lib/supabase-server'
 
 interface RateLimitEntry {
   count: number;
@@ -90,10 +91,10 @@ export async function POST(request: NextRequest) {
       return cookieStore.get(name)?.value
     },
     set(name: string, value: string, options: Record<string, unknown>) {
-      cookieStore.set(name, value, options as unknown as Parameters<typeof cookieStore.set>[2])
+      cookieStore.set(name, value, options as Partial<ResponseCookie>)
     },
     remove(name: string, options: Record<string, unknown>) {
-      cookieStore.set(name, '', { ...options, maxAge: -1 } as unknown as Parameters<typeof cookieStore.set>[2])
+      cookieStore.set(name, '', { ...options, maxAge: -1 } as Partial<ResponseCookie>)
     },
   })
 

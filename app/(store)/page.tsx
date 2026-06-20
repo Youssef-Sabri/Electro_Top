@@ -1,6 +1,6 @@
 import { Metadata } from 'next';
-import { LandingPage } from '../../components/catalog/LandingPage';
-import { fetchCatalog } from '../../lib/fetch-catalog';
+import { LandingPage } from '@/components/catalog/LandingPage';
+import { fetchCatalog } from '@/lib/fetch-catalog';
 
 export const metadata: Metadata = {
   title: 'إلكترو توب | مستلزمات كهربائية معتمدة',
