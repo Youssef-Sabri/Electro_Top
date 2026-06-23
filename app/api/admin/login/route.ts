@@ -134,10 +134,10 @@ export async function POST(request: NextRequest) {
     // Return success response. Note: createServerClient writes directly to the cookies via the proxy setters.
     return NextResponse.json({ success: true, user });
   } catch (err: any) {
-    if (process.env.NODE_ENV !== 'production') {
-      console.error('Admin login route error:', err);
-      return NextResponse.json({ error: err.message }, { status: 500 });
-    }
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    console.error('Admin login route error:', err);
+    return NextResponse.json({ 
+      error: err.message || 'Internal Server Error',
+      details: err.stack 
+    }, { status: 500 });
   }
 }
