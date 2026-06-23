@@ -31,7 +31,7 @@ function buildCsp(nonce: string, supabaseHost: string, isAdminRoute: boolean): s
   const evalSrc = isDev ? " 'unsafe-eval'" : ""
 
   const scriptSrc = isAdminRoute
-    ? `script-src 'self' 'unsafe-inline' 'nonce-${nonce}'${evalSrc}`
+    ? `script-src 'self' 'unsafe-inline' 'unsafe-eval'`
     : `script-src 'self' 'unsafe-inline'${evalSrc}`
 
   return [
