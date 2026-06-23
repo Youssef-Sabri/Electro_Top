@@ -15,18 +15,24 @@ function getExpectedHost(): string | null {
 function generateNonce(): string {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
   let result = ''
-  const array = new Uint8Array(16)
-  crypto.getRandomValues(array)
-  for (let i = 0; i < 16; i++) {
-    result += chars[array[i] % chars.length]
+  const array = new Uint8Array(1)
+  const limit = 256 - (256 % chars.length)
+  while (result.length < 16) {
+    crypto.getRandomValues(array)
+    if (array[0] < limit) {
+      result += chars[array[0] % chars.length]
+    }
   }
   return result
 }
 
 function buildCsp(nonce: string, supabaseHost: string, isAdminRoute: boolean): string {
+  const isDev = process.env.NODE_ENV === 'development'
+  const evalSrc = isDev ? " 'unsafe-eval'" : ""
+
   const scriptSrc = isAdminRoute
-    ? `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'`
-    : `script-src 'self' 'unsafe-inline'`
+    ? `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${evalSrc}`
+    : `script-src 'self' 'unsafe-inline'${evalSrc}`
 
   return [
     `default-src 'self'`,
@@ -119,6 +125,9 @@ export async function proxy(request: NextRequest) {
     const adminEmail = process.env.ADMIN_EMAIL;
 
     if (error || !user || !adminEmail || user.email !== adminEmail) {
+      if (pathname.startsWith('/api/admin/')) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      }
       const url = new URL('/admin', request.url)
       return NextResponse.redirect(url)
     }

@@ -22,7 +22,7 @@ export interface OrdersContextType {
   statusHistory: OrderStatusHistory[];
   getOrderById: (id: string) => Order | undefined;
   createOrder: (data: CheckoutFormData, cartItems: CartItem[]) => Promise<Order>;
-  updateOrderStatus: (orderId: string, status: string) => void;
+  updateOrderStatus: (orderId: string, status: OrderStatus) => void;
   updateAdminNotes: (orderId: string, notes: string) => void;
   getOrderItems: (orderId: string) => OrderItem[];
   getStatusHistory: (orderId: string) => OrderStatusHistory[];
@@ -238,7 +238,7 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
     return newOrder
   }, []);
 
-  const updateOrderStatus = useCallback(async (orderId: string, status: string) => {
+  const updateOrderStatus = useCallback(async (orderId: string, status: OrderStatus) => {
     if (!isValidOrderStatus(status)) {
       if (process.env.NODE_ENV !== 'production') console.error(`Invalid order status: "${status}"`);
       return;
