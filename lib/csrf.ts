@@ -3,21 +3,30 @@ export function validateRequestOrigin(request: Request): boolean {
   const referer = request.headers.get('referer')
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || ''
 
-  // If SITE_URL is not configured, use strict mode: both origin and referer are required
+  if (!origin && !referer) {
+    return false
+  }
+
   if (!siteUrl) {
-    if (!origin && !referer) return false
     return true
   }
 
-  const allowedOrigins = [siteUrl, siteUrl.replace(/\/$/, '')]
+  try {
+    const allowedHost = new URL(siteUrl).host
 
-  if (origin && !allowedOrigins.some((o) => origin.startsWith(o))) {
+    if (origin) {
+      const originHost = new URL(origin).host
+      return originHost === allowedHost
+    }
+
+    if (referer) {
+      const refererHost = new URL(referer).host
+      return refererHost === allowedHost
+    }
+  } catch {
     return false
   }
 
-  if (referer && !allowedOrigins.some((o) => referer.startsWith(o))) {
-    return false
-  }
-
-  return true
+  return false
 }
+

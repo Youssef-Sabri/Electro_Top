@@ -73,12 +73,13 @@ export async function proxy(request: NextRequest) {
     if (!origin && !referer) {
       return new NextResponse('Forbidden', { status: 403 });
     }
-    if (origin) {
+    const checkUrl = origin || referer;
+    if (checkUrl) {
       try {
-        const originUrl = new URL(origin);
-        if (originUrl.host !== request.headers.get('host')) {
+        const parsedUrl = new URL(checkUrl);
+        if (parsedUrl.host !== request.headers.get('host')) {
           // In development, allow LAN IPs for mobile testing
-          if (process.env.NODE_ENV !== 'development' || !originUrl.hostname.startsWith('192.168.')) {
+          if (process.env.NODE_ENV !== 'development' || !parsedUrl.hostname.startsWith('192.168.')) {
             return new NextResponse('Forbidden', { status: 403 });
           }
         }
@@ -126,6 +127,3 @@ export async function proxy(request: NextRequest) {
   return response
 }
 
-export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon.ico).*)'],
-}

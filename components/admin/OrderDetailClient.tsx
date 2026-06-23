@@ -70,27 +70,26 @@ export const OrderDetailClient = memo(function OrderDetailClient({ id }: OrderDe
       return;
     }
 
-    try {
-      const urlParts = screenshot.split('/');
-      const fileName = urlParts[urlParts.length - 1];
+    const isValidFilename = /^receipt-[a-z0-9]+\.(jpg|jpeg|png|webp)$/i.test(screenshot);
+    if (!isValidFilename) {
+      setSignedScreenshotUrl(null);
+      return;
+    }
 
-      if (fileName) {
-        supabase.storage
-          .from('instapay-receipts')
-          .createSignedUrl(fileName, 300)
-          .then(({ data, error }) => {
-            if (!error && data?.signedUrl) {
-              setSignedScreenshotUrl(data.signedUrl);
-            } else {
-              if (process.env.NODE_ENV !== 'production') console.error('Failed to generate signed URL for receipt:', error);
-              setSignedScreenshotUrl(screenshot);
-            }
-          });
-      } else {
-        setSignedScreenshotUrl(screenshot);
-      }
+    try {
+      supabase.storage
+        .from('instapay-receipts')
+        .createSignedUrl(screenshot, 300)
+        .then(({ data, error }) => {
+          if (!error && data?.signedUrl) {
+            setSignedScreenshotUrl(data.signedUrl);
+          } else {
+            if (process.env.NODE_ENV !== 'production') console.error('Failed to generate signed URL for receipt:', error);
+            setSignedScreenshotUrl(null);
+          }
+        });
     } catch {
-      setSignedScreenshotUrl(screenshot);
+      setSignedScreenshotUrl(null);
     }
   }, [order?.instapay_screenshot]);
 
@@ -170,30 +169,21 @@ export const OrderDetailClient = memo(function OrderDetailClient({ id }: OrderDe
       return;
     }
 
-    try {
-      const urlParts = screenshot.split('/');
-      const fileName = urlParts[urlParts.length - 1];
-      if (fileName) {
-        const { data, error } = await supabase.storage
-          .from('instapay-receipts')
-          .createSignedUrl(fileName, 300);
+    const isValidFilename = /^receipt-[a-z0-9]+\.(jpg|jpeg|png|webp)$/i.test(screenshot);
+    if (!isValidFilename) return;
 
-        if (!error && data?.signedUrl) {
-          window.open(data.signedUrl, '_blank', 'noopener,noreferrer');
-        } else {
-          if (process.env.NODE_ENV !== 'production') console.error('Failed to generate fresh signed URL:', error);
-          if (screenshot.startsWith('https://')) {
-            window.open(screenshot, '_blank', 'noopener,noreferrer');
-          }
-        }
-      } else if (screenshot.startsWith('https://')) {
-        window.open(screenshot, '_blank', 'noopener,noreferrer');
+    try {
+      const { data, error } = await supabase.storage
+        .from('instapay-receipts')
+        .createSignedUrl(screenshot, 300);
+
+      if (!error && data?.signedUrl) {
+        window.open(data.signedUrl, '_blank', 'noopener,noreferrer');
+      } else {
+        if (process.env.NODE_ENV !== 'production') console.error('Failed to generate fresh signed URL:', error);
       }
     } catch (err) {
       if (process.env.NODE_ENV !== 'production') console.error('Error generating fresh signed URL:', err);
-      if (screenshot.startsWith('https://')) {
-        window.open(screenshot, '_blank', 'noopener,noreferrer');
-      }
     }
   };
 

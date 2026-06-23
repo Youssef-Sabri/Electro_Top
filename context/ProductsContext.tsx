@@ -6,7 +6,6 @@ import type { Product } from '@/types';
 import { supabase } from '@/lib/supabase';
 
 import { deleteProductImage, clearAllProductImages } from '@/lib/image-utils';
-import { logAdminAction } from '@/lib/audit-log';
 
 const categorySchema = z.string().min(1, 'اسم الفئة مطلوب').max(50, 'اسم الفئة يجب ألا يتجاوز 50 حرفاً');
 
@@ -166,25 +165,23 @@ export function ProductsProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const addProduct = useCallback(async (newProductData: Omit<Product, 'id' | 'created_at'>) => {
-    const id = `p-${crypto.randomUUID()}`;
-    const newProduct: Product = { id, created_at: new Date().toISOString(), ...newProductData };
-
-    setProducts((prev) => [...prev, newProduct]);
-
     try {
-      await logAdminAction('add_product', { product_id: id, product_name: newProduct.name });
+      const response = await fetch('/api/admin/products', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newProductData),
+      });
 
-      const { error } = await supabase
-        .from('products')
-        .insert([newProduct]);
-
-      if (error) {
-        setProducts((prev) => prev.filter((p) => p.id !== id));
-        if (process.env.NODE_ENV !== 'production') console.error('Failed to add product to Supabase:', error.message);
-        throw new Error('فشل إضافة المنتج. يرجى المحاولة مرة أخرى.');
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'فشل إضافة المنتج. يرجى المحاولة مرة أخرى.');
       }
+
+      const resData = await response.json();
+      const product = resData.product;
+      setProducts((prev) => [...prev, product]);
     } catch (e) {
-      setProducts((prev) => prev.filter((p) => p.id !== id));
+      if (process.env.NODE_ENV !== 'production') console.error('Failed to add product:', e);
       throw e;
     }
   }, []);
@@ -199,8 +196,6 @@ export function ProductsProvider({ children }: { children: ReactNode }) {
     setProducts((prev) => prev.map((p) => (p.id === updated.id ? updated : p)));
 
     try {
-      await logAdminAction('update_product', { product_id: updated.id, product_name: updated.name });
-
       const response = await fetch(`/api/admin/products/${updated.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
@@ -231,8 +226,6 @@ export function ProductsProvider({ children }: { children: ReactNode }) {
     setProducts((prev) => prev.filter((p) => p.id !== id));
 
     try {
-      await logAdminAction('delete_product', { product_id: id, product_name: oldProduct.name });
-
       const response = await fetch(`/api/admin/products/${id}`, { method: 'DELETE' });
 
       if (!response.ok) {
@@ -270,11 +263,13 @@ export function ProductsProvider({ children }: { children: ReactNode }) {
     });
 
     try {
-      const { error } = await supabase
-        .from('categories')
-        .insert([{ name: trimmed }]);
+      const response = await fetch('/api/admin/categories', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: trimmed }),
+      });
 
-      if (error) {
+      if (!response.ok) {
         setCategories((prev) => prev.filter((c) => c !== trimmed));
       }
     } catch {
@@ -302,12 +297,11 @@ export function ProductsProvider({ children }: { children: ReactNode }) {
     setProducts(newProducts);
 
     try {
-      const { error } = await supabase
-        .from('categories')
-        .delete()
-        .eq('name', trimmed);
+      const response = await fetch(`/api/admin/categories?name=${encodeURIComponent(trimmed)}`, {
+        method: 'DELETE',
+      });
 
-      if (error) {
+      if (!response.ok) {
         setCategories(oldCategories);
         setProducts(oldProducts);
       }
@@ -323,17 +317,13 @@ export function ProductsProvider({ children }: { children: ReactNode }) {
     setProducts([]);
     setCategories([]);
     try {
-      await logAdminAction('clear_all_products', { count: previousProducts.length });
-
       await clearAllProductImages();
-      const { error } = await supabase
-        .from('products')
-        .delete()
-        .neq('id', '');
-      if (error) {
+      const response = await fetch('/api/admin/products', { method: 'DELETE' });
+      if (!response.ok) {
         setProducts(previousProducts);
         setCategories(previousCategories);
-        if (process.env.NODE_ENV !== 'production') console.error('Failed to clear products from Supabase:', error);
+        const data = await response.json();
+        throw new Error(data.error || 'Failed to clear products');
       }
     } catch (e) {
       setProducts(previousProducts);

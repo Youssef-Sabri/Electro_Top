@@ -1,22 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createSupabaseServerClient } from '@/lib/supabase-server'
+import { createSupabaseAdminClient } from '@/lib/supabase-server'
 import type { SupabaseClient } from '@supabase/supabase-js'
+import { getClientIp } from '@/lib/ip-utils'
 
 const MAX_LOOKUPS = 10
 const WINDOW_MS = 60_000
 const TRACKING_ID_REGEX = /^ET-[A-Z0-9]{10}$/i
-
-function getClientIp(request: NextRequest): string {
-  const forwarded = request.headers.get('x-forwarded-for')
-  if (forwarded) return forwarded.split(',')[0].trim()
-  return '127.0.0.1'
-}
-
-const noopClient = createSupabaseServerClient({
-  get() { return undefined },
-  set() {},
-  remove() {},
-})
 
 async function checkTrackingRateLimit(supabaseClient: SupabaseClient, ip: string) {
   const { data } = await supabaseClient
@@ -76,8 +65,9 @@ export async function GET(
   }
 
   const ip = getClientIp(request)
+  const adminClient = createSupabaseAdminClient()
 
-  const rateLimit = await checkTrackingRateLimit(noopClient, ip)
+  const rateLimit = await checkTrackingRateLimit(adminClient, ip)
   if (rateLimit.blocked) {
     return NextResponse.json(
       { error: 'Too many lookups', retryAfter: rateLimit.retryAfter },
@@ -85,9 +75,9 @@ export async function GET(
     )
   }
 
-  await incrementTrackingLookup(noopClient, ip)
+  await incrementTrackingLookup(adminClient, ip)
 
-  const { data, error } = await noopClient.rpc('get_order_details_for_tracking', { tracking_id: id })
+  const { data, error } = await adminClient.rpc('get_order_details_for_tracking', { tracking_id: id })
 
   if (error) {
     if (process.env.NODE_ENV !== 'production') console.error('Tracking lookup error:', error);
@@ -100,3 +90,4 @@ export async function GET(
 
   return NextResponse.json(data)
 }
+

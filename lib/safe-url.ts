@@ -20,8 +20,14 @@ export function isSafeUrl(url: string | null | undefined): url is string {
   try {
     const parsed = new URL(url);
     if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') return false;
-    if (isPrivateIp(parsed.hostname)) return false;
-    return true;
+    
+    const hostname = parsed.hostname.toLowerCase();
+    if (hostname === 'localhost' || hostname === '127.0.0.1') return false;
+    if (isPrivateIp(hostname)) return false;
+    
+    // Limit to Google Maps domains for safety
+    const allowedDomains = ['google.com', 'maps.google.com', 'google.co.uk', 'maps.app.goo.gl', 'goo.gl'];
+    return allowedDomains.some(domain => hostname === domain || hostname.endsWith('.' + domain));
   } catch {
     return false;
   }

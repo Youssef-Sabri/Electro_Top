@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { getServerSupabase } from '@/lib/supabase-server-cookies'
+import { validateRequestOrigin } from '@/lib/csrf'
 
 const ALLOWED_MIME_TYPES: Record<string, string> = {
   'image/jpeg': 'jpg',
@@ -43,6 +44,10 @@ async function detectMimeType(buffer: ArrayBuffer): Promise<string | null> {
 }
 
 export async function POST(request: Request) {
+  if (!validateRequestOrigin(request)) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  }
+
   const supabaseClient = await getServerSupabase()
 
   const { data: { user }, error: authError } = await supabaseClient.auth.getUser()
@@ -109,6 +114,14 @@ export async function POST(request: Request) {
   const { data: { publicUrl } } = supabaseClient.storage
     .from('product-images')
     .getPublicUrl(fileName)
+
+  // Server-Side Audit Log
+  await supabaseClient.from('admin_audit_log').insert({
+    admin_id: user.id,
+    admin_email: user.email,
+    action: 'upload_product_image',
+    details: { filename: fileName }
+  })
 
   return NextResponse.json({ imageUrl: publicUrl })
 }

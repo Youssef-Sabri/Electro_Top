@@ -1,37 +1,56 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createSupabaseServerClient } from '@/lib/supabase-server'
+import { createSupabaseAdminClient } from '@/lib/supabase-server'
+import type { SupabaseClient } from '@supabase/supabase-js'
 import { validateRequestOrigin } from '@/lib/csrf'
 import { checkoutSchema } from '@/lib/validators'
 import { generateOrderId } from '@/lib/id-generator'
+import { getClientIp } from '@/lib/ip-utils'
 
-const rateLimitMap = new Map<string, { count: number; resetAt: number }>()
-const WINDOW_MS = 60_000
-const MAX_ORDERS_PER_IP = 5
+async function checkIpRateLimit(adminClient: SupabaseClient, ip: string): Promise<{ blocked: boolean; cooldown?: number }> {
+  const WINDOW_MS = 60_000
+  const MAX_ORDERS_PER_IP = 5
+  
+  const { data } = await adminClient
+    .from('order_rate_limits')
+    .select('request_count, last_request_at')
+    .eq('ip_address', ip)
+    .single();
 
-function getClientIp(request: NextRequest): string {
-  const realIp = request.headers.get('x-real-ip')
-  if (realIp) return realIp
-  const forwarded = request.headers.get('x-forwarded-for')
-  if (forwarded) return forwarded.split(',')[0].trim()
-  return '127.0.0.1'
-}
-
-function checkIpRateLimit(ip: string): { blocked: boolean; cooldown?: number } {
-  const now = Date.now()
-  const entry = rateLimitMap.get(ip)
-
-  if (!entry || now > entry.resetAt) {
-    rateLimitMap.set(ip, { count: 1, resetAt: now + WINDOW_MS })
-    return { blocked: false }
+  const now = new Date();
+  
+  if (!data) {
+    await adminClient.from('order_rate_limits').insert({
+      ip_address: ip,
+      request_count: 1,
+      first_request_at: now.toISOString(),
+      last_request_at: now.toISOString(),
+    });
+    return { blocked: false };
   }
 
-  if (entry.count >= MAX_ORDERS_PER_IP) {
-    const cooldown = Math.ceil((entry.resetAt - now) / 1000)
-    return { blocked: true, cooldown }
+  const elapsed = Date.now() - new Date(data.last_request_at).getTime();
+  if (elapsed > WINDOW_MS) {
+    await adminClient.from('order_rate_limits').delete().eq('ip_address', ip);
+    await adminClient.from('order_rate_limits').insert({
+      ip_address: ip,
+      request_count: 1,
+      first_request_at: now.toISOString(),
+      last_request_at: now.toISOString(),
+    });
+    return { blocked: false };
   }
 
-  entry.count++
-  return { blocked: false }
+  if (data.request_count >= MAX_ORDERS_PER_IP) {
+    const cooldown = Math.ceil((WINDOW_MS - elapsed) / 1000);
+    return { blocked: true, cooldown };
+  }
+
+  await adminClient
+    .from('order_rate_limits')
+    .update({ request_count: data.request_count + 1, last_request_at: now.toISOString() })
+    .eq('ip_address', ip);
+
+  return { blocked: false };
 }
 
 export async function POST(request: NextRequest) {
@@ -40,7 +59,8 @@ export async function POST(request: NextRequest) {
   }
 
   const ip = getClientIp(request)
-  const rateLimit = checkIpRateLimit(ip)
+  const adminClient = createSupabaseAdminClient()
+  const rateLimit = await checkIpRateLimit(adminClient, ip)
   if (rateLimit.blocked) {
     return NextResponse.json({
       error: 'محاولات كثيرة جداً. يرجى الانتظار والمحاولة مرة أخرى.',
@@ -71,15 +91,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'السلة فارغة.' }, { status: 400 })
   }
 
-  const supabaseClient = createSupabaseServerClient({
-    get() { return undefined },
-    set() {},
-    remove() {},
-  })
-
   // Fetch current product prices from DB — never trust client prices
   const productIds = [...new Set(cartItems.map((item: { product: { id: string } }) => item.product.id))]
-  const { data: dbProducts, error: priceErr } = await supabaseClient
+  const { data: dbProducts, error: priceErr } = await adminClient
     .from('products')
     .select('id, name, price, stock, is_active')
     .in('id', productIds)
@@ -143,19 +157,19 @@ export async function POST(request: NextRequest) {
     timestamp,
   }
 
-  const { error: oErr } = await supabaseClient.from('orders').insert([newOrder])
+  const { error: oErr } = await adminClient.from('orders').insert([newOrder])
   if (oErr) {
     if (process.env.NODE_ENV !== 'production') console.error('Create order error:', oErr)
     return NextResponse.json({ error: 'فشل إنشاء الطلب. يرجى المحاولة مرة أخرى.' }, { status: 500 })
   }
 
   const [{ error: oiErr }, { error: hErr }] = await Promise.all([
-    supabaseClient.from('order_items').insert(newItems),
-    supabaseClient.from('order_status_history').insert([initialHistory]),
+    adminClient.from('order_items').insert(newItems),
+    adminClient.from('order_status_history').insert([initialHistory]),
   ])
 
   if (oiErr || hErr) {
-    await supabaseClient.from('orders').delete().eq('id_unique_tracking', trackingId).maybeSingle()
+    await adminClient.from('orders').delete().eq('id_unique_tracking', trackingId).maybeSingle()
     if (process.env.NODE_ENV !== 'production') console.error('Create order rollback:', oiErr || hErr)
     return NextResponse.json({ error: 'فشل حفظ بيانات الطلب.' }, { status: 500 })
   }

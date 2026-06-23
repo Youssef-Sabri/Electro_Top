@@ -1,4 +1,4 @@
-﻿import { supabase } from '@/lib/supabase';
+import { supabase } from '@/lib/supabase';
 import type { Order, OrderItem, OrderStatusHistory } from '@/types';
 
 export interface OrderDetailView {

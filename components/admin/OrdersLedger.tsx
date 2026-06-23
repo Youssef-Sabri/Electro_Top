@@ -370,9 +370,9 @@ export const OrdersLedger = memo(function OrdersLedger() {
         title="تأكيد كلمة المرور"
         message="يرجى إدخال كلمة مرور المسؤول لتأكيد حذف جميع الطلبات. هذا الإجراء لا يمكن التراجع عنه."
         confirmLabel="تأكيد وحذف الكل"
-        onConfirm={async () => {
+        onConfirm={async (password) => {
           try {
-            await clearAllOrders();
+            await clearAllOrders(password);
           } catch {
             setToast({ message: 'فشل حذف الطلبات. الرجاء المحاولة مرة أخرى.', type: 'error' });
           }

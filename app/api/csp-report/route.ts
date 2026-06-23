@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createSupabaseServerClient } from '@/lib/supabase-server';
+import { createSupabaseAdminClient } from '@/lib/supabase-server';
 
 export async function POST(request: NextRequest) {
   try {
@@ -8,11 +8,7 @@ export async function POST(request: NextRequest) {
 
     if (process.env.NODE_ENV !== 'production') console.error('[CSP Violation]', JSON.stringify(violation));
 
-    const supabaseClient = createSupabaseServerClient({
-      get() { return undefined },
-      set() {},
-      remove() {},
-    })
+    const supabaseClient = createSupabaseAdminClient();
 
     await supabaseClient.from('csp_violations').insert({
       document_uri: violation['document-uri'],

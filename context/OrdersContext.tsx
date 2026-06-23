@@ -5,7 +5,6 @@ import type { Order, OrderItem, OrderStatusHistory, OrderStatus, CartItem } from
 import type { CheckoutFormData } from '@/lib/validators';
 import { supabase } from '@/lib/supabase';
 import { clearAllReceipts, deleteReceiptImage } from '@/lib/image-utils';
-import { logAdminAction } from '@/lib/audit-log';
 
 const VALID_ORDER_STATUSES: readonly OrderStatus[] = [
   'Pending Review', 'Accepted', 'Processing', 'Delivered', 'Declined', 'Check Internal Note',
@@ -27,7 +26,7 @@ export interface OrdersContextType {
   updateAdminNotes: (orderId: string, notes: string) => void;
   getOrderItems: (orderId: string) => OrderItem[];
   getStatusHistory: (orderId: string) => OrderStatusHistory[];
-  clearAllOrders: () => void;
+  clearAllOrders: (password: string) => Promise<void>;
   deleteOrder: (orderId: string) => void;
   refreshOrders: () => Promise<void>;
 }
@@ -266,16 +265,17 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
     setStatusHistory((prevHistory) => [...prevHistory, newHistoryEntry]);
 
     try {
-      await logAdminAction('update_order_status', { order_id: orderId, new_status: status });
+      const response = await fetch(`/api/admin/orders/${orderId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status }),
+      });
 
-      const [{ error: oErr }, { error: hErr }] = await Promise.all([
-        supabase.from('orders').update({ status }).eq('id_unique_tracking', orderId),
-        supabase.from('order_status_history').insert([newHistoryEntry]),
-      ]);
-      if (oErr || hErr) {
+      if (!response.ok) {
         setOrders(previousOrders);
         setStatusHistory(previousHistory);
-        throw new Error(oErr?.message || hErr?.message || 'Failed to update order status');
+        const data = await response.json();
+        throw new Error(data.error || 'Failed to update order status');
       }
     } catch (e) {
       setOrders(previousOrders);
@@ -299,16 +299,16 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
     );
 
     try {
-      await logAdminAction('update_admin_notes', { order_id: orderId, notes_length: notes.length });
+      const response = await fetch(`/api/admin/orders/${orderId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ admin_notes: notes }),
+      });
 
-      const { error } = await supabase
-        .from('orders')
-        .update({ admin_notes: notes })
-        .eq('id_unique_tracking', orderId);
-
-      if (error) {
+      if (!response.ok) {
         setOrders(previousOrders);
-        throw new Error(error.message);
+        const data = await response.json();
+        throw new Error(data.error || 'Failed to update admin notes');
       }
     } catch (e) {
       setOrders(previousOrders);
@@ -316,7 +316,7 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  const clearAllOrders = useCallback(async () => {
+  const clearAllOrders = useCallback(async (password: string) => {
     const previousOrders = ordersRef.current;
     const previousItems = orderItemsRef.current;
     const previousHistory = statusHistoryRef.current;
@@ -326,11 +326,13 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
     setStatusHistory([]);
 
     try {
-      await logAdminAction('clear_all_orders', { count: previousOrders.length });
-
       await clearAllReceipts();
 
-      const response = await fetch('/api/admin/orders/clear', { method: 'DELETE' });
+      const response = await fetch('/api/admin/orders/clear', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password }),
+      });
       if (!response.ok) {
         const data = await response.json();
         throw new Error(data.error || 'Failed to clear orders');
@@ -352,8 +354,6 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
     setStatusHistory((prev) => prev.filter((h) => h.order_id !== orderId));
 
     try {
-      await logAdminAction('delete_order', { order_id: orderId, customer: orderToDelete.customer_name });
-
       const response = await fetch(`/api/admin/orders/${orderId}`, { method: 'DELETE' });
       if (!response.ok) {
         const data = await response.json();

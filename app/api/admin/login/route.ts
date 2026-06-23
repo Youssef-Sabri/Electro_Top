@@ -1,18 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createSupabaseServerClient } from '@/lib/supabase-server'
+import { createSupabaseAdminClient } from '@/lib/supabase-server'
 import { getServerSupabase } from '@/lib/supabase-server-cookies'
 import type { SupabaseClient } from '@supabase/supabase-js'
+import { getClientIp } from '@/lib/ip-utils'
 
 const MAX_ATTEMPTS = 5;
 const WINDOW_MS = 60_000;
-
-function getClientIp(request: NextRequest): string {
-  const realIp = request.headers.get('x-real-ip');
-  if (realIp) return realIp;
-  const forwarded = request.headers.get('x-forwarded-for');
-  if (forwarded) return forwarded.split(',')[0].trim();
-  return '127.0.0.1';
-}
 
 async function checkRateLimit(supabaseClient: SupabaseClient, ip: string) {
   const { data } = await supabaseClient
@@ -73,11 +66,7 @@ async function clearAttempts(supabaseClient: SupabaseClient, ip: string) {
 
 export async function GET(request: NextRequest) {
   const ip = getClientIp(request);
-  const supabaseClient = createSupabaseServerClient({
-    get() { return undefined },
-    set() {},
-    remove() {},
-  })
+  const supabaseClient = createSupabaseAdminClient()
 
   const rateLimit = await checkRateLimit(supabaseClient, ip);
   if (rateLimit.blocked) {
@@ -90,11 +79,8 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   const ip = getClientIp(request);
 
-  const supabaseClient = createSupabaseServerClient({
-    get() { return undefined },
-    set() {},
-    remove() {},
-  })
+  const supabaseClient = createSupabaseAdminClient()
+
 
   // Check rate limit first
   const rateLimit = await checkRateLimit(supabaseClient, ip);

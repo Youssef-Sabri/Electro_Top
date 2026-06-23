@@ -76,7 +76,7 @@ The project went through **7 development phases** from initial mock infrastructu
 | **Inventory CRUD** | Full Create / Read / Update / Delete for products |
 | **Category Management** | Dynamic category add/delete with automatic product reassignment |
 | **CSV Export** | Export product catalog as Excel-safe CSV |
-| **Auth-Gated Access** | Supabase Auth (email/password) + server-side route protection via `proxy.ts` |
+| **Auth-Gated Access** | Supabase Auth (email/password) + server-side route protection via `middleware.ts` routing to `proxy.ts` |
 
 ---
 
@@ -111,10 +111,11 @@ The project went through **7 development phases** from initial mock infrastructu
 ┌────────────────────────▼────────────────────────────────┐
 │               Next.js Server (App Router)                │
 │  ┌────────────────────────────────────────────────────┐  │
-│  │  proxy.ts  ←  Server-side admin route protection   │  │
+│  │ middleware.ts & proxy.ts ← Admin route protection  │  │
 │  │            (redirects unauthenticated /admin/* reqs)│  │
+│  │  API routes for checkout, products, categories    │  │
 │  └────────────────────────────────────────────────────┘  │
-└────────────────────────┬────────────────────────────────┘
+└──────────────────────────────────────────────────────────┘
                          │ Supabase Client
 ┌────────────────────────▼────────────────────────────────┐
 │                    Supabase (BaaS)                        │
@@ -140,6 +141,7 @@ The project went through **7 development phases** from initial mock infrastructu
 
 ```
 electro-top/
+├── middleware.ts                   # Next.js 16 middleware entrypoint
 ├── proxy.ts                        # Next.js 16 server-side proxy (admin route guard)
 ├── app/
 │   ├── layout.tsx                  # Root layout (RTL, fonts, context providers)
@@ -289,13 +291,13 @@ This project underwent a dedicated **Phase 7 — Security Hardening** audit. Mit
 
 | Category | Implementation |
 |---|---|
-| **Server-side route protection** | `proxy.ts` uses `@supabase/ssr` `createServerClient` to redirect unauthenticated `/admin/*` requests and enforce admin email restriction (configured via environment variables) |
+| **Server-side route protection** | `middleware.ts` uses `proxy.ts` and `@supabase/ssr` `createServerClient` to redirect unauthenticated `/admin/*` requests and enforce admin email restriction |
 | **CSV injection** | Cells starting with `=`, `+`, `-`, `@` are force-quoted in CSV exports |
 | **XSS prevention** | Replaced `document.write` with safe DOM API; `dangerouslySetInnerHTML` removed |
 | **Content Security Policy** | Hardened CSP: `frame-src 'none'`, `object-src 'none'`, `base-uri 'self'`, `form-action 'self'` |
 | **Security headers** | HSTS, `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, Referrer-Policy, Permissions-Policy |
 | **Order rate limiting** | DB trigger: max 3 orders per phone number per 15 minutes |
-| **Admin login rate limiting** | Server-side enforced: max 5 failed attempts per minute per IP, then 60-second cooldown with visible countdown |
+| **Admin login rate limiting** | Server-side enforced: max 5 failed attempts per minute per IP, then 60-second cooldown with visible countdown. Shared database-backed persistent rate limits on order tracking lookups and guest checkout submissions. |
 | **ID generation bias** | Modulo-bias-free rejection sampling for tracking IDs |
 | **Server-side order validation** | PostgreSQL trigger validates required fields and minimum lengths |
 | **URL sanitization** | Zod `.refine()` protocol allowlist — rejects non-`http(s)` URLs |

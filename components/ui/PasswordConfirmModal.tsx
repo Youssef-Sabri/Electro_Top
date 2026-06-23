@@ -7,7 +7,7 @@ interface PasswordConfirmModalProps {
   isOpen: boolean;
   title: string;
   message: string;
-  onConfirm: () => void | Promise<void>;
+  onConfirm: (password: string) => void | Promise<void>;
   onCancel: () => void;
   confirmLabel?: string;
   cancelLabel?: string;
@@ -56,7 +56,7 @@ export const PasswordConfirmModal = memo(function PasswordConfirmModal({
         setIsVerifying(false);
         return;
       }
-      await onConfirm();
+      await onConfirm(password);
     } catch {
       setError('حدث خطأ أثناء التحقق. يرجى المحاولة مرة أخرى.');
     } finally {
