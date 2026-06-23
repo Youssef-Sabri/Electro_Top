@@ -1003,9 +1003,9 @@ export const InventoryClient = memo(function InventoryClient() {
         title="تأكيد كلمة المرور"
         message="يرجى إدخال كلمة مرور المسؤول لتأكيد حذف جميع المنتجات من المخزون. هذا الإجراء لا يمكن التراجع عنه."
         confirmLabel="تأكيد وحذف الكل"
-        onConfirm={async () => {
+        onConfirm={async (password) => {
           try {
-            await clearAllProducts();
+            await clearAllProducts(password);
             showToast('تم حذف جميع عناصر المخزون.');
           } catch {
             showToast('فشل حذف جميع المنتجات. الرجاء المحاولة مرة أخرى.');

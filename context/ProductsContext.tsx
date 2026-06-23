@@ -19,7 +19,7 @@ export interface ProductsContextType {
   getProductsMap: () => Map<string, Product>;
   addCategory: (category: string) => void;
   deleteCategory: (category: string) => void;
-  clearAllProducts: () => void;
+  clearAllProducts: (password: string) => Promise<void>;
   initializeData: (products: Product[], categories: string[]) => void;
   refreshProducts: () => Promise<void>;
   isLoaded: boolean;
@@ -311,14 +311,18 @@ export function ProductsProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  const clearAllProducts = useCallback(async () => {
+  const clearAllProducts = useCallback(async (password: string) => {
     const previousProducts = productsRef.current;
     const previousCategories = categoriesRef.current;
     setProducts([]);
     setCategories([]);
     try {
       await clearAllProductImages();
-      const response = await fetch('/api/admin/products', { method: 'DELETE' });
+      const response = await fetch('/api/admin/products', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password }),
+      });
       if (!response.ok) {
         setProducts(previousProducts);
         setCategories(previousCategories);
@@ -329,6 +333,7 @@ export function ProductsProvider({ children }: { children: ReactNode }) {
       setProducts(previousProducts);
       setCategories(previousCategories);
       if (process.env.NODE_ENV !== 'production') console.error(e);
+      throw e;
     }
   }, []);
 

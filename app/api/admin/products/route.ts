@@ -64,6 +64,28 @@ export async function DELETE(request: Request) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
+  let body;
+  try {
+    body = await request.json()
+  } catch {
+    return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 })
+  }
+
+  const { password } = body
+  if (!password) {
+    return NextResponse.json({ error: 'كلمة المرور مطلوبة.' }, { status: 400 })
+  }
+
+  // Verify the password using signInWithPassword server-side
+  const { error: signInError } = await supabaseClient.auth.signInWithPassword({
+    email: user.email,
+    password,
+  })
+
+  if (signInError) {
+    return NextResponse.json({ error: 'كلمة المرور غير صحيحة.' }, { status: 401 })
+  }
+
   const { data: prods } = await supabaseClient.from('products').select('id')
   const count = prods?.length || 0
 
