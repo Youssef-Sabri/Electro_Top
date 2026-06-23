@@ -77,67 +77,60 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  try {
-    const ip = getClientIp(request);
+  const ip = getClientIp(request);
 
-    const supabaseClient = createSupabaseAdminClient()
+  const supabaseClient = createSupabaseAdminClient()
 
-    // Check rate limit first
-    const rateLimit = await checkRateLimit(supabaseClient, ip);
-    if (rateLimit.blocked) {
-      return NextResponse.json({
-        blocked: true,
-        cooldown: rateLimit.cooldown,
-      }, { status: 429 });
-    }
 
-    let body;
-    try {
-      body = await request.json();
-    } catch {
-      return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
-    }
-
-    const { email, password } = body;
-    if (!email || !password) {
-      return NextResponse.json({ error: 'البريد الإلكتروني وكلمة المرور مطلوبان' }, { status: 400 });
-    }
-
-    const adminEmail = process.env.ADMIN_EMAIL;
-    if (!adminEmail || email.trim() !== adminEmail) {
-      const attempts = await incrementAttempts(supabaseClient, ip);
-      return NextResponse.json({
-        error: 'فشل تسجيل الدخول. تحقق من البريد الإلكتروني وكلمة المرور.',
-        attempts,
-      }, { status: 401 });
-    }
-
-    // Initialize Supabase Server Client with cookies for auth
-    const supabaseClientWithCookies = await getServerSupabase()
-
-    const { data: { user }, error: loginError } = await supabaseClientWithCookies.auth.signInWithPassword({
-      email: email.trim(),
-      password: password,
-    });
-
-    if (loginError || !user) {
-      const attempts = await incrementAttempts(supabaseClient, ip);
-      return NextResponse.json({
-        error: 'فشل تسجيل الدخول. تحقق من البريد الإلكتروني وكلمة المرور.',
-        attempts,
-      }, { status: 401 });
-    }
-
-    // Successful login, clear rate limit entries
-    await clearAttempts(supabaseClient, ip);
-
-    // Return success response. Note: createServerClient writes directly to the cookies via the proxy setters.
-    return NextResponse.json({ success: true, user });
-  } catch (err: any) {
-    console.error('Admin login route error:', err);
-    return NextResponse.json({ 
-      error: err.message || 'Internal Server Error',
-      details: err.stack 
-    }, { status: 500 });
+  // Check rate limit first
+  const rateLimit = await checkRateLimit(supabaseClient, ip);
+  if (rateLimit.blocked) {
+    return NextResponse.json({
+      blocked: true,
+      cooldown: rateLimit.cooldown,
+    }, { status: 429 });
   }
+
+  let body;
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
+  }
+
+  const { email, password } = body;
+  if (!email || !password) {
+    return NextResponse.json({ error: 'البريد الإلكتروني وكلمة المرور مطلوبان' }, { status: 400 });
+  }
+
+  const adminEmail = process.env.ADMIN_EMAIL;
+  if (!adminEmail || email.trim() !== adminEmail) {
+    const attempts = await incrementAttempts(supabaseClient, ip);
+    return NextResponse.json({
+      error: 'فشل تسجيل الدخول. تحقق من البريد الإلكتروني وكلمة المرور.',
+      attempts,
+    }, { status: 401 });
+  }
+
+  // Initialize Supabase Server Client with cookies for auth
+  const supabaseClientWithCookies = await getServerSupabase()
+
+  const { data: { user }, error: loginError } = await supabaseClientWithCookies.auth.signInWithPassword({
+    email: email.trim(),
+    password: password,
+  });
+
+  if (loginError || !user) {
+    const attempts = await incrementAttempts(supabaseClient, ip);
+    return NextResponse.json({
+      error: 'فشل تسجيل الدخول. تحقق من البريد الإلكتروني وكلمة المرور.',
+      attempts,
+    }, { status: 401 });
+  }
+
+  // Successful login, clear rate limit entries
+  await clearAttempts(supabaseClient, ip);
+
+  // Return success response. Note: createServerClient writes directly to the cookies via the proxy setters.
+  return NextResponse.json({ success: true, user });
 }
