@@ -23,10 +23,14 @@ function generateNonce(): string {
   return result
 }
 
-function buildCsp(nonce: string, supabaseHost: string): string {
+function buildCsp(nonce: string, supabaseHost: string, isAdminRoute: boolean): string {
+  const scriptSrc = isAdminRoute
+    ? `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'`
+    : `script-src 'self' 'unsafe-inline'`
+
   return [
     `default-src 'self'`,
-    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'`,
+    scriptSrc,
     `worker-src 'self' blob:`,
     `style-src 'self' 'unsafe-inline' https://fonts.googleapis.com`,
     `font-src 'self' https://fonts.gstatic.com`,
@@ -87,7 +91,7 @@ export async function proxy(request: NextRequest) {
   // Set CSP header with nonce and pass nonce to Next.js via x-nonce
   const response = NextResponse.next()
   response.headers.set('x-nonce', nonce)
-  response.headers.set('Content-Security-Policy', buildCsp(nonce, supabaseHost))
+  response.headers.set('Content-Security-Policy', buildCsp(nonce, supabaseHost, isAdminRoute))
 
   // Allow admin login page and API without session
   if (pathname === '/admin' || pathname === '/api/admin/login') {
@@ -125,4 +129,3 @@ export async function proxy(request: NextRequest) {
 export const config = {
   matcher: ['/((?!_next/static|_next/image|favicon.ico).*)'],
 }
-
