@@ -130,10 +130,10 @@ The project went through **7 development phases** from initial mock infrastructu
 
 - **Guest-first model** — No user registration. Orders tracked via a unique, high-entropy 10-char alphanumeric ID.
 - **Hybrid data loading** — Public pages are SSR (catalog fetched server-side); admin pages load client-side after auth validation.
-- **SECURITY DEFINER RPC** — Order tracking uses a PostgreSQL function (`get_order_details_for_tracking`) that bypasses table-level RLS, granting only targeted read access to the public.
-- **Database-level stock automation** — PostgreSQL triggers handle all inventory deductions/restorations on order events. The frontend performs no stock mutations.
-- **Optimistic UI** — Cart mutations and status changes update the UI before the database confirms.
-- **Client-side image compression** — Receipts are compressed using the Canvas API before upload, ensuring consistent cross-browser behavior (including HEIC/HEIF from iPhones).
+- **SECURITY DEFINER RPC** — Order tracking uses a PostgreSQL function (`get_order_details_for_tracking`) for targeted read access.
+- **Database-level stock automation** — PostgreSQL triggers handle inventory deductions/restorations.
+- **Optimistic UI** — UI updates before database confirmation for cart mutations and status changes.
+- **Client-side image compression** — Receipts are compressed using the Canvas API before upload.
 
 ---
 
@@ -287,25 +287,27 @@ electro-top/
 
 ## 🔒 Security
 
-This project underwent a dedicated **Phase 7 — Security Hardening** audit. Mitigations applied:
+This project has security measures in place. Key security areas include:
 
 | Category | Implementation |
 |---|---|
-| **Server-side route protection** | `middleware.ts` uses `proxy.ts` and `@supabase/ssr` `createServerClient` to redirect unauthenticated `/admin/*` requests and enforce admin email restriction |
-| **CSV injection** | Cells starting with `=`, `+`, `-`, `@` are force-quoted in CSV exports |
-| **XSS prevention** | Replaced `document.write` with safe DOM API; `dangerouslySetInnerHTML` removed |
-| **Content Security Policy** | Hardened CSP: `frame-src 'none'`, `object-src 'none'`, `base-uri 'self'`, `form-action 'self'` |
-| **Security headers** | HSTS, `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, Referrer-Policy, Permissions-Policy |
-| **Order rate limiting** | DB trigger: max 3 orders per phone number per 15 minutes |
-| **Admin login rate limiting** | Server-side enforced: max 5 failed attempts per minute per IP, then 60-second cooldown with visible countdown. Shared database-backed persistent rate limits on order tracking lookups and guest checkout submissions. |
-| **ID generation bias** | Modulo-bias-free rejection sampling for tracking IDs |
-| **Server-side order validation** | PostgreSQL trigger validates required fields and minimum lengths |
-| **URL sanitization** | Zod `.refine()` protocol allowlist — rejects non-`http(s)` URLs |
-| **Receipt filenames** | 6-char `crypto.getRandomValues` suffix prevents predictable collisions |
-| **User-submitted links** | All `location_link` anchors carry `rel="noopener noreferrer nofollow"` |
-| **Production logging** | All `console.error` calls guarded with `NODE_ENV !== 'production'` |
-| **Storage pagination** | `clearBucket` loops with `limit: 100` offset to handle >100 files |
-| **DB constraints** | `admin_notes` and `description` max 2000 chars enforced at DB level |
+| **Server-side route protection** | `middleware.ts` and `proxy.ts` provide basic admin route protection |
+| **CSV injection** | CSV export has some protection against injection |
+| **XSS prevention** | Basic XSS prevention measures |
+| **Content Security Policy** | Basic CSP headers implemented |
+| **Security headers** | Basic security headers configured |
+| **Order rate limiting** | Database-level rate limiting for phone numbers |
+| **Admin login rate limiting** | Basic rate limiting on admin login |
+| **ID generation** | Alphanumeric ID generation for tracking |
+| **Server-side order validation** | PostgreSQL triggers for order validation |
+| **URL sanitization** | Basic URL validation |
+| **Receipt filenames** | Random receipt filenames |
+| **User-submitted links** | Basic link attributes |
+| **Production logging** | Guarded console.error calls |
+| **Storage pagination** | Pagination for storage operations |
+| **DB constraints** | Database-level constraints for data integrity |
+
+**Note:** This is a production e-commerce platform with security measures, but it has not undergone a comprehensive security audit. Additional security hardening may be required for production deployment.
 
 ---
 
@@ -437,17 +439,17 @@ The UI is anchored to **Electro Top's** brand identity — red, gold, and charco
 
 1. **Guest-first checkout** — No registration friction. Any customer can order and track via their unique `ET-XXXXXXXXXX` ID.
 
-2. **Database owns the truth** — Stock levels, order validation, and rate limiting are all enforced at the PostgreSQL layer via triggers and CHECK constraints. The frontend cannot manipulate these.
+2. **Database owns the truth** — Stock levels, order validation, and rate limiting are enforced at the PostgreSQL layer via triggers and CHECK constraints.
 
-3. **SECURITY DEFINER RPC for tracking** — Public order tracking uses a Postgres function that bypasses RLS, granting exactly the data needed for the tracking page — nothing more.
+3. **SECURITY DEFINER RPC for tracking** — Public order tracking uses a Postgres function for targeted read access.
 
-4. **Hybrid SSR + CSR** — The product catalog is server-rendered for SEO and fast LCP. Admin pages are client-side loaded only after Supabase session validation.
+4. **Hybrid SSR + CSR** — The product catalog is server-rendered for SEO and fast LCP. Admin pages are client-side loaded after auth validation.
 
-5. **Canvas API image compression** — InstaPay receipt images are compressed client-side before upload using `createImageBitmap` + canvas resize, with explicit HEIC/HEIF support for iPhone users, avoiding heavy third-party libraries.
+5. **Canvas API image compression** — InstaPay receipt images are compressed client-side before upload.
 
-6. **Print-safe invoice** — The printable invoice uses React inline style objects (not Tailwind) for reliable cross-browser print rendering, with `@page { margin: 0 }` suppressing browser headers/footers.
+6. **Print-safe invoice** — The printable invoice uses React inline style objects for reliable cross-browser print rendering.
 
-7. **Atomic order creation** — `createOrder` is async and throws on item/history insert failures, preventing orphaned orders with no line items in the database.
+7. **Atomic order creation** — Order creation ensures data integrity with proper error handling.
 
 ---
 
