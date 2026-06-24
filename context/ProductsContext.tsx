@@ -109,10 +109,8 @@ export function ProductsProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     let channel: ReturnType<typeof supabase.channel> | null = null;
 
-    async function subscribeIfAdmin() {
-      if (channel) return;
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return;
+    async function subscribe(session: unknown) {
+      if (channel || !session) return;
 
       channel = supabase
         .channel('products-realtime')
@@ -120,11 +118,14 @@ export function ProductsProvider({ children }: { children: ReactNode }) {
           'postgres_changes',
           { event: '*', schema: 'public', table: 'products' },
           () => {
+            if (process.env.NODE_ENV !== 'production') console.log('Realtime change detected in products table');
             hasFetchedRef.current = false;
             loadData(true);
           }
         )
-        .subscribe();
+        .subscribe((status) => {
+          if (process.env.NODE_ENV !== 'production') console.log('Supabase Realtime products channel status:', status);
+        });
     }
 
     function unsubscribe() {
@@ -134,13 +135,22 @@ export function ProductsProvider({ children }: { children: ReactNode }) {
       }
     }
 
-    subscribeIfAdmin();
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      if (session) {
+        await subscribe(session);
+      } else {
+        unsubscribe();
+      }
+    });
 
-    const handleVisibility = () => {
+    const handleVisibility = async () => {
       if (document.visibilityState === 'visible') {
-        subscribeIfAdmin();
-        hasFetchedRef.current = false;
-        loadData(true);
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+          await subscribe(session);
+          hasFetchedRef.current = false;
+          loadData(true);
+        }
       } else {
         unsubscribe();
       }
@@ -150,6 +160,7 @@ export function ProductsProvider({ children }: { children: ReactNode }) {
     return () => {
       document.removeEventListener('visibilitychange', handleVisibility);
       unsubscribe();
+      subscription.unsubscribe();
     };
   }, [loadData]);
 

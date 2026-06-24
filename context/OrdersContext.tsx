@@ -154,28 +154,10 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
   }, [totalPages, loadData]);
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      if (session) {
-        await loadData(0);
-      } else {
-        setOrders([]);
-        setOrderItems([]);
-        setStatusHistory([]);
-      }
-    });
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, [loadData]);
-
-  useEffect(() => {
     let channel: ReturnType<typeof supabase.channel> | null = null;
 
-    async function subscribeIfAdmin() {
-      if (channel) return;
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return;
+    async function subscribe(session: unknown) {
+      if (channel || !session) return;
 
       channel = supabase
         .channel('orders-realtime')
@@ -215,12 +197,25 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
       }
     }
 
-    subscribeIfAdmin();
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      if (session) {
+        await loadData(0);
+        await subscribe(session);
+      } else {
+        unsubscribe();
+        setOrders([]);
+        setOrderItems([]);
+        setStatusHistory([]);
+      }
+    });
 
-    const handleVisibility = () => {
+    const handleVisibility = async () => {
       if (document.visibilityState === 'visible') {
-        subscribeIfAdmin();
-        loadData(pageRef.current);
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+          await subscribe(session);
+          loadData(pageRef.current);
+        }
       } else {
         unsubscribe();
       }
@@ -230,6 +225,7 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
     return () => {
       document.removeEventListener('visibilitychange', handleVisibility);
       unsubscribe();
+      subscription.unsubscribe();
     };
   }, [loadData]);
 
