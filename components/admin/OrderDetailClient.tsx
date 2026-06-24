@@ -7,7 +7,9 @@ import { useOrders } from '@/hooks/useOrders';
 import { useProducts } from '@/hooks/useProducts';
 import type { OrderStatus, Order, OrderItem, OrderStatusHistory } from '@/types';
 import { formatCurrency } from '@/lib/format-currency';
-import { getInitials, translateStatus, translateHistoryStatus } from '@/lib/string-utils';
+import { now, formatOrderDate } from '@/lib/date-utils';
+import { getInitials } from '@/lib/string-utils';
+import { STATUS_OPTIONS, translateStatus, translateHistoryStatus } from '@/lib/status-utils';
 import { getSafeUrl } from '@/lib/safe-url';
 
 import { Toast } from '@/components/ui/Toast';
@@ -16,15 +18,6 @@ import { ConfirmationModal } from '@/components/ui/ConfirmationModal';
 import { supabase } from '@/lib/supabase';
 
 const MAX_NOTES_LENGTH = 2000;
-
-const STATUS_OPTIONS = [
-  { value: 'Pending Review', label: 'قيد المراجعة' },
-  { value: 'Accepted', label: 'مقبول' },
-  { value: 'Processing', label: 'قيد التحضير' },
-  { value: 'Delivered', label: 'تم التوصيل' },
-  { value: 'Declined', label: 'مرفوض' },
-  { value: 'Check Internal Note', label: 'قيد الفحص' },
-];
 
 interface OrderDetailClientProps {
   id: string;
@@ -200,7 +193,7 @@ export const OrderDetailClient = memo(function OrderDetailClient({ id }: OrderDe
       
       // Update local state variables immediately
       setOrder((prev) => prev ? { ...prev, status: selectedStatus } : null);
-      const timestamp = new Date().toISOString();
+      const timestamp = now();
       const newHistoryEntry: OrderStatusHistory = {
         id: `h-${order.id_unique_tracking}-${Date.now()}`,
         order_id: order.id_unique_tracking,
@@ -277,12 +270,7 @@ export const OrderDetailClient = memo(function OrderDetailClient({ id }: OrderDe
     );
   }
 
-  const orderDate = new Date(order.created_at).toLocaleDateString('ar-EG', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  });
-
+  const orderDate = formatOrderDate(order.created_at);
   const orderTime = new Date(order.created_at).toLocaleTimeString('ar-EG', {
     hour: '2-digit',
     minute: '2-digit',
@@ -540,11 +528,7 @@ export const OrderDetailClient = memo(function OrderDetailClient({ id }: OrderDe
             {sortedHistory.length > 0 ? (
               <div className="space-y-6 relative before:content-[''] before:absolute before:right-[7px] before:top-2 before:bottom-2 before:w-[2px] before:bg-outline-variant/30 pr-1 text-start max-h-[260px] overflow-y-auto pl-2 scrollbar-thin scrollbar-thumb-outline-variant">
                 {sortedHistory.map((h, idx) => {
-                  const logDate = new Date(h.timestamp).toLocaleDateString('ar-EG', {
-                    month: 'short',
-                    day: 'numeric',
-                    year: 'numeric',
-                  });
+                  const logDate = formatOrderDate(h.timestamp);
                   const logTime = new Date(h.timestamp).toLocaleTimeString('ar-EG', {
                     hour: '2-digit',
                     minute: '2-digit',

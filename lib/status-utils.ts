@@ -1,0 +1,45 @@
+import type { OrderStatus } from '@/types'
+
+export const STATUS_LABELS: Record<OrderStatus, string> = {
+  'Pending Review': 'قيد المراجعة',
+  'Accepted': 'مقبول',
+  'Processing': 'قيد التحضير',
+  'Delivered': 'تم التوصيل',
+  'Declined': 'مرفوض',
+  'Check Internal Note': 'قيد الفحص',
+}
+
+export const HISTORY_LABELS: Record<OrderStatus, string> = {
+  'Pending Review': 'تم تسجيل الطلب والدفع',
+  'Accepted': 'تم قبول وتأكيد الطلب',
+  'Processing': 'جاري تحضير الشحنة',
+  'Delivered': 'تم توصيل الطلب بنجاح',
+  'Declined': 'تم رفض الطلب',
+  'Check Internal Note': 'قيد الفحص الداخلي',
+}
+
+export const STATUS_OPTIONS = [
+  { value: 'All', label: 'الكل' },
+  { value: 'Pending Review', label: 'قيد المراجعة' },
+  { value: 'Accepted', label: 'مقبول' },
+  { value: 'Processing', label: 'قيد التحضير' },
+  { value: 'Delivered', label: 'تم التوصيل' },
+  { value: 'Declined', label: 'مرفوض' },
+  { value: 'Check Internal Note', label: 'قيد الفحص' },
+]
+
+export function translateStatus(status: string, isPublic = false): string {
+  let displayStatus = status
+  if (isPublic && status === 'Check Internal Note') {
+    displayStatus = 'Pending Review'
+  }
+  return STATUS_LABELS[displayStatus as OrderStatus] || displayStatus
+}
+
+export function translateHistoryStatus(status: string): string {
+  return HISTORY_LABELS[status as OrderStatus] || status
+}
+
+export function publicStatus(status: string): OrderStatus {
+  return (status === 'Check Internal Note' ? 'Pending Review' : status) as OrderStatus
+}

@@ -5,6 +5,7 @@ import { z } from 'zod';
 import type { Product } from '@/types';
 import { supabase } from '@/lib/supabase';
 
+import { PRODUCT_SELECT_FIELDS } from '@/lib/db-constants';
 import { deleteProductImage, clearAllProductImages } from '@/lib/image-utils';
 
 const categorySchema = z.string().min(1, 'اسم الفئة مطلوب').max(50, 'اسم الفئة يجب ألا يتجاوز 50 حرفاً');
@@ -59,7 +60,7 @@ export function ProductsProvider({ children }: { children: ReactNode }) {
         { data: prodData, error: prodError },
       ] = await Promise.all([
         supabase.from('categories').select('name').order('name'),
-        supabase.from('products').select('id, name, description, price, image_url, stock, is_active, category, created_at').order('created_at'),
+        supabase.from('products').select(PRODUCT_SELECT_FIELDS).order('created_at'),
       ]);
 
       if (!catError && catData) {

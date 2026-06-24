@@ -6,10 +6,13 @@ import { useOrders } from '@/hooks/useOrders';
 import { useProducts } from '@/hooks/useProducts';
 import { usePagination } from '@/hooks/usePagination';
 import { formatCurrency } from '@/lib/format-currency';
+import { formatOrderDate, todayStamp } from '@/lib/date-utils';
+import { STATUS_OPTIONS } from '@/lib/status-utils';
 import { getInitials } from '@/lib/string-utils';
 import { exportToCSV } from '@/lib/csv-export';
 import { calculateOrderMetrics } from '@/lib/order-utils';
 import { StatusBadge } from '@/components/ui/StatusBadge';
+import { PaginationControls } from '@/components/ui/PaginationControls';
 import { CustomDropdown } from '@/components/ui/CustomDropdown';
 import { ConfirmationModal } from '@/components/ui/ConfirmationModal';
 import { PasswordConfirmModal } from '@/components/ui/PasswordConfirmModal';
@@ -57,7 +60,7 @@ export const OrdersLedger = memo(function OrdersLedger() {
         })
         .join('; ');
 
-      const dateStr = new Date(order.created_at).toLocaleDateString('ar-EG');
+      const dateStr = formatOrderDate(order.created_at);
 
       return [
         order.id_unique_tracking,
@@ -70,7 +73,7 @@ export const OrdersLedger = memo(function OrdersLedger() {
       ];
     });
 
-    const dateStamp = new Date().toISOString().split('T')[0];
+    const dateStamp = todayStamp();
     exportToCSV({
       filename: `electro-top-orders-${dateStamp}.csv`,
       headers,
@@ -154,15 +157,7 @@ export const OrdersLedger = memo(function OrdersLedger() {
 
           <CustomDropdown
             labelPrefix="الحالة:"
-            options={[
-              { value: 'All', label: 'الكل' },
-              { value: 'Pending', label: 'قيد المراجعة' },
-              { value: 'Accepted', label: 'مقبول' },
-              { value: 'Processing', label: 'قيد التحضير' },
-              { value: 'Delivered', label: 'تم التوصيل' },
-              { value: 'Declined', label: 'مرفوض' },
-              { value: 'Check Internal Note', label: 'قيد الفحص' },
-            ]}
+            options={STATUS_OPTIONS}
             value={statusFilter}
             onChange={(val) => setStatusFilter(val)}
           />
@@ -250,11 +245,7 @@ export const OrdersLedger = memo(function OrdersLedger() {
             <tbody className="divide-y divide-outline-variant/10">
               {paginatedOrders.length > 0 ? (
                 paginatedOrders.map((order) => {
-                  const dateStr = new Date(order.created_at).toLocaleDateString('ar-EG', {
-                    month: 'short',
-                    day: 'numeric',
-                    year: 'numeric',
-                  });
+                  const dateStr = formatOrderDate(order.created_at);
 
                   const orderTotal = order.total_amount;
 
@@ -322,35 +313,11 @@ export const OrdersLedger = memo(function OrdersLedger() {
           </table>
         </div>
 
-        <div className="px-6 py-4 bg-surface-container-low flex justify-between items-center border-t border-outline-variant/30 select-none">
-          <p className="font-label-sm text-label-sm text-on-surface-variant">
-            الصفحة {currentPage} من {totalPages}
-          </p>
-          <div className="flex gap-2">
-            <button
-              onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
-              disabled={currentPage === 1}
-              className={`p-2 border border-outline-variant rounded transition-all duration-200 flex items-center bg-white ${
-                currentPage === 1 
-                  ? 'opacity-40 cursor-not-allowed' 
-                  : 'hover:bg-white hover:text-primary cursor-pointer'
-              }`}
-            >
-              <span className="material-symbols-outlined text-sm">chevron_right</span>
-            </button>
-            <button
-              onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
-              disabled={currentPage === totalPages}
-              className={`p-2 border border-outline-variant rounded transition-all duration-200 flex items-center bg-white ${
-                currentPage === totalPages 
-                  ? 'opacity-40 cursor-not-allowed' 
-                  : 'hover:bg-white hover:text-primary cursor-pointer'
-              }`}
-            >
-              <span className="material-symbols-outlined text-sm">chevron_left</span>
-            </button>
-          </div>
-        </div>
+        <PaginationControls
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+        />
       </div>
 
       <ConfirmationModal

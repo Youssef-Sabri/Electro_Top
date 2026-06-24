@@ -8,9 +8,10 @@ import { useOrders } from '@/hooks/useOrders';
 import { useProducts } from '@/hooks/useProducts';
 import { StatusTimeline } from '@/components/tracking/StatusTimeline';
 import { formatCurrency } from '@/lib/format-currency';
+import { formatOrderDate } from '@/lib/date-utils';
 import { getSafeUrl } from '@/lib/safe-url';
 import type { Order, OrderItem, OrderStatusHistory } from '@/types';
-import { translateStatus } from '@/lib/string-utils';
+import { translateStatus, publicStatus } from '@/lib/status-utils';
 
 interface TrackingDetailClientProps {
   id: string;
@@ -169,7 +170,7 @@ export function TrackingDetailClient({ id }: TrackingDetailClientProps) {
   }
 
   const statusColorInfo = (() => {
-    const displayStatus = order.status === 'Check Internal Note' ? 'Pending Review' : order.status;
+    const displayStatus = publicStatus(order.status);
     switch (displayStatus) {
       case 'Pending Review':
         return { dot: 'bg-yellow-400', text: 'text-yellow-700 bg-yellow-500/10 border-yellow-500/20' };
@@ -216,7 +217,7 @@ export function TrackingDetailClient({ id }: TrackingDetailClientProps) {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-gutter">
         <div className="lg:col-span-2">
           <StatusTimeline 
-            currentStatus={order.status === 'Check Internal Note' ? 'Pending Review' : order.status} 
+            currentStatus={publicStatus(order.status)} 
             statusHistory={statusHistory} 
           />
         </div>
@@ -236,7 +237,7 @@ export function TrackingDetailClient({ id }: TrackingDetailClientProps) {
             <div className="flex items-center gap-2 text-surface-variant text-xs">
               <span className="material-symbols-outlined text-[14px] select-none">calendar_today</span>
               <span>
-                {new Date(order.created_at).toLocaleDateString('ar-EG', { month: 'short', day: 'numeric', year: 'numeric' })}
+                {formatOrderDate(order.created_at)}
                 {' — '}
                 {new Date(order.created_at).toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' })}
               </span>

@@ -1,4 +1,5 @@
 import { Metadata } from 'next';
+import { getSupportEnv } from '@/lib/env-utils';
 
 export const metadata: Metadata = {
   title: 'الاتصال والدعم | إلكترو توب',
@@ -6,9 +7,7 @@ export const metadata: Metadata = {
 };
 
 export default function SupportPage() {
-  const whatsappNumber = process.env.NEXT_PUBLIC_SUPPORT_WHATSAPP || '';
-  const facebookUrl = process.env.NEXT_PUBLIC_SUPPORT_FACEBOOK || '#';
-  const phoneNumber = process.env.NEXT_PUBLIC_SUPPORT_PHONE || '';
+  const { whatsapp: whatsappNumber, facebook: facebookUrl, phone: phoneNumber } = getSupportEnv();
 
     return (
       <div className="min-h-screen bg-surface-bright font-poppins">

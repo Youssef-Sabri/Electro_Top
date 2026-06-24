@@ -3,6 +3,7 @@ import { getServerSupabase } from '@/lib/supabase-server-cookies'
 import { createSupabaseAdminClient } from '@/lib/supabase-server'
 import { validateRequestOrigin } from '@/lib/csrf'
 import { requireAdmin } from '@/lib/api-auth'
+import { now } from '@/lib/date-utils'
 
 const VALID_ORDER_STATUSES = [
   'Pending Review', 'Accepted', 'Processing', 'Delivered', 'Declined', 'Check Internal Note',
@@ -136,7 +137,7 @@ export async function PATCH(
         id: historyId,
         order_id: id,
         status: updates.status,
-        timestamp: new Date().toISOString()
+        timestamp: now()
       })
 
     if (historyError) {

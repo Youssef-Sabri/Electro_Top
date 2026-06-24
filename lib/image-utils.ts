@@ -1,5 +1,6 @@
 import { supabase } from '@/lib/supabase';
 import { isAllowedImageType } from '@/lib/magic-bytes';
+import { readFileAsDataURL } from '@/lib/file-utils';
 
 interface ImageProcessResult {
   dataUrl: string;
@@ -59,19 +60,8 @@ async function compressFile(file: File): Promise<{ compressedFile: File; info: s
 
 export async function processAndCompressImage(file: File): Promise<ImageProcessResult> {
   const { compressedFile, info } = await compressFile(file);
-
-  return new Promise<ImageProcessResult>((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      if (typeof reader.result === 'string') {
-        resolve({ dataUrl: reader.result, info, compressedFile });
-      } else {
-        reject(new Error('فشل تحويل الصورة المضغوطة إلى رابط.'));
-      }
-    };
-    reader.onerror = () => reject(new Error('فشل قراءة الصورة المضغوطة.'));
-    reader.readAsDataURL(compressedFile);
-  });
+  const dataUrl = await readFileAsDataURL(compressedFile);
+  return { dataUrl, info, compressedFile };
 }
 
 export async function uploadProductImage(file: File): Promise<{ imageUrl: string; info: string }> {

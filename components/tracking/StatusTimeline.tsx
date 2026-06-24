@@ -2,6 +2,7 @@
 
 import { memo } from 'react';
 import type { OrderStatus, OrderStatusHistory } from '@/types';
+import { formatOrderTimestamp } from '@/lib/date-utils';
 
 interface StatusTimelineProps {
   currentStatus: OrderStatus;
@@ -93,12 +94,7 @@ export const StatusTimeline = memo(function StatusTimeline({ currentStatus, stat
             (step.status === 'Pending Review' && h.status === 'Check Internal Note')
           );
           const formattedTime = historyEntry
-            ? new Date(historyEntry.timestamp).toLocaleDateString('ar-EG', {
-                month: 'short',
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit',
-              })
+            ? formatOrderTimestamp(historyEntry.timestamp)
             : null;
 
           const isCompleted = index <= currentStatusIndex;

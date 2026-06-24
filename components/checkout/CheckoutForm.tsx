@@ -10,6 +10,7 @@ import { checkoutSchema } from '@/lib/validators';
 import type { CheckoutFormData } from '@/lib/validators';
 import { formatCurrency } from '@/lib/format-currency';
 import { processAndCompressImage } from '@/lib/image-utils';
+import { readFileAsDataURL } from '@/lib/file-utils';
 import { Toast } from '@/components/ui/Toast';
 
 export function CheckoutForm() {
@@ -152,15 +153,7 @@ export function CheckoutForm() {
       // 1. Upload receipt file to server-side validation endpoint
       const uploadFile = imageState.compressedUploadFile || imageState.selectedFile;
       if (uploadFile) {
-        const reader = new FileReader();
-        const dataUrl = await new Promise<string>((resolve, reject) => {
-          reader.onloadend = () => {
-            if (typeof reader.result === 'string') resolve(reader.result);
-            else reject(new Error('فشل قراءة الملف.'));
-          };
-          reader.onerror = () => reject(new Error('فشل قراءة الملف.'));
-          reader.readAsDataURL(uploadFile);
-        });
+        const dataUrl = await readFileAsDataURL(uploadFile);
 
         const uploadRes = await fetch('/api/upload/receipt', {
           method: 'POST',

@@ -4,6 +4,7 @@ import { validateRequestOrigin } from '@/lib/csrf'
 import { productFormSchema } from '@/lib/validators'
 import { requireAdmin } from '@/lib/api-auth'
 import { verifyAdminPassword } from '@/lib/verify-admin-server'
+import { now } from '@/lib/date-utils'
 
 export async function POST(request: Request) {
   if (!validateRequestOrigin(request)) {
@@ -30,7 +31,7 @@ export async function POST(request: Request) {
   const id = `p-${crypto.randomUUID()}`
   const newProduct = {
     id,
-    created_at: new Date().toISOString(),
+    created_at: now(),
     ...validation.data
   }
 

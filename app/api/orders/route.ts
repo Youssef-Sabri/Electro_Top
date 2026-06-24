@@ -5,6 +5,7 @@ import { checkoutSchema } from '@/lib/validators'
 import { generateOrderId } from '@/lib/id-generator'
 import { getClientIp } from '@/lib/ip-utils'
 import { checkAndIncrementRateLimit } from '@/lib/rate-limit'
+import { now } from '@/lib/date-utils'
 import type { RateLimitConfig } from '@/lib/rate-limit'
 
 const ORDER_RATE_LIMIT: RateLimitConfig = {
@@ -98,7 +99,7 @@ export async function POST(request: NextRequest) {
 
   const trackingId = generateOrderId()
   let totalAmount = 0
-  const timestamp = new Date().toISOString()
+  const timestamp = now()
 
   const newItems = cartItems.map((item: { product: { id: string }; quantity: number }, index: number) => {
     const dbProduct = productPriceMap.get(item.product.id)!

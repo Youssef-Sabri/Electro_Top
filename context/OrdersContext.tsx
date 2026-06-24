@@ -5,6 +5,8 @@ import type { Order, OrderItem, OrderStatusHistory, OrderStatus, CartItem } from
 import type { CheckoutFormData } from '@/lib/validators';
 import { supabase } from '@/lib/supabase';
 import { deleteReceiptImage } from '@/lib/image-utils';
+import { ORDER_SELECT_FIELDS, ORDER_ITEM_SELECT_FIELDS, STATUS_HISTORY_SELECT_FIELDS } from '@/lib/db-constants';
+import { now } from '@/lib/date-utils';
 
 const VALID_ORDER_STATUSES: readonly OrderStatus[] = [
   'Pending Review', 'Accepted', 'Processing', 'Delivered', 'Declined', 'Check Internal Note',
@@ -99,7 +101,7 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
 
       const { data: oData, error: oError, count: oCount } = await supabase
         .from('orders')
-        .select('id_unique_tracking, status, customer_name, phone_number, shipping_address, total_amount, created_at, admin_notes, location_link, instapay_screenshot, instapay_phone_number', { count: 'exact', head: false })
+        .select(ORDER_SELECT_FIELDS, { count: 'exact', head: false })
         .order('created_at', { ascending: false })
         .range(from, to);
 
@@ -109,10 +111,10 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
 
       const [oiResult, hResult] = await Promise.all([
         orderIds.length > 0
-          ? supabase.from('order_items').select('id, order_id, product_id, quantity, unit_price').in('order_id', orderIds)
+          ? supabase.from('order_items').select(ORDER_ITEM_SELECT_FIELDS).in('order_id', orderIds)
           : { data: [] as OrderItem[], error: null },
         orderIds.length > 0
-          ? supabase.from('order_status_history').select('id, order_id, status, timestamp').in('order_id', orderIds)
+          ? supabase.from('order_status_history').select(STATUS_HISTORY_SELECT_FIELDS).in('order_id', orderIds)
           : { data: [] as OrderStatusHistory[], error: null },
       ]);
 
@@ -242,7 +244,7 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
     }
 
     const trackingId = result.trackingId
-    const timestamp = new Date().toISOString()
+    const timestamp = now()
     const totalAmount = cartItems.reduce(
       (acc, item) => acc + item.product.price * item.quantity,
       0
@@ -290,7 +292,7 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    const timestamp = new Date().toISOString();
+    const timestamp = now();
     const historyId = `h-${orderId}-${Date.now()}`;
 
     const newHistoryEntry: OrderStatusHistory = {

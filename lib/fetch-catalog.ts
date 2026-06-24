@@ -1,4 +1,5 @@
 import { createSupabaseServerClient } from '@/lib/supabase-server';
+import { PRODUCT_SELECT_FIELDS } from '@/lib/db-constants';
 import type { Product } from '@/types';
 
 // Server-safe Supabase client for public reads (no auth cookies needed)
@@ -21,7 +22,7 @@ export async function fetchCatalog(): Promise<{ categories: string[]; products: 
       { data: prodData, error: prodError },
     ] = await Promise.all([
       supabase.from('categories').select('name').order('name'),
-      supabase.from('products').select('id, name, description, price, image_url, stock, is_active, category, created_at').eq('is_active', true).order('created_at'),
+      supabase.from('products').select(PRODUCT_SELECT_FIELDS).eq('is_active', true).order('created_at'),
     ]);
 
     categories = catData && !catError ? catData.map((c: { name: string }) => c.name) : [];

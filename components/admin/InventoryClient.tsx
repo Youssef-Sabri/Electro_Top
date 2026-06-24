@@ -5,12 +5,14 @@ import Image from 'next/image';
 import { useProducts } from '@/hooks/useProducts';
 import { usePagination } from '@/hooks/usePagination';
 import { formatCurrency } from '@/lib/format-currency';
+import { todayStamp } from '@/lib/date-utils';
 import type { Product } from '@/types';
 import { ProductFormData, productFormSchema } from '@/lib/validators';
 import { CustomDropdown } from '@/components/ui/CustomDropdown';
 import { ConfirmationModal } from '@/components/ui/ConfirmationModal';
 import { PasswordConfirmModal } from '@/components/ui/PasswordConfirmModal';
 import { Toast } from '@/components/ui/Toast';
+import { PaginationControls } from '@/components/ui/PaginationControls';
 import { exportToCSV } from '@/lib/csv-export';
 import { uploadProductImage, processAndCompressImage, deleteProductImage } from '@/lib/image-utils';
 
@@ -176,7 +178,7 @@ export const InventoryClient = memo(function InventoryClient() {
       product.description
     ]);
 
-    const dateStamp = new Date().toISOString().split('T')[0];
+    const dateStamp = todayStamp();
     exportToCSV({
       filename: `electro-top-inventory-${dateStamp}.csv`,
       headers,
@@ -741,35 +743,11 @@ export const InventoryClient = memo(function InventoryClient() {
           </table>
         </div>
 
-        <div className="px-6 py-4 bg-surface-container-low flex justify-between items-center border-t border-outline-variant/30 select-none">
-          <p className="font-label-sm text-label-sm text-on-surface-variant">
-            الصفحة {currentPage} من {totalPages}
-          </p>
-          <div className="flex gap-2">
-            <button
-              onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
-              disabled={currentPage === 1}
-              className={`p-2 border border-outline-variant rounded transition-all duration-200 flex items-center ${
-                currentPage === 1 
-                  ? 'opacity-40 cursor-not-allowed' 
-                  : 'hover:bg-white hover:text-primary cursor-pointer'
-              }`}
-            >
-              <span className="material-symbols-outlined text-sm">chevron_right</span>
-            </button>
-            <button
-              onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
-              disabled={currentPage === totalPages}
-              className={`p-2 border border-outline-variant rounded transition-all duration-200 flex items-center ${
-                currentPage === totalPages 
-                  ? 'opacity-40 cursor-not-allowed' 
-                  : 'hover:bg-white hover:text-primary cursor-pointer'
-              }`}
-            >
-              <span className="material-symbols-outlined text-sm">chevron_left</span>
-            </button>
-          </div>
-        </div>
+        <PaginationControls
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+        />
       </div>
 
       {(isAddModalOpen || editingProduct) && (

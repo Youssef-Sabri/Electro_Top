@@ -1,10 +1,9 @@
 
 import { memo } from 'react';
+import { getSupportEnv } from '@/lib/env-utils';
 
 export const Footer = memo(function Footer() {
-  const whatsappNumber = process.env.NEXT_PUBLIC_SUPPORT_WHATSAPP || '';
-  const facebookUrl = process.env.NEXT_PUBLIC_SUPPORT_FACEBOOK || '#';
-  const phoneNumber = process.env.NEXT_PUBLIC_SUPPORT_PHONE || '';
+  const { whatsapp: whatsappNumber, facebook: facebookUrl, phone: phoneNumber } = getSupportEnv();
 
   return (
     <footer className="bg-on-background text-secondary-fixed w-full">

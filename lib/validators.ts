@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { isSafeUrl } from '@/lib/safe-url';
 
 const egyptPhoneRegex = /^01[0-9]{9}$/;
 
@@ -9,16 +10,7 @@ export const checkoutSchema = z.object({
     .regex(egyptPhoneRegex, 'الرجاء إدخال رقم هاتف مصري صحيح (مثال: 01012345678)'),
   shipping_address: z.string().min(10, 'الرجاء إدخال العنوان بالتفصيل (10 أحرف على الأقل)').max(500, 'العنوان يجب ألا يتجاوز 500 حرف'),
   location_link: z.union([
-    z.string().url('الرجاء إدخال رابط موقع جغرافي صحيح من جوجل ماب')
-      .refine((val) => {
-        try {
-          const url = new URL(val);
-          if (url.protocol !== 'http:' && url.protocol !== 'https:') return false;
-          const hostname = url.hostname.toLowerCase();
-          const allowedDomains = ['google.com', 'maps.google.com', 'google.co.uk', 'maps.app.goo.gl', 'goo.gl'];
-          return allowedDomains.some(domain => hostname === domain || hostname.endsWith('.' + domain));
-        } catch { return false; }
-      }, { message: 'يُقبل فقط روابط جوجل ماب الآمنة' }),
+    z.string().refine((val) => isSafeUrl(val), { message: 'يُقبل فقط روابط جوجل ماب الآمنة' }),
     z.literal('')
   ]).optional(),
   instapay_screenshot: z.string().min(1, 'الرجاء تحميل لقطة شاشة لإيصال تحويل إنستاباي'),
