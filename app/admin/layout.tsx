@@ -177,9 +177,16 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
           }
         }
       } else {
-        setIsAuthenticated(true);
         setPassword('');
-        window.location.reload();
+        // Re-verify session using the cookies set by the login API route
+        try {
+          const verifyRes = await fetch('/api/admin/verify');
+          if (verifyRes.ok) {
+            setIsAuthenticated(true);
+          }
+        } catch {
+          setIsAuthenticated(true);
+        }
       }
     } catch (err: unknown) {
       if (process.env.NODE_ENV !== 'production') console.error('Admin login error:', err);
