@@ -14,11 +14,12 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params
+  const uppercaseId = id.toUpperCase()
 
   const adminClient = createSupabaseAdminClient()
 
   const { data: rpcResult, error: rpcError } = await adminClient
-    .rpc('get_order_detail_view', { order_id: id })
+    .rpc('get_order_detail_view', { order_id: uppercaseId })
 
   if (rpcError || !rpcResult || rpcResult.length === 0) {
     if (process.env.NODE_ENV !== 'production' && rpcError) {
@@ -44,6 +45,7 @@ export async function DELETE(
   }
 
   const { id } = await params
+  const uppercaseId = id.toUpperCase()
 
   const supabaseClient = await getServerSupabase()
 
@@ -51,8 +53,8 @@ export async function DELETE(
   if (authResult instanceof NextResponse) return authResult
 
   const [{ error: itemsError }, { error: historyError }] = await Promise.all([
-    supabaseClient.from('order_items').delete().eq('order_id', id),
-    supabaseClient.from('order_status_history').delete().eq('order_id', id),
+    supabaseClient.from('order_items').delete().eq('order_id', uppercaseId),
+    supabaseClient.from('order_status_history').delete().eq('order_id', uppercaseId),
   ])
 
   if (itemsError || historyError) {
@@ -63,7 +65,7 @@ export async function DELETE(
   const { error } = await supabaseClient
     .from('orders')
     .delete()
-    .eq('id_unique_tracking', id)
+    .eq('id_unique_tracking', uppercaseId)
 
   if (error) {
     if (process.env.NODE_ENV !== 'production') console.error('Delete order error:', error);
@@ -82,6 +84,7 @@ export async function PATCH(
   }
 
   const { id } = await params
+  const uppercaseId = id.toUpperCase()
 
   const supabaseClient = await getServerSupabase()
 
@@ -121,7 +124,7 @@ export async function PATCH(
   const { error: updateError } = await supabaseClient
     .from('orders')
     .update(updates)
-    .eq('id_unique_tracking', id)
+    .eq('id_unique_tracking', uppercaseId)
 
   if (updateError) {
     if (process.env.NODE_ENV !== 'production') console.error('Update order error:', updateError)
@@ -130,12 +133,12 @@ export async function PATCH(
 
   // If status was updated, insert into history table
   if ('status' in updates) {
-    const historyId = `h-${id}-${Date.now()}`
+    const historyId = `h-${uppercaseId}-${Date.now()}`
     const { error: historyError } = await supabaseClient
       .from('order_status_history')
       .insert({
         id: historyId,
-        order_id: id,
+        order_id: uppercaseId,
         status: updates.status,
         timestamp: now()
       })

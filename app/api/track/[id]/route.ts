@@ -19,8 +19,9 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params
+  const uppercaseId = id.toUpperCase()
 
-  if (!TRACKING_ID_REGEX.test(id)) {
+  if (!TRACKING_ID_REGEX.test(uppercaseId)) {
     return NextResponse.json({ error: 'Invalid tracking ID format' }, { status: 400 })
   }
 
@@ -37,7 +38,7 @@ export async function GET(
 
   await incrementRateLimit(adminClient, ip, TRACKING_RATE_LIMIT)
 
-  const { data, error } = await adminClient.rpc('get_order_details_for_tracking', { tracking_id: id })
+  const { data, error } = await adminClient.rpc('get_order_details_for_tracking', { tracking_id: uppercaseId })
 
   if (error) {
     if (process.env.NODE_ENV !== 'production') console.error('Tracking lookup error:', error);
