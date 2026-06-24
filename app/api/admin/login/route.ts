@@ -68,11 +68,6 @@ export async function POST(request: NextRequest) {
 
   if (loginError || !user) {
     const attempts = await incrementRateLimit(supabaseClient, ip, LOGIN_RATE_LIMIT);
-    await supabaseClient.from('admin_audit_log').insert({
-      admin_email: email,
-      action: 'login_failed',
-      details: { ip, reason: loginError?.message || 'User not found' }
-    }).maybeSingle();
     return NextResponse.json({
       error: 'فشل تسجيل الدخول. تحقق من البريد الإلكتروني وكلمة المرور.',
       attempts,
@@ -83,11 +78,6 @@ export async function POST(request: NextRequest) {
   if (user.app_metadata?.role !== 'admin') {
     await supabaseClientWithCookies.auth.signOut();
     const attempts = await incrementRateLimit(supabaseClient, ip, LOGIN_RATE_LIMIT);
-    await supabaseClient.from('admin_audit_log').insert({
-      admin_email: user.email,
-      action: 'login_failed',
-      details: { ip, reason: 'User is not admin' }
-    }).maybeSingle();
     return NextResponse.json({
       error: 'فشل تسجيل الدخول. تحقق من البريد الإلكتروني وكلمة المرور.',
       attempts,
@@ -96,14 +86,6 @@ export async function POST(request: NextRequest) {
 
   // Successful login, clear rate limit entries
   await clearRateLimit(supabaseClient, ip, LOGIN_RATE_LIMIT);
-
-  // Server-Side Audit Log
-  await supabaseClient.from('admin_audit_log').insert({
-    admin_id: user.id,
-    admin_email: user.email,
-    action: 'login',
-    details: { ip }
-  }).maybeSingle();
 
   // Return success response. Note: createServerClient writes directly to the cookies via the proxy setters.
   return NextResponse.json({ success: true, user });

@@ -12,9 +12,8 @@ export async function POST(request: Request) {
 
   const supabaseClient = await getServerSupabase()
 
-  const adminOrError = await requireAdmin(supabaseClient)
-  if (adminOrError instanceof NextResponse) return adminOrError
-  const user = adminOrError
+  const authResult = await requireAdmin(supabaseClient)
+  if (authResult instanceof NextResponse) return authResult
 
   let body;
   try {
@@ -40,14 +39,6 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: insertError.message || 'Failed to add product' }, { status: 500 })
   }
 
-  // Server-Side Audit Log
-  await supabaseClient.from('admin_audit_log').insert({
-    admin_id: user.id,
-    admin_email: user.email,
-    action: 'add_product',
-    details: { product_id: id, product_name: validation.data.name }
-  })
-
   return NextResponse.json({ success: true, product: newProduct })
 }
 
@@ -58,9 +49,8 @@ export async function DELETE(request: Request) {
 
   const supabaseClient = await getServerSupabase()
 
-  const adminOrError = await requireAdmin(supabaseClient)
-  if (adminOrError instanceof NextResponse) return adminOrError
-  const user = adminOrError
+  const authResult = await requireAdmin(supabaseClient)
+  if (authResult instanceof NextResponse) return authResult
 
   let body;
   try {
@@ -74,11 +64,8 @@ export async function DELETE(request: Request) {
     return NextResponse.json({ error: 'كلمة المرور مطلوبة.' }, { status: 400 })
   }
 
-  const pwError = await verifyAdminPassword(supabaseClient, user.email!, password)
+  const pwError = await verifyAdminPassword(supabaseClient, authResult.email!, password)
   if (pwError) return pwError
-
-  const { data: prods } = await supabaseClient.from('products').select('id')
-  const count = prods?.length || 0
 
   const { error: prodError } = await supabaseClient.from('products').delete().neq('id', '')
   if (prodError) {
@@ -89,14 +76,6 @@ export async function DELETE(request: Request) {
   if (catError) {
     return NextResponse.json({ error: catError.message || 'Failed to clear categories' }, { status: 500 })
   }
-
-  // Server-Side Audit Log
-  await supabaseClient.from('admin_audit_log').insert({
-    admin_id: user.id,
-    admin_email: user.email,
-    action: 'clear_all_products',
-    details: { count }
-  })
 
   return NextResponse.json({ success: true })
 }

@@ -37,17 +37,8 @@ export async function PATCH(
   }
 
   const supabaseClient = await getServerSupabase()
-  const adminOrError = await requireAdmin(supabaseClient)
-  if (adminOrError instanceof NextResponse) return adminOrError
-  const user = adminOrError
-
-  // Fetch existing product for the audit log
-  const { data: existingProduct } = await supabaseClient
-    .from('products')
-    .select('name')
-    .eq('id', id)
-    .single()
-  const productName = existingProduct?.name || 'Unknown'
+  const authResult = await requireAdmin(supabaseClient)
+  if (authResult instanceof NextResponse) return authResult
 
   const { error } = await supabaseClient
     .from('products')
@@ -58,15 +49,6 @@ export async function PATCH(
     if (process.env.NODE_ENV !== 'production') console.error('Update product error:', error);
     return NextResponse.json({ error: 'فشل تحديث المنتج. يرجى المحاولة مرة أخرى.' }, { status: 500 })
   }
-
-  // Server-Side Audit Log
-  const finalName = validation.data.name || productName
-  await supabaseClient.from('admin_audit_log').insert({
-    admin_id: user.id,
-    admin_email: user.email,
-    action: 'update_product',
-    details: { product_id: id, product_name: finalName }
-  })
 
   return NextResponse.json({ success: true })
 }
@@ -82,17 +64,8 @@ export async function DELETE(
   const { id } = await params
 
   const supabaseClient = await getServerSupabase()
-  const adminOrError = await requireAdmin(supabaseClient)
-  if (adminOrError instanceof NextResponse) return adminOrError
-  const user = adminOrError
-
-  // Fetch existing product name first for auditing
-  const { data: existingProduct } = await supabaseClient
-    .from('products')
-    .select('name')
-    .eq('id', id)
-    .single()
-  const productName = existingProduct?.name || 'Unknown'
+  const authResult = await requireAdmin(supabaseClient)
+  if (authResult instanceof NextResponse) return authResult
 
   const { error } = await supabaseClient
     .from('products')
@@ -103,14 +76,6 @@ export async function DELETE(
     if (process.env.NODE_ENV !== 'production') console.error('Delete product error:', error);
     return NextResponse.json({ error: 'فشل حذف المنتج. يرجى المحاولة مرة أخرى.' }, { status: 500 })
   }
-
-  // Server-Side Audit Log
-  await supabaseClient.from('admin_audit_log').insert({
-    admin_id: user.id,
-    admin_email: user.email,
-    action: 'delete_product',
-    details: { product_id: id, product_name: productName }
-  })
 
   return NextResponse.json({ success: true })
 }

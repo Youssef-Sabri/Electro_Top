@@ -52,10 +52,6 @@ export async function DELETE(request: Request) {
     await adminClient.storage.from('instapay-receipts').remove(fileNames)
   }
 
-  // Count orders for audit log
-  const { data: ordersData } = await adminClient.from('orders').select('id_unique_tracking')
-  const count = ordersData?.length || 0
-
   const { error: itemsError } = await supabaseClient.from('order_items').delete().neq('id', '')
   if (itemsError) {
     if (process.env.NODE_ENV !== 'production') console.error('Clear order_items error:', itemsError);
@@ -73,14 +69,6 @@ export async function DELETE(request: Request) {
     if (process.env.NODE_ENV !== 'production') console.error('Clear orders error:', ordersError);
     return NextResponse.json({ error: 'فشل مسح الطلبات. يرجى المحاولة مرة أخرى.' }, { status: 500 })
   }
-
-  // Server-Side Audit Log
-  await supabaseClient.from('admin_audit_log').insert({
-    admin_id: user.id,
-    admin_email: user.email,
-    action: 'clear_all_orders',
-    details: { count }
-  })
 
   return NextResponse.json({ success: true })
 }

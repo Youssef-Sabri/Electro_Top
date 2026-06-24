@@ -256,16 +256,6 @@ electro-top/
 | `status` | `text` | — |
 | `timestamp` | `timestamptz` | When the status change occurred |
 
-### `admin_audit_log`
-| Column | Type | Notes |
-|---|---|---|
-| `id` | `bigint` | Primary key (auto-increment) |
-| `admin_id` | `uuid` | Admin user's Supabase Auth UID |
-| `admin_email` | `text` | Admin email at time of action |
-| `action` | `text` | e.g. `update_order_status`, `clear_all_orders` |
-| `details` | `jsonb` | Arbitrary action metadata |
-| `created_at` | `timestamptz` | Auto-generated |
-
 ---
 
 ## 🔄 Order Lifecycle

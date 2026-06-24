@@ -21,9 +21,8 @@ export async function POST(request: Request) {
 
   const supabaseClient = await getServerSupabase()
 
-  const adminOrError = await requireAdmin(supabaseClient)
-  if (adminOrError instanceof NextResponse) return adminOrError
-  const user = adminOrError
+  const authResult = await requireAdmin(supabaseClient)
+  if (authResult instanceof NextResponse) return authResult
 
   let formData: FormData
   try {
@@ -82,14 +81,6 @@ export async function POST(request: Request) {
   const { data: { publicUrl } } = supabaseClient.storage
     .from('product-images')
     .getPublicUrl(fileName)
-
-  // Server-Side Audit Log
-  await supabaseClient.from('admin_audit_log').insert({
-    admin_id: user.id,
-    admin_email: user.email,
-    action: 'upload_product_image',
-    details: { filename: fileName }
-  })
 
   return NextResponse.json({ imageUrl: publicUrl })
 }

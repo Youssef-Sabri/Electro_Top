@@ -13,9 +13,8 @@ export async function POST(request: Request) {
 
   const supabaseClient = await getServerSupabase()
 
-  const adminOrError = await requireAdmin(supabaseClient)
-  if (adminOrError instanceof NextResponse) return adminOrError
-  const user = adminOrError
+  const authResult = await requireAdmin(supabaseClient)
+  if (authResult instanceof NextResponse) return authResult
 
   let body;
   try {
@@ -40,14 +39,6 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'فشل إضافة الفئة. يرجى المحاولة مرة أخرى.' }, { status: 500 })
   }
 
-  // Server-Side Audit Log
-  await supabaseClient.from('admin_audit_log').insert({
-    admin_id: user.id,
-    admin_email: user.email,
-    action: 'add_category',
-    details: { category: trimmedName }
-  })
-
   return NextResponse.json({ success: true, name: trimmedName })
 }
 
@@ -58,9 +49,8 @@ export async function DELETE(request: Request) {
 
   const supabaseClient = await getServerSupabase()
 
-  const adminOrError = await requireAdmin(supabaseClient)
-  if (adminOrError instanceof NextResponse) return adminOrError
-  const user = adminOrError
+  const authResult = await requireAdmin(supabaseClient)
+  if (authResult instanceof NextResponse) return authResult
 
   const { searchParams } = new URL(request.url)
   const name = searchParams.get('name')
@@ -80,14 +70,6 @@ export async function DELETE(request: Request) {
     if (process.env.NODE_ENV !== 'production') console.error('Delete category error:', deleteError)
     return NextResponse.json({ error: 'فشل حذف الفئة. يرجى المحاولة مرة أخرى.' }, { status: 500 })
   }
-
-  // Server-Side Audit Log
-  await supabaseClient.from('admin_audit_log').insert({
-    admin_id: user.id,
-    admin_email: user.email,
-    action: 'delete_category',
-    details: { category: trimmedName }
-  })
 
   return NextResponse.json({ success: true })
 }

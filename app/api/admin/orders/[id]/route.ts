@@ -19,18 +19,8 @@ export async function DELETE(
 
   const supabaseClient = await getServerSupabase()
 
-  const adminOrError = await requireAdmin(supabaseClient)
-  if (adminOrError instanceof NextResponse) return adminOrError
-  const user = adminOrError
-
-  // GET the order to get the customer name for the audit log
-  const { data: orderData } = await supabaseClient
-    .from('orders')
-    .select('customer_name')
-    .eq('id_unique_tracking', id)
-    .single()
-
-  const customerName = orderData?.customer_name || 'Unknown'
+  const authResult = await requireAdmin(supabaseClient)
+  if (authResult instanceof NextResponse) return authResult
 
   const [{ error: itemsError }, { error: historyError }] = await Promise.all([
     supabaseClient.from('order_items').delete().eq('order_id', id),
@@ -52,14 +42,6 @@ export async function DELETE(
     return NextResponse.json({ error: 'فشل حذف الطلب. يرجى المحاولة مرة أخرى.' }, { status: 500 })
   }
 
-  // Server-Side Audit Log
-  await supabaseClient.from('admin_audit_log').insert({
-    admin_id: user.id,
-    admin_email: user.email,
-    action: 'delete_order',
-    details: { order_id: id, customer: customerName }
-  })
-
   return NextResponse.json({ success: true })
 }
 
@@ -75,9 +57,8 @@ export async function PATCH(
 
   const supabaseClient = await getServerSupabase()
 
-  const adminOrError = await requireAdmin(supabaseClient)
-  if (adminOrError instanceof NextResponse) return adminOrError
-  const user = adminOrError
+  const authResult = await requireAdmin(supabaseClient)
+  if (authResult instanceof NextResponse) return authResult
 
   let body;
   try {
@@ -87,7 +68,6 @@ export async function PATCH(
   }
 
   const updates: { status?: (typeof VALID_ORDER_STATUSES)[number]; admin_notes?: string } = {}
-  const auditLogs = []
 
   if ('status' in body) {
     const status = body.status
@@ -136,27 +116,6 @@ export async function PATCH(
       if (process.env.NODE_ENV !== 'production') console.error('Insert order status history error:', historyError)
       // We don't block status update if history insert fails, but log it
     }
-
-    auditLogs.push({
-      admin_id: user.id,
-      admin_email: user.email,
-      action: 'update_order_status',
-      details: { order_id: id, new_status: updates.status }
-    })
-  }
-
-  if (updates.admin_notes !== undefined) {
-    auditLogs.push({
-      admin_id: user.id,
-      admin_email: user.email,
-      action: 'update_admin_notes',
-      details: { order_id: id, notes_length: updates.admin_notes.length }
-    })
-  }
-
-  // Insert audit logs
-  if (auditLogs.length > 0) {
-    await supabaseClient.from('admin_audit_log').insert(auditLogs)
   }
 
   return NextResponse.json({ success: true })
