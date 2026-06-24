@@ -31,12 +31,25 @@ export async function DELETE(request: Request) {
   const pwError = await verifyAdminPassword(supabaseClient, user.email!, password)
   if (pwError) return pwError
 
-  // Delete receipt files from storage before clearing DB records
+  // Delete all receipt files from storage before clearing DB records (including orphaned files)
   const adminClient = createSupabaseAdminClient()
-  const { data: ordersWithScreenshots } = await adminClient.from('orders').select('instapay_screenshot')
-  const receiptFiles = ordersWithScreenshots?.map(o => o.instapay_screenshot).filter(Boolean) || []
-  if (receiptFiles.length > 0) {
-    await adminClient.storage.from('instapay-receipts').remove(receiptFiles)
+  let allFiles: { name: string }[] = []
+  let offset = 0
+  const LIMIT = 100
+  while (true) {
+    const { data: files, error: listError } = await adminClient.storage
+      .from('instapay-receipts')
+      .list(undefined, { limit: LIMIT, offset })
+
+    if (listError || !files || files.length === 0) break
+    allFiles = allFiles.concat(files)
+    if (files.length < LIMIT) break
+    offset += LIMIT
+  }
+
+  if (allFiles.length > 0) {
+    const fileNames = allFiles.map((f) => f.name)
+    await adminClient.storage.from('instapay-receipts').remove(fileNames)
   }
 
   // Count orders for audit log

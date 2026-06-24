@@ -4,7 +4,7 @@ import { createContext, useState, useEffect, useMemo, useCallback, useRef, React
 import type { Order, OrderItem, OrderStatusHistory, OrderStatus, CartItem } from '@/types';
 import type { CheckoutFormData } from '@/lib/validators';
 import { supabase } from '@/lib/supabase';
-import { clearAllReceipts, deleteReceiptImage } from '@/lib/image-utils';
+import { deleteReceiptImage } from '@/lib/image-utils';
 
 const VALID_ORDER_STATUSES: readonly OrderStatus[] = [
   'Pending Review', 'Accepted', 'Processing', 'Delivered', 'Declined', 'Check Internal Note',
@@ -402,8 +402,6 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
         const data = await response.json();
         throw new Error(data.error || 'Failed to clear orders');
       }
-
-      await clearAllReceipts();
     } catch (e) {
       setOrders(previousOrders);
       setOrderItems(previousItems);

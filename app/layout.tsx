@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
 import { Cairo, Tajawal } from 'next/font/google';
+import { headers } from 'next/headers';
 import './globals.css';
 import { CartProvider } from '@/context/CartContext';
 import { ProductsProvider } from '@/context/ProductsContext';
@@ -29,11 +30,14 @@ export const metadata: Metadata = {
   description: 'الموزع المعتمد لمنتجات السويدي، شنايدر، سيمنز، هيميل، جيويس، وشينت. مستلزمات كهربائية ممتازة مع إمكانية الدفع كزائر وتتبع الطلبات.',
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: ReactNode;
 }>) {
+  const requestHeaders = await headers();
+  const nonce = requestHeaders.get('x-nonce') || undefined;
+
   return (
     <html
       lang="ar"
@@ -55,6 +59,7 @@ export default function RootLayout({
           rel="stylesheet"
         />
         <script
+          nonce={nonce}
           type="application/ld+json"
           dangerouslySetInnerHTML={{
             __html: JSON.stringify({

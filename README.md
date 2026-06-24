@@ -180,7 +180,7 @@ electro-top/
 │   ├── usePagination.ts            # Shared pagination logic
 │   └── useProducts.ts              # Products context consumer hook
 ├── lib/
-│   ├── audit-log.ts                # Admin action audit logger (Supabase-based)
+│   ├── api-auth.ts                 # Shared `requireAdmin` utility for route guards
 │   ├── constants.ts                # Shared constants (removed - inlined to consumers)
 │   ├── csv-export.ts               # Excel-safe CSV exporter (CSV injection mitigated)
 │   ├── csrf.ts                     # Origin/referer CSRF validation
@@ -189,12 +189,16 @@ electro-top/
 │   ├── get-order-detail.ts         # Order detail view fetch (RPC + fallback)
 │   ├── id-generator.ts             # Modulo-bias-free 10-char alphanumeric ID generator
 │   ├── image-utils.ts              # Canvas API image compression & Supabase storage helpers
+│   ├── ip-utils.ts                 # Client IP extraction for rate limiting
+│   ├── order-utils.ts              # Order helper utilities
 │   ├── safe-url.ts                 # URL protocol safety validator
 │   ├── string-utils.ts             # Status translation & initials extraction
 │   ├── supabase-server-cookies.ts  # Shared cookie-based server Supabase client helper
 │   ├── supabase-server.ts          # Supabase server client factory (`createServerClient`)
 │   ├── supabase.ts                 # Supabase browser client (`createBrowserClient`)
-│   └── validators.ts               # Zod validation schemas (checkout, products)
+│   ├── validators.ts               # Zod validation schemas (checkout, products)
+│   ├── verify-admin-server.ts      # Admin password re-verification utility (server-side)
+│   └── verify-admin.ts             # Admin password re-verification utility (client-side)
 ├── types/
 │   └── index.ts                    # All TypeScript interfaces (Product, Order, CartItem, etc.)
 ├── public/                         # Static assets
@@ -210,7 +214,7 @@ electro-top/
 ### `products`
 | Column | Type | Notes |
 |---|---|---|
-| `id` | `uuid` | Primary key |
+| `id` | `text` | Primary key |
 | `name` | `text` | Product display name |
 | `description` | `text` | Max 2000 chars (DB CHECK constraint) |
 | `price` | `numeric` | Price in EGP |
@@ -238,19 +242,29 @@ electro-top/
 ### `order_items`
 | Column | Type | Notes |
 |---|---|---|
-| `id` | `uuid` | Primary key |
+| `id` | `text` | Primary key |
 | `order_id` | `text` | FK → `orders.id_unique_tracking` |
-| `product_id` | `uuid` | FK → `products.id` |
+| `product_id` | `text` | FK → `products.id` |
 | `quantity` | `integer` | — |
 | `unit_price` | `numeric` | Price at time of purchase |
 
 ### `order_status_history`
 | Column | Type | Notes |
 |---|---|---|
-| `id` | `uuid` | Primary key |
+| `id` | `text` | Primary key |
 | `order_id` | `text` | FK → `orders.id_unique_tracking` |
 | `status` | `text` | — |
 | `timestamp` | `timestamptz` | When the status change occurred |
+
+### `admin_audit_log`
+| Column | Type | Notes |
+|---|---|---|
+| `id` | `bigint` | Primary key (auto-increment) |
+| `admin_id` | `uuid` | Admin user's Supabase Auth UID |
+| `admin_email` | `text` | Admin email at time of action |
+| `action` | `text` | e.g. `update_order_status`, `clear_all_orders` |
+| `details` | `jsonb` | Arbitrary action metadata |
+| `created_at` | `timestamptz` | Auto-generated |
 
 ---
 
@@ -357,7 +371,7 @@ NEXT_PUBLIC_SUPABASE_URL=https://your-project-id.supabase.co
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=your_supabase_anon_key
 
 # Supabase Secret Key (server-only — for admin-level Supabase operations)
-# Admin role is determined by Supabase Auth user_metadata ({ "role": "admin" }), not by an env var.
+# Admin role is determined by Supabase Auth app_metadata ({ "role": "admin" }), not by an env var.
 # ⚠️ CRITICAL: Never share this key, commit it to git, or expose it client-side.
 # Get it from: Supabase Dashboard → Settings → API → secret key
 SUPABASE_SECRET_KEY=your-secret-key

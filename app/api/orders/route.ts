@@ -19,24 +19,23 @@ async function checkIpRateLimit(adminClient: SupabaseClient, ip: string): Promis
   const now = new Date();
   
   if (!data) {
-    await adminClient.from('order_rate_limits').insert({
+    await adminClient.from('order_rate_limits').upsert({
       ip_address: ip,
       request_count: 1,
       first_request_at: now.toISOString(),
       last_request_at: now.toISOString(),
-    });
+    }, { onConflict: 'ip_address' });
     return { blocked: false };
   }
 
   const elapsed = Date.now() - new Date(data.last_request_at).getTime();
   if (elapsed > WINDOW_MS) {
-    await adminClient.from('order_rate_limits').delete().eq('ip_address', ip);
-    await adminClient.from('order_rate_limits').insert({
+    await adminClient.from('order_rate_limits').upsert({
       ip_address: ip,
       request_count: 1,
       first_request_at: now.toISOString(),
       last_request_at: now.toISOString(),
-    });
+    }, { onConflict: 'ip_address' });
     return { blocked: false };
   }
 

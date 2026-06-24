@@ -1,6 +1,9 @@
 import type { NextRequest } from 'next/server'
 
 export function getClientIp(request: NextRequest): string {
+  const reqIp = (request as { ip?: string }).ip
+  if (reqIp) return reqIp.trim()
+
   const realIp = request.headers.get('x-real-ip')
   if (realIp) return realIp.trim()
 

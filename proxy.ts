@@ -31,8 +31,8 @@ function buildCsp(nonce: string, supabaseHost: string, isAdminRoute: boolean): s
   const evalSrc = isDev ? " 'unsafe-eval'" : ""
 
   const scriptSrc = isAdminRoute
-    ? `script-src 'self' 'unsafe-inline' 'unsafe-eval'`
-    : `script-src 'self' 'unsafe-inline'${evalSrc}`
+    ? `script-src 'self' 'nonce-${nonce}' 'unsafe-eval'`
+    : `script-src 'self' 'nonce-${nonce}'${evalSrc}`
 
   return [
     `default-src 'self'`,
@@ -96,7 +96,14 @@ export async function proxy(request: NextRequest) {
   }
 
   // Set CSP header with nonce and pass nonce to Next.js via x-nonce
-  const response = NextResponse.next()
+  const requestHeaders = new Headers(request.headers)
+  requestHeaders.set('x-nonce', nonce)
+
+  const response = NextResponse.next({
+    request: {
+      headers: requestHeaders,
+    }
+  })
   response.headers.set('x-nonce', nonce)
   response.headers.set('Content-Security-Policy', buildCsp(nonce, supabaseHost, isAdminRoute))
 
@@ -123,7 +130,7 @@ export async function proxy(request: NextRequest) {
 
     const { data: { user }, error } = await supabase.auth.getUser()
 
-    if (error || !user || user.user_metadata?.role !== 'admin') {
+    if (error || !user || user.app_metadata?.role !== 'admin') {
       if (pathname.startsWith('/api/admin/')) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
       }

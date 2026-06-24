@@ -6,7 +6,7 @@ export async function GET() {
 
   const { data: { user }, error } = await supabaseClient.auth.getUser()
 
-  if (error || !user || user.user_metadata?.role !== 'admin') {
+  if (error || !user || user.app_metadata?.role !== 'admin') {
     return NextResponse.json({ verified: false }, { status: 401 })
   }
 

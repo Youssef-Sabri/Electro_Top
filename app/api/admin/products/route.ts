@@ -80,9 +80,14 @@ export async function DELETE(request: Request) {
   const { data: prods } = await supabaseClient.from('products').select('id')
   const count = prods?.length || 0
 
-  const { error } = await supabaseClient.from('products').delete().neq('id', '')
-  if (error) {
-    return NextResponse.json({ error: error.message || 'Failed to clear products' }, { status: 500 })
+  const { error: prodError } = await supabaseClient.from('products').delete().neq('id', '')
+  if (prodError) {
+    return NextResponse.json({ error: prodError.message || 'Failed to clear products' }, { status: 500 })
+  }
+
+  const { error: catError } = await supabaseClient.from('categories').delete().neq('name', '')
+  if (catError) {
+    return NextResponse.json({ error: catError.message || 'Failed to clear categories' }, { status: 500 })
   }
 
   // Server-Side Audit Log
