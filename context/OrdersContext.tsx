@@ -163,26 +163,91 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
         .channel('orders-realtime')
         .on(
           'postgres_changes',
-          { event: '*', schema: 'public', table: 'orders' },
-          () => {
-            if (process.env.NODE_ENV !== 'production') console.log('Realtime change detected in orders table');
-            loadData(pageRef.current);
+          { event: 'INSERT', schema: 'public', table: 'orders' },
+          (payload) => {
+            const newOrder = payload.new as Order;
+            if (process.env.NODE_ENV !== 'production') console.log('Realtime INSERT order:', newOrder);
+            setOrders((prev) => {
+              if (prev.some((o) => o.id_unique_tracking === newOrder.id_unique_tracking)) return prev;
+              return [newOrder, ...prev];
+            });
           }
         )
         .on(
           'postgres_changes',
-          { event: '*', schema: 'public', table: 'order_items' },
-          () => {
-            if (process.env.NODE_ENV !== 'production') console.log('Realtime change detected in order_items table');
-            loadData(pageRef.current);
+          { event: 'UPDATE', schema: 'public', table: 'orders' },
+          (payload) => {
+            const updatedOrder = payload.new as Order;
+            if (process.env.NODE_ENV !== 'production') console.log('Realtime UPDATE order:', updatedOrder);
+            setOrders((prev) =>
+              prev.map((o) =>
+                o.id_unique_tracking === updatedOrder.id_unique_tracking ? updatedOrder : o
+              )
+            );
+          }
+        )
+        .on(
+          'postgres_changes',
+          { event: 'DELETE', schema: 'public', table: 'orders' },
+          (payload) => {
+            const deletedOrder = payload.old as { id_unique_tracking: string };
+            if (process.env.NODE_ENV !== 'production') console.log('Realtime DELETE order:', deletedOrder);
+            setOrders((prev) =>
+              prev.filter((o) => o.id_unique_tracking !== deletedOrder.id_unique_tracking)
+            );
+          }
+        )
+        .on(
+          'postgres_changes',
+          { event: 'INSERT', schema: 'public', table: 'order_items' },
+          (payload) => {
+            const newItem = payload.new as OrderItem;
+            if (process.env.NODE_ENV !== 'production') console.log('Realtime INSERT order item:', newItem);
+            setOrderItems((prev) => {
+              if (prev.some((item) => item.id === newItem.id)) return prev;
+              return [...prev, newItem];
+            });
+          }
+        )
+        .on(
+          'postgres_changes',
+          { event: 'UPDATE', schema: 'public', table: 'order_items' },
+          (payload) => {
+            const updatedItem = payload.new as OrderItem;
+            if (process.env.NODE_ENV !== 'production') console.log('Realtime UPDATE order item:', updatedItem);
+            setOrderItems((prev) =>
+              prev.map((item) => (item.id === updatedItem.id ? updatedItem : item))
+            );
+          }
+        )
+        .on(
+          'postgres_changes',
+          { event: 'DELETE', schema: 'public', table: 'order_items' },
+          (payload) => {
+            const deletedId = payload.old.id;
+            if (process.env.NODE_ENV !== 'production') console.log('Realtime DELETE order item ID:', deletedId);
+            setOrderItems((prev) => prev.filter((item) => item.id !== deletedId));
           }
         )
         .on(
           'postgres_changes',
           { event: 'INSERT', schema: 'public', table: 'order_status_history' },
-          () => {
-            if (process.env.NODE_ENV !== 'production') console.log('Realtime change detected in order_status_history table');
-            loadData(pageRef.current);
+          (payload) => {
+            const newHistory = payload.new as OrderStatusHistory;
+            if (process.env.NODE_ENV !== 'production') console.log('Realtime INSERT status history:', newHistory);
+            setStatusHistory((prev) => {
+              if (prev.some((h) => h.id === newHistory.id)) return prev;
+              return [...prev, newHistory];
+            });
+          }
+        )
+        .on(
+          'postgres_changes',
+          { event: 'DELETE', schema: 'public', table: 'order_status_history' },
+          (payload) => {
+            const deletedId = payload.old.id;
+            if (process.env.NODE_ENV !== 'production') console.log('Realtime DELETE status history ID:', deletedId);
+            setStatusHistory((prev) => prev.filter((h) => h.id !== deletedId));
           }
         )
         .subscribe((status) => {
