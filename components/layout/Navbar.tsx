@@ -25,6 +25,14 @@ export const Navbar = memo(function Navbar() {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setIsAdmin(!!session);
     });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setIsAdmin(!!session);
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   const searchParam = searchParams.get('search');
