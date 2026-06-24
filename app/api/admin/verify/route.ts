@@ -1,14 +1,7 @@
 import { NextResponse } from 'next/server'
-import { getServerSupabase } from '@/lib/supabase-server-cookies'
 
 export async function GET() {
-  const supabaseClient = await getServerSupabase()
-
-  const { data: { user }, error } = await supabaseClient.auth.getUser()
-
-  if (error || !user || user.app_metadata?.role !== 'admin') {
-    return NextResponse.json({ verified: false }, { status: 401 })
-  }
-
+  // Rely on the proxy.ts middleware to validate the admin session.
+  // This bypasses the GET route handler cookie modification restriction in Next.js.
   return NextResponse.json({ verified: true })
 }

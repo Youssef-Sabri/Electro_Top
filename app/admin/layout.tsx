@@ -117,6 +117,8 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   useEffect(() => {
     if (!isAuthenticated) return;
 
+    lastActivityRef.current = Date.now();
+
     const events = ['mousedown', 'keydown', 'touchstart', 'scroll', 'mousemove'] as const;
     for (const evt of events) {
       window.addEventListener(evt, resetActivityTimer, { passive: true });

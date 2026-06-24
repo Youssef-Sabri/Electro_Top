@@ -1,6 +1,6 @@
 'use client';
 
-import { memo, useMemo, useCallback, useEffect, useRef } from 'react';
+import { memo, useMemo, useEffect } from 'react';
 import Link from 'next/link';
 import { useOrders } from '@/hooks/useOrders';
 import { useProducts } from '@/hooks/useProducts';
@@ -12,44 +12,21 @@ export const DashboardClient = memo(function DashboardClient() {
   const { orders, orderItems, refreshOrders } = useOrders();
   const { products, refreshProducts } = useProducts();
 
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-
-  const startPolling = useCallback(() => {
-    if (intervalRef.current) clearInterval(intervalRef.current);
-    intervalRef.current = setInterval(() => {
-      refreshOrders();
-      refreshProducts();
-    }, 300_000);  // Poll every 5 minutes — realtime subscriptions handle live updates, polling is just a safety net
-  }, [refreshOrders, refreshProducts]);
-
-  const stopPolling = useCallback(() => {
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-      intervalRef.current = null;
-    }
-  }, []);
-
-  // Poll for new orders and product changes while dashboard is visible
-  // Realtime subscriptions already handle live updates; polling is a safety net.
+  // Refresh for new orders and product changes when dashboard becomes visible again
+  // Realtime subscriptions handle live updates; tab focus refetch is a safety net.
   useEffect(() => {
-    startPolling();
-
     const handleVisibility = () => {
       if (document.visibilityState === 'visible') {
         refreshOrders();
         refreshProducts();
-        startPolling();
-      } else {
-        stopPolling();
       }
     };
     document.addEventListener('visibilitychange', handleVisibility);
 
     return () => {
-      stopPolling();
       document.removeEventListener('visibilitychange', handleVisibility);
     };
-  }, [refreshOrders, refreshProducts, startPolling, stopPolling]);
+  }, [refreshOrders, refreshProducts]);
 
   const stats = useMemo(() => {
     const orderMetrics = calculateOrderMetrics(orders);
