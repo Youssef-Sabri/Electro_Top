@@ -6,7 +6,7 @@ import type { Product } from '@/types';
 import { supabase } from '@/lib/supabase';
 
 import { PRODUCT_SELECT_FIELDS } from '@/lib/db-constants';
-import { deleteProductImage, clearAllProductImages } from '@/lib/image-utils';
+import { clearAllProductImages } from '@/lib/image-utils';
 
 const categorySchema = z.string().min(1, 'اسم الفئة مطلوب').max(50, 'اسم الفئة يجب ألا يتجاوز 50 حرفاً');
 
@@ -217,7 +217,6 @@ export function ProductsProvider({ children }: { children: ReactNode }) {
   const updateProduct = useCallback(async (updated: Product) => {
     const oldProduct = productsMapRef.current.get(updated.id);
     if (!oldProduct) return;
-    const hasImageChanged = oldProduct.image_url !== updated.image_url;
 
     const originalProducts = productsRef.current;
 
@@ -234,10 +233,6 @@ export function ProductsProvider({ children }: { children: ReactNode }) {
         setProducts(originalProducts);
         const data = await response.json();
         throw new Error(data.error || 'فشل تحديث المنتج. يرجى المحاولة مرة أخرى.');
-      }
-
-      if (hasImageChanged) {
-        await deleteProductImage(oldProduct.image_url);
       }
     } catch (e) {
       setProducts(originalProducts);
@@ -261,8 +256,6 @@ export function ProductsProvider({ children }: { children: ReactNode }) {
         const data = await response.json();
         throw new Error(data.error || 'فشل حذف المنتج. يرجى المحاولة مرة أخرى.');
       }
-
-      await deleteProductImage(oldProduct.image_url);
     } catch (e) {
       setProducts(originalProducts);
       throw e;

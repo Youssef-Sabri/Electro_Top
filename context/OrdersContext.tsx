@@ -4,7 +4,6 @@ import { createContext, useState, useEffect, useMemo, useCallback, useRef, React
 import type { Order, OrderItem, OrderStatusHistory, OrderStatus, CartItem } from '@/types';
 import type { CheckoutFormData } from '@/lib/validators';
 import { supabase } from '@/lib/supabase';
-import { deleteReceiptImage } from '@/lib/image-utils';
 import { ORDER_SELECT_FIELDS, ORDER_ITEM_SELECT_FIELDS, STATUS_HISTORY_SELECT_FIELDS } from '@/lib/db-constants';
 import { now } from '@/lib/date-utils';
 
@@ -476,10 +475,6 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
       if (!response.ok) {
         const data = await response.json();
         throw new Error(data.error || 'Failed to delete order');
-      }
-
-      if (orderToDelete.instapay_screenshot) {
-        await deleteReceiptImage(orderToDelete.instapay_screenshot);
       }
     } catch (e) {
       await loadData();

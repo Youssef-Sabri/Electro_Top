@@ -10,9 +10,14 @@ const VALID_ORDER_STATUSES = [
 ] as const
 
 export async function GET(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const supabaseClient = await getServerSupabase()
+
+  const authResult = await requireAdmin(supabaseClient)
+  if (authResult instanceof NextResponse) return authResult
+
   const { id } = await params
   const uppercaseId = id.toUpperCase()
 
@@ -52,6 +57,18 @@ export async function DELETE(
   const authResult = await requireAdmin(supabaseClient)
   if (authResult instanceof NextResponse) return authResult
 
+  // Fetch the order first to check for screenshot to delete
+  const { data: orderData, error: fetchError } = await supabaseClient
+    .from('orders')
+    .select('instapay_screenshot')
+    .eq('id_unique_tracking', uppercaseId)
+    .maybeSingle()
+
+  if (fetchError) {
+    if (process.env.NODE_ENV !== 'production') console.error('Fetch order before delete error:', fetchError);
+    return NextResponse.json({ error: 'فشل استرداد بيانات الطلب قبل الحذف.' }, { status: 500 })
+  }
+
   const [{ error: itemsError }, { error: historyError }] = await Promise.all([
     supabaseClient.from('order_items').delete().eq('order_id', uppercaseId),
     supabaseClient.from('order_status_history').delete().eq('order_id', uppercaseId),
@@ -70,6 +87,17 @@ export async function DELETE(
   if (error) {
     if (process.env.NODE_ENV !== 'production') console.error('Delete order error:', error);
     return NextResponse.json({ error: 'فشل حذف الطلب. يرجى المحاولة مرة أخرى.' }, { status: 500 })
+  }
+
+  // Delete Instapay receipt image from storage server-side
+  if (orderData?.instapay_screenshot) {
+    const fileName = orderData.instapay_screenshot.includes('/')
+      ? orderData.instapay_screenshot.split('/').pop()?.split('?')[0]
+      : orderData.instapay_screenshot;
+    if (fileName) {
+      const adminClient = createSupabaseAdminClient()
+      await adminClient.storage.from('instapay-receipts').remove([fileName])
+    }
   }
 
   return NextResponse.json({ success: true })
