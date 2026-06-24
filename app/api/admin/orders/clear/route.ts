@@ -12,9 +12,8 @@ export async function DELETE(request: Request) {
 
   const supabaseClient = await getServerSupabase()
 
-  const adminOrError = await requireAdmin(supabaseClient)
-  if (adminOrError instanceof NextResponse) return adminOrError
-  const user = adminOrError
+  const authResult = await requireAdmin(supabaseClient)
+  if (authResult instanceof NextResponse) return authResult
 
   let body;
   try {
@@ -28,7 +27,7 @@ export async function DELETE(request: Request) {
     return NextResponse.json({ error: 'كلمة المرور مطلوبة.' }, { status: 400 })
   }
 
-  const pwError = await verifyAdminPassword(supabaseClient, user.email!, password)
+  const pwError = await verifyAdminPassword(supabaseClient, authResult.email!, password)
   if (pwError) return pwError
 
   // Delete all receipt files from storage before clearing DB records (including orphaned files)

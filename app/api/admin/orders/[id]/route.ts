@@ -1,11 +1,38 @@
 import { NextResponse } from 'next/server'
 import { getServerSupabase } from '@/lib/supabase-server-cookies'
+import { createSupabaseAdminClient } from '@/lib/supabase-server'
 import { validateRequestOrigin } from '@/lib/csrf'
 import { requireAdmin } from '@/lib/api-auth'
 
 const VALID_ORDER_STATUSES = [
   'Pending Review', 'Accepted', 'Processing', 'Delivered', 'Declined', 'Check Internal Note',
 ] as const
+
+export async function GET(
+  _request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id } = await params
+
+  const adminClient = createSupabaseAdminClient()
+
+  const { data: rpcResult, error: rpcError } = await adminClient
+    .rpc('get_order_detail_view', { order_id: id })
+
+  if (rpcError || !rpcResult || rpcResult.length === 0) {
+    if (process.env.NODE_ENV !== 'production' && rpcError) {
+      console.error('Failed to fetch order details via RPC:', rpcError)
+    }
+    return NextResponse.json({ error: 'Order not found' }, { status: 404 })
+  }
+
+  const result = rpcResult[0]
+  return NextResponse.json({
+    order: result.order_data?.[0] || null,
+    items: result.items_data || [],
+    history: result.history_data || [],
+  })
+}
 
 export async function DELETE(
   request: Request,

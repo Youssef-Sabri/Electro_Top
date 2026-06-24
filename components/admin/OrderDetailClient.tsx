@@ -9,7 +9,7 @@ import type { OrderStatus, Order, OrderItem, OrderStatusHistory } from '@/types'
 import { formatCurrency } from '@/lib/format-currency';
 import { getInitials, translateStatus, translateHistoryStatus } from '@/lib/string-utils';
 import { getSafeUrl } from '@/lib/safe-url';
-import { getOrderDetailView } from '@/lib/get-order-detail';
+
 import { Toast } from '@/components/ui/Toast';
 import { CustomDropdown } from '@/components/ui/CustomDropdown';
 import { ConfirmationModal } from '@/components/ui/ConfirmationModal';
@@ -112,8 +112,7 @@ export const OrderDetailClient = memo(function OrderDetailClient({ id }: OrderDe
           return;
         }
 
-        // Use optimized RPC-based query (or fallback to 3 queries if RPC not available)
-        const { order, items, history } = await getOrderDetailView(id);
+        const { order, items, history } = await fetch(`/api/admin/orders/${id}`).then(r => r.json());
 
         if (order) {
           setOrder(order);

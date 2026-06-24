@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'نوع الملف المذكور لا يتطابق مع المحتوى الفعلي.' }, { status: 400 })
   }
 
-  const [_, ext] = detectedType.split('/')
+  const [, ext] = detectedType.split('/')
   const random = Array.from(crypto.getRandomValues(new Uint8Array(16)), (b) => b.toString(36).charAt(0)).join('')
   const fileName = `receipt-${random}.${ext}`
 
