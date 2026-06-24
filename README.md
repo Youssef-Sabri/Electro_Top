@@ -2,469 +2,172 @@
 
 # ⚡ Electro Top — إلكترو توب
 
-**A premium Arabic-first electrical supplies e-commerce platform**
+**A production-grade Arabic-first e-commerce platform for electrical supplies**
 
 [![Next.js](https://img.shields.io/badge/Next.js-16.2.7-black?logo=next.js)](https://nextjs.org/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?logo=typescript)](https://www.typescriptlang.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.7-blue?logo=typescript)](https://www.typescriptlang.org/)
 [![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL-3ECF8E?logo=supabase)](https://supabase.com/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind%20CSS-v4-06B6D4?logo=tailwindcss)](https://tailwindcss.com/)
 [![React](https://img.shields.io/badge/React-19-61DAFB?logo=react)](https://react.dev/)
-[![License](https://img.shields.io/badge/License-Private-red)](/)
 
-> الموزع المعتمد لمنتجات السويدي، شنايدر، سيمنز، هيميل، جيويس، وشينت.  
-> *Authorized distributor for El-Sewedy, Schneider, Siemens, Hager, Gewiss & Chint.*
+> الموزع المعتمد لمنتجات السويدي، شنايدر، سيمنز، هيميل، جيويس، وشينت
+> *Authorized distributor for El-Sewedy, Schneider, Siemens, Hager, Gewiss & Chint*
 
 </div>
 
 ---
 
-## 📋 Table of Contents
+## Overview
 
-- [Overview](#-overview)
-- [Features](#-features)
-- [Tech Stack](#-tech-stack)
-- [Architecture](#-architecture)
-- [Project Structure](#-project-structure)
-- [Database Schema](#-database-schema)
-- [Order Lifecycle](#-order-lifecycle)
-- [Security](#-security)
-- [Getting Started](#-getting-started)
-- [Environment Variables](#-environment-variables)
-- [Available Scripts](#-available-scripts)
-- [Design System](#-design-system)
-- [Routes Reference](#-routes-reference)
-- [Key Design Decisions](#-key-design-decisions)
+Electro Top is a full-featured e-commerce platform purpose-built for the electrical supplies market in Egypt. It enables **zero-friction guest shopping** — customers browse a catalog, add items to cart, pay via InstaPay, and track orders with a unique ID — all without creating an account.
+
+The platform includes a comprehensive **admin dashboard** for inventory management, order fulfillment, sales analytics, and CSV reporting.
 
 ---
 
-## 🌟 Overview
+## Features
 
-**Electro Top** is a production-ready, Arabic RTL e-commerce platform built for electrical supplies retail. It enables **zero-friction guest shopping** — customers browse, add to cart, checkout via InstaPay, and track their orders using a unique alphanumeric tracking ID — all without ever creating an account.
+### Storefront
+- **Guest checkout** — No registration. Orders tracked via unique `ET-XXXXXXXXXX` alphanumeric ID
+- **Shopping cart** — `localStorage`-persisted with real-time stock-aware quantity limits and price reconciliation
+- **InstaPay payments** — Upload receipt screenshot with client-side Canvas API compression
+- **Order tracking** — Real-time status timeline with itemized invoice and 20s auto-polling
+- **Product catalog** — Server-rendered (ISR), filterable by category, with search and sort
+- **Arabic RTL** — Full right-to-left layout with Cairo & Tajawal typography
 
-The platform is backed by a fully featured **Admin Dashboard** where store administrators can manage inventory, fulfill orders, update statuses, add notes, and print invoices — all behind a Supabase-authenticated gate.
+### Admin Dashboard
+- **Sales insights** — Revenue metrics, order status breakdown, inventory health, category sales
+- **Order management** — Searchable ledger, status updates, admin notes, status history, invoice printing
+- **Inventory CRUD** — Full product management with image upload, category management, CSV export
+- **Security** — Supabase Auth gate, 55-minute inactivity timeout, rate-limited login
 
-The project went through **7 development phases** from initial mock infrastructure to a fully security-hardened production deployment on Supabase.
+### Security
+- **CSP with nonces** — Per-request content security policy via middleware
+- **CSRF protection** — Origin/referrer validation on all mutating requests
+- **Host validation** — DNS rebinding prevention in production
+- **Rate limiting** — IP-based limits on login, checkout, and tracking lookups
+- **File validation** — Magic-byte detection for uploaded images
+- **Server-side price verification** — Database prices always override client-submitted values
 
 ---
 
-## ✨ Features
+## Tech Stack
 
-### 🛍️ Customer-Facing
-
-| Feature | Description |
+| Layer | Technology |
 |---|---|
-| **Product Catalog** | Browse, search, filter by category, and sort electrical supplies with pagination |
-| **Shopping Cart** | Persistent cart via `localStorage` with stock-aware quantity limits |
-| **Guest Checkout** | No account required — checkout with name, phone, address, and Google Maps link |
-| **InstaPay Payment** | Upload receipt screenshot (auto-compressed to ~1 MB via Canvas API, 5 MB raw limit) |
-| **Order Confirmation** | Prominent 10-character tracking ID (e.g. `ET-X8F9K4P2W3`) with clipboard copy |
-| **Order Tracking** | Real-time order status with an interactive vertical timeline and itemized invoice |
-| **Customer Support** | Dedicated support page with direct WhatsApp contact link |
-| **Arabic RTL** | Full right-to-left layout with Arabic-optimized typography (Montserrat & Poppins fonts) |
-| **Responsive Design** | Mobile-first; fully functional from 375px and above |
-
-### 🔐 Admin Dashboard
-
-| Feature | Description |
-|---|---|
-| **Insights Dashboard** | Sales analytics, revenue metrics, top products, and recent orders overview |
-| **Orders Ledger** | Searchable/filterable order table with status badges |
-| **Order Detail** | Split-pane view with line items, customer info, InstaPay receipt viewer (signed URL), and status control |
-| **Admin Notes** | Private internal notes per order (max 2000 chars) |
-| **Status Management** | Dropdown status updates with full history log |
-| **Printable Invoice** | Monochrome boxed invoice (210mm wide, reliable cross-browser print) |
-| **Inventory CRUD** | Full Create / Read / Update / Delete for products |
-| **Category Management** | Dynamic category add/delete with automatic product reassignment |
-| **CSV Export** | Export product catalog as Excel-safe CSV |
-| **Auth-Gated Access** | Supabase Auth (email/password) + server-side route protection via `proxy.ts` |
+| Framework | Next.js 16 (App Router, Turbopack) |
+| Language | TypeScript 5 (strict mode) |
+| Styling | Tailwind CSS v4 |
+| Database | Supabase (PostgreSQL with RLS) |
+| Auth | Supabase Auth (email/password, admin only) |
+| Validation | Zod |
+| State Management | React Context (Products, Orders, Cart) |
+| Storage | Supabase Storage (private + public buckets) |
+| Middleware | `proxy.ts` — CSP, CSRF, admin route guard |
+| Deployment | Vercel |
 
 ---
 
-## 🛠️ Tech Stack
-
-| Layer | Technology | Version |
-|---|---|---|
-| **Framework** | [Next.js](https://nextjs.org/) (App Router) | `16.2.7` |
-| **Language** | TypeScript (strict mode, zero `any`) | `^5` |
-| **Styling** | Tailwind CSS v4 | `^4` |
-| **Database** | Supabase — PostgreSQL with RLS | `^2.108.1` |
-| **Auth** | Supabase Auth (email/password, admin only) | `@supabase/ssr ^0.12.0` |
-| **Validation** | Zod | `^4.4.3` |
-| **State Management** | React Context (Products, Orders, Cart) | — |
-| **Icons** | Google Material Symbols Outlined | CDN |
-| **Fonts** | Montserrat (headings) & Poppins (body) via `next/font` | — |
-| **Runtime** | Node.js | `18+` |
-
----
-
-## 🏗️ Architecture
+## Project Structure
 
 ```
-┌─────────────────────────────────────────────────────────┐
-│                    Client (Browser)                      │
-│  ┌──────────────┐  ┌────────────┐  ┌─────────────────┐  │
-│  │ ProductsCtx  │  │  CartCtx   │  │   OrdersCtx     │  │
-│  │  (Supabase)  │  │(localStorage│  │  (Supabase)     │  │
-│  └──────────────┘  └────────────┘  └─────────────────┘  │
-└────────────────────────┬────────────────────────────────┘
-                         │ HTTPS
-┌────────────────────────▼────────────────────────────────┐
-│               Next.js Server (App Router)                │
-│  ┌────────────────────────────────────────────────────┐  │
-│  │ proxy.ts ← Admin route protection (Next.js 16)     │  │
-│  │            (redirects unauthenticated /admin/* reqs)│  │
-│  │  API routes for checkout, products, categories    │  │
-│  └────────────────────────────────────────────────────┘  │
-└──────────────────────────────────────────────────────────┘
-                         │ Supabase Client
-┌────────────────────────▼────────────────────────────────┐
-│                    Supabase (BaaS)                        │
-│  ┌──────────────┐  ┌──────────────┐  ┌───────────────┐  │
-│  │  PostgreSQL  │  │     Auth     │  │    Storage    │  │
-│  │  + RLS + RPC │  │ (Admin Only) │  │(InstaPay Imgs)│  │
-│  └──────────────┘  └──────────────┘  └───────────────┘  │
-└─────────────────────────────────────────────────────────┘
-```
-
-**Key architectural decisions:**
-
-- **Guest-first model** — No user registration. Orders tracked via a unique, high-entropy 10-char alphanumeric ID.
-- **Hybrid data loading** — Public pages are SSR (catalog fetched server-side); admin pages load client-side after auth validation.
-- **SECURITY DEFINER RPC** — Order tracking uses a PostgreSQL function (`get_order_details_for_tracking`) for targeted read access.
-- **Database-level stock automation** — PostgreSQL triggers handle inventory deductions/restorations.
-- **Optimistic UI** — UI updates before database confirmation for cart mutations and status changes.
-- **Client-side image compression** — Receipts are compressed using the Canvas API before upload.
-
----
-
-## 📁 Project Structure
-
-```
-electro-top/
-├── proxy.ts                        # Next.js 16 server-side proxy (admin route guard, CSP, CSRF)
-├── app/
-│   ├── layout.tsx                  # Root layout (RTL, fonts, context providers)
-│   ├── page.tsx                    # Homepage landing
-│   ├── globals.css                 # Global styles & design tokens
-│   ├── shop/page.tsx               # Product catalog
-│   ├── cart/page.tsx               # Cart review
-│   ├── checkout/
-│   │   ├── page.tsx                # Checkout form (Zod-validated)
-│   │   └── confirmation/page.tsx   # Order confirmation + tracking ID
-│   ├── track/
-│   │   ├── page.tsx                # Tracking ID search
-│   │   └── [id]/page.tsx           # Order status dashboard
-│   ├── support/page.tsx            # Customer support page
-│   └── admin/
-│       ├── layout.tsx              # Admin auth gate layout
-│       ├── page.tsx                # Admin insights dashboard
-│       ├── inventory/page.tsx      # Product inventory CRUD
-│       └── orders/
-│           ├── page.tsx            # Orders ledger
-│           └── [id]/page.tsx       # Order detail & management
-├── components/
-│   ├── ui/                         # ConfirmationModal, CustomDropdown, Spinner, Toast
-│   ├── layout/                     # Navbar, Footer, NavbarAndFooterWrapper
-│   ├── catalog/                    # LandingPage, ProductCard, ProductDetailsModal
-│   ├── cart/                       # CartClient, CartItem
-│   ├── checkout/                   # CheckoutForm, ConfirmationClient
-│   ├── tracking/                   # StatusTimeline, TrackingSearch, TrackingDetailClient
-│   └── admin/                      # DashboardClient, OrdersLedger, OrderDetailClient, InventoryClient
-├── context/
-│   ├── CartContext.tsx             # Cart state + localStorage persistence
-│   ├── OrdersContext.tsx           # Orders state + Supabase integration
-│   └── ProductsContext.tsx         # Products state + Supabase integration
-├── hooks/
-│   ├── useCart.ts                  # Cart context consumer hook
-│   ├── useOrders.ts                # Orders context consumer hook
-│   ├── usePagination.ts            # Shared pagination logic
-│   └── useProducts.ts              # Products context consumer hook
-├── lib/
-│   ├── api-auth.ts                 # Shared `requireAdmin` utility for route guards
-│   ├── constants.ts                # Shared constants (removed - inlined to consumers)
-│   ├── csv-export.ts               # Excel-safe CSV exporter (CSV injection mitigated)
-│   ├── csrf.ts                     # Origin/referer CSRF validation
-│   ├── fetch-catalog.ts            # Shared Supabase catalog fetch helper
-│   ├── format-currency.ts          # EGP currency formatter
-│   ├── get-order-detail.ts         # Order detail view fetch (RPC + fallback)
-│   ├── id-generator.ts             # Modulo-bias-free 10-char alphanumeric ID generator
-│   ├── image-utils.ts              # Canvas API image compression & Supabase storage helpers
-│   ├── ip-utils.ts                 # Client IP extraction for rate limiting
-│   ├── order-utils.ts              # Order helper utilities
-│   ├── safe-url.ts                 # URL protocol safety validator
-│   ├── string-utils.ts             # Status translation & initials extraction
-│   ├── supabase-server-cookies.ts  # Shared cookie-based server Supabase client helper
-│   ├── supabase-server.ts          # Supabase server client factory (`createServerClient`)
-│   ├── supabase.ts                 # Supabase browser client (`createBrowserClient`)
-│   ├── validators.ts               # Zod validation schemas (checkout, products)
-│   ├── verify-admin-server.ts      # Admin password re-verification utility (server-side)
-│   └── verify-admin.ts             # Admin password re-verification utility (client-side)
-├── types/
-│   └── index.ts                    # All TypeScript interfaces (Product, Order, CartItem, etc.)
-├── public/                         # Static assets
-├── next.config.ts                  # Next.js configuration (CSP, security headers, image CDN)
-├── tsconfig.json                   # TypeScript configuration
-└── package.json
+├── proxy.ts                 # Next.js middleware
+├── app/                     # App Router pages, layouts, API routes
+│   ├── (store)/             # Public: home, shop, cart, checkout, track, support
+│   ├── admin/               # Admin: dashboard, orders, inventory
+│   └── api/                 # API routes (orders, products, upload, admin)
+├── components/              # React components organized by domain
+│   ├── ui/                  # Reusable: ConfirmationModal, Spinner, Toast, etc.
+│   ├── admin/               # DashboardClient, InventoryClient, OrdersLedger
+│   ├── cart/                # CartClient, CartItem
+│   ├── catalog/             # LandingPage, ProductCard, ShopPageContent
+│   ├── checkout/            # CheckoutForm, ConfirmationClient
+│   ├── layout/              # Navbar, Footer, CartReconciler
+│   └── tracking/            # TrackingSearch, TrackingDetailClient, StatusTimeline
+├── context/                 # CartContext, OrdersContext, ProductsContext
+├── hooks/                   # useCart, useOrders, useProducts, usePagination
+├── lib/                     # Supabase clients, Zod validators, utility functions
+└── types/                   # Shared TypeScript interfaces (Product, Order, etc.)
 ```
 
 ---
 
-## 🗄️ Database Schema
-
-### `products`
-| Column | Type | Notes |
-|---|---|---|
-| `id` | `text` | Primary key |
-| `name` | `text` | Product display name |
-| `description` | `text` | Max 2000 chars (DB CHECK constraint) |
-| `price` | `numeric` | Price in EGP |
-| `image_url` | `text` | Supabase Storage CDN URL |
-| `stock` | `integer` | Managed by DB triggers |
-| `is_active` | `boolean` | Visibility toggle |
-| `category` | `text` | Dynamic category label |
-| `created_at` | `timestamptz` | Auto-generated |
-
-### `orders`
-| Column | Type | Notes |
-|---|---|---|
-| `id_unique_tracking` | `text` | PK — e.g. `ET-X8F9K4P2W3` |
-| `status` | `text` | See [Order Lifecycle](#-order-lifecycle) |
-| `customer_name` | `text` | — |
-| `phone_number` | `text` | Rate-limited: max 3 orders / 15 min |
-| `shipping_address` | `text` | — |
-| `total_amount` | `numeric` | — |
-| `admin_notes` | `text` | Max 2000 chars (DB CHECK constraint) |
-| `location_link` | `text` | Optional — Google Maps URL |
-| `instapay_screenshot` | `text` | Optional — private bucket URL |
-| `instapay_phone_number` | `text` | Optional — customer InstaPay number |
-| `created_at` | `timestamptz` | Auto-generated |
-
-### `order_items`
-| Column | Type | Notes |
-|---|---|---|
-| `id` | `text` | Primary key |
-| `order_id` | `text` | FK → `orders.id_unique_tracking` |
-| `product_id` | `text` | FK → `products.id` |
-| `quantity` | `integer` | — |
-| `unit_price` | `numeric` | Price at time of purchase |
-
-### `order_status_history`
-| Column | Type | Notes |
-|---|---|---|
-| `id` | `text` | Primary key |
-| `order_id` | `text` | FK → `orders.id_unique_tracking` |
-| `status` | `text` | — |
-| `timestamp` | `timestamptz` | When the status change occurred |
-
----
-
-## 🔄 Order Lifecycle
-
-```
-                    ┌─────────────────┐
-                    │  Pending Review  │  ← Initial state on order creation
-                    └────────┬────────┘
-                             │
-              ┌──────────────┼──────────────────┐
-              ▼              ▼                   ▼
-         ┌─────────┐  ┌──────────────────┐  ┌─────────┐
-         │Accepted │  │Check Internal Note│  │Declined │ (terminal)
-         └────┬────┘  └──────────────────┘  └─────────┘
-              │
-              ▼
-        ┌────────────┐
-        │ Processing │
-        └─────┬──────┘
-              │
-              ▼
-        ┌───────────┐
-        │ Delivered │  (terminal)
-        └───────────┘
-```
-
-**Valid Status Values:** `Pending Review` · `Accepted` · `Processing` · `Delivered` · `Declined` · `Check Internal Note`
-
-> Stock is automatically **deducted** when an order is placed and **restored** when an order is `Declined` — all via PostgreSQL triggers. No frontend stock mutations occur.
-
----
-
-## 🔒 Security
-
-This project has security measures in place. Key security areas include:
-
-| Category | Implementation |
-|---|---|
-| **Server-side route protection** | `proxy.ts` (Next.js 16 native) provides admin route protection, CSP headers, Host validation, and CSRF checks |
-| **CSV injection** | CSV export has some protection against injection |
-| **XSS prevention** | Basic XSS prevention measures |
-| **Content Security Policy** | Basic CSP headers implemented |
-| **Security headers** | Basic security headers configured |
-| **Order rate limiting** | Database-level rate limiting for phone numbers |
-| **Admin login rate limiting** | Basic rate limiting on admin login |
-| **ID generation** | Alphanumeric ID generation for tracking |
-| **Server-side order validation** | PostgreSQL triggers for order validation |
-| **URL sanitization** | Basic URL validation |
-| **Receipt filenames** | Random receipt filenames |
-| **User-submitted links** | Basic link attributes |
-| **Production logging** | Guarded console.error calls |
-| **Storage pagination** | Pagination for storage operations |
-| **DB constraints** | Database-level constraints for data integrity |
-
-**Note:** This is a production e-commerce platform with security measures, but it has not undergone a comprehensive security audit. Additional security hardening may be required for production deployment.
-
----
-
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
 
-- **Node.js** `18+`
-- **npm** `9+`
-- A **[Supabase](https://supabase.com/)** project with the following tables created:
-  - `products`, `categories`, `orders`, `order_items`, `order_status_history`
-  - SECURITY DEFINER RPC: `get_order_details_for_tracking`
-  - PostgreSQL triggers for stock management and rate limiting
-  - Supabase Auth enabled (email/password)
-  - Storage bucket: `instapay-receipts` (private), `product-images` (public)
+- Node.js 18+
+- A [Supabase](https://supabase.com) project with configured database, storage, and auth
+- InstaPay merchant account (for payment processing)
 
-> See `ProjectMD-files/supabase-setup-prd.md` for the full SQL migration and setup instructions.
+### Database Setup
+
+Follow the [Supabase Setup Guide](./ProjectMD-files/supabase-setup-prd.md) to initialize all required tables, triggers, RPCs, storage buckets, and RLS policies.
 
 ### Installation
 
 ```bash
-# 1. Clone the repository
 git clone https://github.com/your-username/electro-top.git
 cd electro-top
-
-# 2. Install dependencies
 npm install
-
-# 3. Set up environment variables
 cp .env.local.example .env.local
-# Edit .env.local with your Supabase credentials
-
-# 4. Start the development server
-npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) to view the application.
-
----
-
-## 🔑 Environment Variables
-
-Create a `.env.local` file in the project root:
-
-```env
-# Supabase Project URL & Anon Key
-NEXT_PUBLIC_SUPABASE_URL=https://your-project-id.supabase.co
-NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=your_supabase_anon_key
-
-# Supabase Secret Key (server-only — for admin-level Supabase operations)
-# Admin role is determined by Supabase Auth app_metadata ({ "role": "admin" }), not by an env var.
-# ⚠️ CRITICAL: Never share this key, commit it to git, or expose it client-side.
-# Get it from: Supabase Dashboard → Settings → API → secret key
-SUPABASE_SECRET_KEY=your-secret-key
-
-# Site URL (used for CSRF origin validation & Host header checks)
-NEXT_PUBLIC_SITE_URL=http://localhost:3000
-
-# InstaPay Payment Configuration
-NEXT_PUBLIC_INSTAPAY_ACCOUNT_NAME=Your Store Name
-NEXT_PUBLIC_INSTAPAY_PHONE=01000000000
-
-# Support Contact Details
-NEXT_PUBLIC_SUPPORT_WHATSAPP=201000000000
-NEXT_PUBLIC_SUPPORT_PHONE=+201000000000
-NEXT_PUBLIC_SUPPORT_FACEBOOK=https://www.facebook.com/yourpage
-```
-
-> **Note:** The anon key and public configuration variables are safe to expose publicly — Supabase Row Level Security (RLS) policies and SECURITY DEFINER functions control all data access. No private keys or personal identifiers should be committed to source code.
-
----
-
-## 📜 Available Scripts
+Edit `.env.local` with your Supabase credentials and store configuration, then:
 
 ```bash
-# Start development server (with Turbopack)
 npm run dev
-
-# Build for production
-npm run build
-
-# Start production server
-npm start
-
-# Run ESLint
-npm run lint
 ```
 
+Open [http://localhost:3000](http://localhost:3000).
+
 ---
 
-## 🎨 Design System
+## Configuration
 
-The UI is anchored to **Electro Top's** brand identity — red, gold, and charcoal.
+All configuration is managed through environment variables:
 
-| Token | Value | Usage |
+| Variable | Required | Description |
 |---|---|---|
-| `brand-red` | `#CA202B` | Primary CTAs, highlights, geometric accents |
-| `brand-red-dark` | `#A01820` | Hover states for primary actions |
-| `brand-gold` | `#C6B254` | Prices (EGP), tracking IDs, premium elements |
-| `background` | `#fff8f7` | Main canvas (warm soft tint) |
-| `surface` | `#ffffff` | Cards, modals, dropdowns |
-| `on-surface` | `#271716` | Body text, descriptions, labels |
-| **Heading Font** | Montserrat (700/800) | Bold Arabic/Latin headings |
-| **Body Font** | Poppins (400/500/600) | Readable Arabic body text |
+| `NEXT_PUBLIC_SUPABASE_URL` | Yes | Supabase project URL |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Yes | Supabase anon key |
+| `SUPABASE_SECRET_KEY` | Yes | Supabase service role key (server-only, bypasses RLS) |
+| `NEXT_PUBLIC_SITE_URL` | Yes | Site URL used for CSP and CSRF origin validation |
+| `NEXT_PUBLIC_INSTAPAY_ACCOUNT_NAME` | Yes | Merchant name displayed during checkout |
+| `NEXT_PUBLIC_INSTAPAY_PHONE` | Yes | InstaPay phone number |
+| `NEXT_PUBLIC_SUPPORT_WHATSAPP` | No | WhatsApp number for customer support |
+| `NEXT_PUBLIC_SUPPORT_PHONE` | No | Support hotline |
+| `NEXT_PUBLIC_SUPPORT_FACEBOOK` | No | Facebook page URL |
+| `NEXT_PUBLIC_CURRENCY_SYMBOL` | No | Currency symbol (defaults to EGP) |
 
 ---
 
-## 🗺️ Routes Reference
+## Available Scripts
 
-### Public Routes
-
-| Route | Description |
+| Command | Description |
 |---|---|
-| `/` | Homepage landing with hero section |
-| `/shop` | Product catalog with search, filter & pagination |
-| `/cart` | Cart review with quantity adjusters |
-| `/checkout` | Guest checkout form (Zod-validated) |
-| `/checkout/confirmation` | Order confirmation with tracking ID |
-| `/track` | Tracking ID search portal |
-| `/track/[id]` | Order status timeline & itemized invoice |
-| `/support` | Customer support & WhatsApp contact |
-
-### Admin Routes (Auth-Gated)
-
-| Route | Description |
-|---|---|
-| `/admin` | Sales insights & analytics dashboard |
-| `/admin/orders` | Orders ledger with search & status filters |
-| `/admin/orders/[id]` | Order detail, status management & invoice print |
-| `/admin/inventory` | Full product CRUD & category management |
+| `npm run dev` | Start development server with Turbopack |
+| `npm run build` | Create production build |
+| `npm start` | Start production server |
+| `npm run lint` | Run ESLint across the codebase |
 
 ---
 
-## 💡 Key Design Decisions
+## Admin Panel
 
-1. **Guest-first checkout** — No registration friction. Any customer can order and track via their unique `ET-XXXXXXXXXX` ID.
+Accessible at `/admin`. Authentication is handled by Supabase Auth (email/password). Only users with `app_metadata.role === "admin"` are granted access. The session is verified on every request via middleware and the `/api/admin/verify` endpoint. Inactivity beyond 55 minutes triggers automatic logout.
 
-2. **Database owns the truth** — Stock levels, order validation, and rate limiting are enforced at the PostgreSQL layer via triggers and CHECK constraints.
+---
 
-3. **SECURITY DEFINER RPC for tracking** — Public order tracking uses a Postgres function for targeted read access.
+## Deployment
 
-4. **Hybrid SSR + CSR** — The product catalog is server-rendered for SEO and fast LCP. Admin pages are client-side loaded after auth validation.
-
-5. **Canvas API image compression** — InstaPay receipt images are compressed client-side before upload.
-
-6. **Print-safe invoice** — The printable invoice uses React inline style objects for reliable cross-browser print rendering.
-
-7. **Atomic order creation** — Order creation ensures data integrity with proper error handling.
+The platform is designed for deployment on **Vercel**. Add all environment variables from the [Configuration](#configuration) section to your Vercel project settings and deploy.
 
 ---
 
 <div align="center">
 
 **Built with ❤️ for Electro Top**  
-*Powered by Next.js · Supabase · TypeScript*
+*Next.js · Supabase · TypeScript · Tailwind CSS*
 
 </div>

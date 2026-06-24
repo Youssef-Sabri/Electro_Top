@@ -74,7 +74,7 @@ const nextConfig: NextConfig = {
             key: 'Strict-Transport-Security',
             value: 'max-age=31536000; includeSubDomains; preload',
           },
-            // Note: Content-Security-Policy is set dynamically in middleware (proxy.ts)
+            // Note: Content-Security-Policy is set dynamically in proxy.ts
             // with per-request nonces. The static config cannot support nonces.
         ],
       },

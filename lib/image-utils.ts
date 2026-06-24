@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase';
+import { isAllowedImageType } from '@/lib/magic-bytes';
 
 interface ImageProcessResult {
   dataUrl: string;
@@ -6,19 +7,10 @@ interface ImageProcessResult {
   compressedFile: File;
 }
 
-const ALLOWED_IMAGE_TYPES: Record<string, string> = {
-  'image/jpeg': 'jpg',
-  'image/png': 'png',
-  'image/webp': 'webp',
-  'image/gif': 'gif',
-  'image/heic': 'heic',
-  'image/heif': 'heif',
-};
-
 const MAX_FILE_SIZE_MB = 5;
 
 async function compressFile(file: File): Promise<{ compressedFile: File; info: string }> {
-  if (!ALLOWED_IMAGE_TYPES[file.type]) {
+  if (!isAllowedImageType(file.type)) {
     throw new Error('يُقبل فقط ملفات الصور (JPG, PNG, WEBP, GIF, HEIC).');
   }
 
