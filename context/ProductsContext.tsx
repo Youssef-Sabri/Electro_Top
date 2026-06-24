@@ -317,7 +317,6 @@ export function ProductsProvider({ children }: { children: ReactNode }) {
     setProducts([]);
     setCategories([]);
     try {
-      await clearAllProductImages();
       const response = await fetch('/api/admin/products', {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
@@ -329,6 +328,7 @@ export function ProductsProvider({ children }: { children: ReactNode }) {
         const data = await response.json();
         throw new Error(data.error || 'Failed to clear products');
       }
+      await clearAllProductImages();
     } catch (e) {
       setProducts(previousProducts);
       setCategories(previousCategories);

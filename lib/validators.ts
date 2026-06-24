@@ -13,9 +13,12 @@ export const checkoutSchema = z.object({
       .refine((val) => {
         try {
           const url = new URL(val);
-          return url.protocol === 'http:' || url.protocol === 'https:';
+          if (url.protocol !== 'http:' && url.protocol !== 'https:') return false;
+          const hostname = url.hostname.toLowerCase();
+          const allowedDomains = ['google.com', 'maps.google.com', 'google.co.uk', 'maps.app.goo.gl', 'goo.gl'];
+          return allowedDomains.some(domain => hostname === domain || hostname.endsWith('.' + domain));
         } catch { return false; }
-      }, { message: 'الرجاء إدخال رابط آمن (يبدأ بـ http/https)' }),
+      }, { message: 'يُقبل فقط روابط جوجل ماب الآمنة' }),
     z.literal('')
   ]).optional(),
   instapay_screenshot: z.string().min(1, 'الرجاء تحميل لقطة شاشة لإيصال تحويل إنستاباي'),

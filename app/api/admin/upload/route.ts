@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { getServerSupabase } from '@/lib/supabase-server-cookies'
 import { validateRequestOrigin } from '@/lib/csrf'
+import { requireAdmin } from '@/lib/api-auth'
 
 const ALLOWED_MIME_TYPES: Record<string, string> = {
   'image/jpeg': 'jpg',
@@ -50,12 +51,9 @@ export async function POST(request: Request) {
 
   const supabaseClient = await getServerSupabase()
 
-  const { data: { user }, error: authError } = await supabaseClient.auth.getUser()
-  const adminEmail = process.env.ADMIN_EMAIL
-
-  if (authError || !user || !adminEmail || user.email !== adminEmail) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
+  const adminOrError = await requireAdmin(supabaseClient)
+  if (adminOrError instanceof NextResponse) return adminOrError
+  const user = adminOrError
 
   let formData: FormData
   try {

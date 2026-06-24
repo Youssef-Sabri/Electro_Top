@@ -8,7 +8,7 @@ export function validateRequestOrigin(request: Request): boolean {
   }
 
   if (!siteUrl) {
-    return true
+    return process.env.NODE_ENV !== 'production'
   }
 
   try {

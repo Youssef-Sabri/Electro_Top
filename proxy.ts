@@ -122,9 +122,8 @@ export async function proxy(request: NextRequest) {
     })
 
     const { data: { user }, error } = await supabase.auth.getUser()
-    const adminEmail = process.env.ADMIN_EMAIL;
 
-    if (error || !user || !adminEmail || user.email !== adminEmail) {
+    if (error || !user || user.user_metadata?.role !== 'admin') {
       if (pathname.startsWith('/api/admin/')) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
       }

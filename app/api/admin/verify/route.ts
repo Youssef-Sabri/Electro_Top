@@ -5,9 +5,8 @@ export async function GET() {
   const supabaseClient = await getServerSupabase()
 
   const { data: { user }, error } = await supabaseClient.auth.getUser()
-  const adminEmail = process.env.ADMIN_EMAIL
 
-  if (error || !user || !adminEmail || user.email !== adminEmail) {
+  if (error || !user || user.user_metadata?.role !== 'admin') {
     return NextResponse.json({ verified: false }, { status: 401 })
   }
 

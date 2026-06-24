@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server'
 import { getServerSupabase } from '@/lib/supabase-server-cookies'
 import { validateRequestOrigin } from '@/lib/csrf'
 import { productFormSchema } from '@/lib/validators'
+import { requireAdmin } from '@/lib/api-auth'
+import { verifyAdminPassword } from '@/lib/verify-admin-server'
 
 export async function POST(request: Request) {
   if (!validateRequestOrigin(request)) {
@@ -9,12 +11,10 @@ export async function POST(request: Request) {
   }
 
   const supabaseClient = await getServerSupabase()
-  const { data: { user }, error: authError } = await supabaseClient.auth.getUser()
-  const adminEmail = process.env.ADMIN_EMAIL
 
-  if (authError || !user || !adminEmail || user.email !== adminEmail) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
+  const adminOrError = await requireAdmin(supabaseClient)
+  if (adminOrError instanceof NextResponse) return adminOrError
+  const user = adminOrError
 
   let body;
   try {
@@ -57,12 +57,10 @@ export async function DELETE(request: Request) {
   }
 
   const supabaseClient = await getServerSupabase()
-  const { data: { user }, error: authError } = await supabaseClient.auth.getUser()
-  const adminEmail = process.env.ADMIN_EMAIL
 
-  if (authError || !user || !adminEmail || user.email !== adminEmail) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
+  const adminOrError = await requireAdmin(supabaseClient)
+  if (adminOrError instanceof NextResponse) return adminOrError
+  const user = adminOrError
 
   let body;
   try {
@@ -76,15 +74,8 @@ export async function DELETE(request: Request) {
     return NextResponse.json({ error: 'كلمة المرور مطلوبة.' }, { status: 400 })
   }
 
-  // Verify the password using signInWithPassword server-side
-  const { error: signInError } = await supabaseClient.auth.signInWithPassword({
-    email: user.email,
-    password,
-  })
-
-  if (signInError) {
-    return NextResponse.json({ error: 'كلمة المرور غير صحيحة.' }, { status: 401 })
-  }
+  const pwError = await verifyAdminPassword(supabaseClient, user.email!, password)
+  if (pwError) return pwError
 
   const { data: prods } = await supabaseClient.from('products').select('id')
   const count = prods?.length || 0

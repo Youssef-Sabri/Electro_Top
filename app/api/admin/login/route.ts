@@ -108,15 +108,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'البريد الإلكتروني وكلمة المرور مطلوبان' }, { status: 400 });
   }
 
-  const adminEmail = process.env.ADMIN_EMAIL;
-  if (!adminEmail || email.trim() !== adminEmail) {
-    const attempts = await incrementAttempts(supabaseClient, ip);
-    return NextResponse.json({
-      error: 'فشل تسجيل الدخول. تحقق من البريد الإلكتروني وكلمة المرور.',
-      attempts,
-    }, { status: 401 });
-  }
-
   // Initialize Supabase Server Client with cookies for auth
   const supabaseClientWithCookies = await getServerSupabase()
 
@@ -126,6 +117,16 @@ export async function POST(request: NextRequest) {
   });
 
   if (loginError || !user) {
+    const attempts = await incrementAttempts(supabaseClient, ip);
+    return NextResponse.json({
+      error: 'فشل تسجيل الدخول. تحقق من البريد الإلكتروني وكلمة المرور.',
+      attempts,
+    }, { status: 401 });
+  }
+
+  // Verify the authenticated user has the admin role in their user_metadata
+  if (user.user_metadata?.role !== 'admin') {
+    await supabaseClientWithCookies.auth.signOut();
     const attempts = await incrementAttempts(supabaseClient, ip);
     return NextResponse.json({
       error: 'فشل تسجيل الدخول. تحقق من البريد الإلكتروني وكلمة المرور.',

@@ -1,6 +1,17 @@
 import { cookies } from 'next/headers'
 import { createSupabaseServerClient } from '@/lib/supabase-server'
-import type { ResponseCookie } from 'next/dist/compiled/@edge-runtime/cookies'
+
+interface CookieOptions {
+  name?: string
+  value?: string
+  httpOnly?: boolean
+  secure?: boolean
+  sameSite?: 'lax' | 'strict' | 'none' | boolean
+  path?: string
+  maxAge?: number
+  domain?: string
+  expires?: Date
+}
 
 export async function getServerSupabase() {
   const cookieStore = await cookies()
@@ -9,10 +20,10 @@ export async function getServerSupabase() {
       return cookieStore.get(name)?.value
     },
     set(name: string, value: string, options: Record<string, unknown>) {
-      cookieStore.set(name, value, options as Partial<ResponseCookie>)
+      cookieStore.set(name, value, options as Partial<CookieOptions>)
     },
     remove(name: string, options: Record<string, unknown>) {
-      cookieStore.set(name, '', { ...options, maxAge: -1 } as Partial<ResponseCookie>)
+      cookieStore.set(name, '', { ...options, maxAge: -1 } as Partial<CookieOptions>)
     },
   })
 }

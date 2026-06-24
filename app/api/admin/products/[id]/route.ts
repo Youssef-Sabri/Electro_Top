@@ -1,19 +1,10 @@
 import { NextResponse } from 'next/server'
 import { getServerSupabase } from '@/lib/supabase-server-cookies'
-import type { SupabaseClient } from '@supabase/supabase-js'
 import { validateRequestOrigin } from '@/lib/csrf'
 import { productFormSchema } from '@/lib/validators'
+import { requireAdmin } from '@/lib/api-auth'
 
 const ALLOWED_UPDATE_FIELDS = ['name', 'description', 'price', 'stock', 'image_url', 'is_active', 'category'] as const
-
-async function requireAdmin(supabaseClient: SupabaseClient) {
-  const { data: { user }, error: authError } = await supabaseClient.auth.getUser()
-  const adminEmail = process.env.ADMIN_EMAIL
-  if (authError || !user || !adminEmail || user.email !== adminEmail) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
-  return user
-}
 
 export async function PATCH(
   request: Request,

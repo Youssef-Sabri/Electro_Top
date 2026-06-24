@@ -16,10 +16,14 @@ function isValidOrderStatus(value: string): value is OrderStatus {
 
 const ADMIN_NOTES_MAX_LENGTH = 2000;
 
+const PAGE_SIZE = 50;
+
 export interface OrdersContextType {
   orders: Order[];
   orderItems: OrderItem[];
   statusHistory: OrderStatusHistory[];
+  page: number;
+  totalPages: number;
   getOrderById: (id: string) => Order | undefined;
   createOrder: (data: CheckoutFormData, cartItems: CartItem[]) => Promise<Order>;
   updateOrderStatus: (orderId: string, status: OrderStatus) => void;
@@ -29,6 +33,10 @@ export interface OrdersContextType {
   clearAllOrders: (password: string) => Promise<void>;
   deleteOrder: (orderId: string) => void;
   refreshOrders: () => Promise<void>;
+  loadAllOrders: () => Promise<void>;
+  nextPage: () => void;
+  prevPage: () => void;
+  goToPage: (n: number) => void;
 }
 
 export const OrdersContext = createContext<OrdersContextType | undefined>(undefined);
@@ -37,6 +45,8 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
   const [orders, setOrders] = useState<Order[]>([]);
   const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
   const [statusHistory, setStatusHistory] = useState<OrderStatusHistory[]>([]);
+  const [page, setPage] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
 
   const ordersMapRef = useRef<Map<string, Order>>(new Map());
   const orderItemsMapRef = useRef<Map<string, OrderItem[]>>(new Map());
@@ -44,6 +54,7 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
   const ordersRef = useRef<Order[]>([]);
   const orderItemsRef = useRef<OrderItem[]>([]);
   const statusHistoryRef = useRef<OrderStatusHistory[]>([]);
+  const pageRef = useRef(0);
 
   useEffect(() => {
     const oMap = new Map<string, Order>();
@@ -70,6 +81,10 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
     statusHistoryRef.current = statusHistory;
   }, [orders, orderItems, statusHistory]);
 
+  useEffect(() => {
+    pageRef.current = page;
+  }, [page]);
+
   const getOrderItems = useCallback((orderId: string) => {
     return orderItemsMapRef.current.get(orderId) || [];
   }, []);
@@ -78,7 +93,44 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
     return statusHistoryMapRef.current.get(orderId) || [];
   }, []);
 
-  const loadData = useCallback(async () => {
+  const loadData = useCallback(async (pageNum = 0) => {
+    try {
+      const from = pageNum * PAGE_SIZE;
+      const to = from + PAGE_SIZE - 1;
+
+      const { data: oData, error: oError, count: oCount } = await supabase
+        .from('orders')
+        .select('id_unique_tracking, status, customer_name, phone_number, shipping_address, total_amount, created_at, admin_notes, location_link, instapay_screenshot, instapay_phone_number', { count: 'exact', head: false })
+        .order('created_at', { ascending: false })
+        .range(from, to);
+
+      if (oError) throw oError;
+
+      const orderIds = (oData || []).map(o => o.id_unique_tracking);
+
+      const [oiResult, hResult] = await Promise.all([
+        orderIds.length > 0
+          ? supabase.from('order_items').select('id, order_id, product_id, quantity, unit_price').in('order_id', orderIds)
+          : { data: [] as OrderItem[], error: null },
+        orderIds.length > 0
+          ? supabase.from('order_status_history').select('id, order_id, status, timestamp').in('order_id', orderIds)
+          : { data: [] as OrderStatusHistory[], error: null },
+      ]);
+
+      setOrders(oData || []);
+      setOrderItems(oiResult.data || []);
+      setStatusHistory(hResult.data || []);
+      setTotalPages(oCount ? Math.ceil(oCount / PAGE_SIZE) : 0);
+      setPage(pageNum);
+    } catch (error) {
+      if (process.env.NODE_ENV !== 'production') console.error('Failed to load orders/items/logs from Supabase:', error);
+      setOrders([]);
+      setOrderItems([]);
+      setStatusHistory([]);
+    }
+  }, []);
+
+  const loadAllOrders = useCallback(async () => {
     try {
       const [
         { data: oData, error: oError },
@@ -94,21 +146,36 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
       setOrderItems(oiData && !oiError ? oiData : []);
       setStatusHistory(hData && !hError ? hData : []);
     } catch (error) {
-      if (process.env.NODE_ENV !== 'production') console.error('Failed to load orders/items/logs from Supabase:', error);
-      setOrders([]);
-      setOrderItems([]);
-      setStatusHistory([]);
+      if (process.env.NODE_ENV !== 'production') console.error('Failed to load all orders/items/logs from Supabase:', error);
     }
   }, []);
 
   const refreshOrders = useCallback(async () => {
-    await loadData();
-  }, [loadData]);
+    await loadData(page);
+  }, [loadData, page]);
+
+  const nextPage = useCallback(() => {
+    if (page < totalPages - 1) {
+      loadData(page + 1);
+    }
+  }, [page, totalPages, loadData]);
+
+  const prevPage = useCallback(() => {
+    if (page > 0) {
+      loadData(page - 1);
+    }
+  }, [page, loadData]);
+
+  const goToPage = useCallback((n: number) => {
+    if (n >= 0 && n < totalPages) {
+      loadData(n);
+    }
+  }, [totalPages, loadData]);
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       if (session) {
-        await loadData();
+        await loadData(0);
       } else {
         setOrders([]);
         setOrderItems([]);
@@ -134,17 +201,17 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
         .on(
           'postgres_changes',
           { event: '*', schema: 'public', table: 'orders' },
-          () => { loadData(); }
+          () => { loadData(pageRef.current); }
         )
         .on(
           'postgres_changes',
           { event: '*', schema: 'public', table: 'order_items' },
-          () => { loadData(); }
+          () => { loadData(pageRef.current); }
         )
         .on(
           'postgres_changes',
           { event: 'INSERT', schema: 'public', table: 'order_status_history' },
-          () => { loadData(); }
+          () => { loadData(pageRef.current); }
         )
         .subscribe();
     }
@@ -161,7 +228,7 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
     const handleVisibility = () => {
       if (document.visibilityState === 'visible') {
         subscribeIfAdmin();
-        loadData();
+        loadData(pageRef.current);
       } else {
         unsubscribe();
       }
@@ -374,6 +441,8 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
       orders,
       orderItems,
       statusHistory,
+      page,
+      totalPages,
       getOrderById,
       createOrder,
       updateOrderStatus,
@@ -383,11 +452,17 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
       clearAllOrders,
       deleteOrder,
       refreshOrders,
+      loadAllOrders,
+      nextPage,
+      prevPage,
+      goToPage,
     }),
     [
       orders,
       orderItems,
       statusHistory,
+      page,
+      totalPages,
       getOrderById,
       createOrder,
       updateOrderStatus,
@@ -397,6 +472,10 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
       clearAllOrders,
       deleteOrder,
       refreshOrders,
+      loadAllOrders,
+      nextPage,
+      prevPage,
+      goToPage,
     ]
   );
 

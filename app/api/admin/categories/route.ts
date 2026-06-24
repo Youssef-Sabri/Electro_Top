@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { getServerSupabase } from '@/lib/supabase-server-cookies'
 import { validateRequestOrigin } from '@/lib/csrf'
 import { z } from 'zod'
+import { requireAdmin } from '@/lib/api-auth'
 
 const categorySchema = z.string().min(1, 'اسم الفئة مطلوب').max(50, 'اسم الفئة يجب ألا يتجاوز 50 حرفاً')
 
@@ -11,12 +12,10 @@ export async function POST(request: Request) {
   }
 
   const supabaseClient = await getServerSupabase()
-  const { data: { user }, error: authError } = await supabaseClient.auth.getUser()
-  const adminEmail = process.env.ADMIN_EMAIL
 
-  if (authError || !user || !adminEmail || user.email !== adminEmail) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
+  const adminOrError = await requireAdmin(supabaseClient)
+  if (adminOrError instanceof NextResponse) return adminOrError
+  const user = adminOrError
 
   let body;
   try {
@@ -58,12 +57,10 @@ export async function DELETE(request: Request) {
   }
 
   const supabaseClient = await getServerSupabase()
-  const { data: { user }, error: authError } = await supabaseClient.auth.getUser()
-  const adminEmail = process.env.ADMIN_EMAIL
 
-  if (authError || !user || !adminEmail || user.email !== adminEmail) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
+  const adminOrError = await requireAdmin(supabaseClient)
+  if (adminOrError instanceof NextResponse) return adminOrError
+  const user = adminOrError
 
   const { searchParams } = new URL(request.url)
   const name = searchParams.get('name')

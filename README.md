@@ -76,7 +76,7 @@ The project went through **7 development phases** from initial mock infrastructu
 | **Inventory CRUD** | Full Create / Read / Update / Delete for products |
 | **Category Management** | Dynamic category add/delete with automatic product reassignment |
 | **CSV Export** | Export product catalog as Excel-safe CSV |
-| **Auth-Gated Access** | Supabase Auth (email/password) + server-side route protection via `middleware.ts` routing to `proxy.ts` |
+| **Auth-Gated Access** | Supabase Auth (email/password) + server-side route protection via `proxy.ts` |
 
 ---
 
@@ -111,7 +111,7 @@ The project went through **7 development phases** from initial mock infrastructu
 ┌────────────────────────▼────────────────────────────────┐
 │               Next.js Server (App Router)                │
 │  ┌────────────────────────────────────────────────────┐  │
-│  │ middleware.ts & proxy.ts ← Admin route protection  │  │
+│  │ proxy.ts ← Admin route protection (Next.js 16)     │  │
 │  │            (redirects unauthenticated /admin/* reqs)│  │
 │  │  API routes for checkout, products, categories    │  │
 │  └────────────────────────────────────────────────────┘  │
@@ -141,8 +141,7 @@ The project went through **7 development phases** from initial mock infrastructu
 
 ```
 electro-top/
-├── middleware.ts                   # Next.js 16 middleware entrypoint
-├── proxy.ts                        # Next.js 16 server-side proxy (admin route guard)
+├── proxy.ts                        # Next.js 16 server-side proxy (admin route guard, CSP, CSRF)
 ├── app/
 │   ├── layout.tsx                  # Root layout (RTL, fonts, context providers)
 │   ├── page.tsx                    # Homepage landing
@@ -291,7 +290,7 @@ This project has security measures in place. Key security areas include:
 
 | Category | Implementation |
 |---|---|
-| **Server-side route protection** | `middleware.ts` and `proxy.ts` provide basic admin route protection |
+| **Server-side route protection** | `proxy.ts` (Next.js 16 native) provides admin route protection, CSP headers, Host validation, and CSRF checks |
 | **CSV injection** | CSV export has some protection against injection |
 | **XSS prevention** | Basic XSS prevention measures |
 | **Content Security Policy** | Basic CSP headers implemented |
@@ -357,8 +356,14 @@ Create a `.env.local` file in the project root:
 NEXT_PUBLIC_SUPABASE_URL=https://your-project-id.supabase.co
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=your_supabase_anon_key
 
-# Admin Access Configuration (server-only — NOT prefixed with NEXT_PUBLIC_)
-ADMIN_EMAIL=admin@example.com
+# Supabase Secret Key (server-only — for admin-level Supabase operations)
+# Admin role is determined by Supabase Auth user_metadata ({ "role": "admin" }), not by an env var.
+# ⚠️ CRITICAL: Never share this key, commit it to git, or expose it client-side.
+# Get it from: Supabase Dashboard → Settings → API → secret key
+SUPABASE_SECRET_KEY=your-secret-key
+
+# Site URL (used for CSRF origin validation & Host header checks)
+NEXT_PUBLIC_SITE_URL=http://localhost:3000
 
 # InstaPay Payment Configuration
 NEXT_PUBLIC_INSTAPAY_ACCOUNT_NAME=Your Store Name

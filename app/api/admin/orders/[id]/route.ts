@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { getServerSupabase } from '@/lib/supabase-server-cookies'
 import { validateRequestOrigin } from '@/lib/csrf'
+import { requireAdmin } from '@/lib/api-auth'
 
 const VALID_ORDER_STATUSES = [
   'Pending Review', 'Accepted', 'Processing', 'Delivered', 'Declined', 'Check Internal Note',
@@ -18,12 +19,9 @@ export async function DELETE(
 
   const supabaseClient = await getServerSupabase()
 
-  const { data: { user }, error: authError } = await supabaseClient.auth.getUser()
-  const adminEmail = process.env.ADMIN_EMAIL
-
-  if (authError || !user || !adminEmail || user.email !== adminEmail) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
+  const adminOrError = await requireAdmin(supabaseClient)
+  if (adminOrError instanceof NextResponse) return adminOrError
+  const user = adminOrError
 
   // GET the order to get the customer name for the audit log
   const { data: orderData } = await supabaseClient
@@ -77,12 +75,9 @@ export async function PATCH(
 
   const supabaseClient = await getServerSupabase()
 
-  const { data: { user }, error: authError } = await supabaseClient.auth.getUser()
-  const adminEmail = process.env.ADMIN_EMAIL
-
-  if (authError || !user || !adminEmail || user.email !== adminEmail) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
+  const adminOrError = await requireAdmin(supabaseClient)
+  if (adminOrError instanceof NextResponse) return adminOrError
+  const user = adminOrError
 
   let body;
   try {
