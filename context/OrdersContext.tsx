@@ -182,19 +182,30 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
         .on(
           'postgres_changes',
           { event: '*', schema: 'public', table: 'orders' },
-          () => { loadData(pageRef.current); }
+          () => {
+            if (process.env.NODE_ENV !== 'production') console.log('Realtime change detected in orders table');
+            loadData(pageRef.current);
+          }
         )
         .on(
           'postgres_changes',
           { event: '*', schema: 'public', table: 'order_items' },
-          () => { loadData(pageRef.current); }
+          () => {
+            if (process.env.NODE_ENV !== 'production') console.log('Realtime change detected in order_items table');
+            loadData(pageRef.current);
+          }
         )
         .on(
           'postgres_changes',
           { event: 'INSERT', schema: 'public', table: 'order_status_history' },
-          () => { loadData(pageRef.current); }
+          () => {
+            if (process.env.NODE_ENV !== 'production') console.log('Realtime change detected in order_status_history table');
+            loadData(pageRef.current);
+          }
         )
-        .subscribe();
+        .subscribe((status) => {
+          if (process.env.NODE_ENV !== 'production') console.log('Supabase Realtime orders channel status:', status);
+        });
     }
 
     function unsubscribe() {

@@ -31,13 +31,6 @@ export const OrdersLedger = memo(function OrdersLedger() {
   const [orderToDeleteId, setOrderToDeleteId] = useState<string | null>(null);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
-  useEffect(() => {
-    if (toast) {
-      const timer = setTimeout(() => setToast(null), 3000);
-      return () => clearTimeout(timer);
-    }
-  }, [toast]);
-
   const handleExportCSV = useCallback(() => {
     const headers = [
       'رقم التتبع',
@@ -338,12 +331,13 @@ export const OrdersLedger = memo(function OrdersLedger() {
         message="يرجى إدخال كلمة مرور المسؤول لتأكيد حذف جميع الطلبات. هذا الإجراء لا يمكن التراجع عنه."
         confirmLabel="تأكيد وحذف الكل"
         onConfirm={async (password) => {
+          setIsClearPasswordOpen(false);
           try {
             await clearAllOrders(password);
+            setToast({ message: 'تم مسح جميع الطلبات بنجاح!', type: 'success' });
           } catch {
             setToast({ message: 'فشل حذف الطلبات. الرجاء المحاولة مرة أخرى.', type: 'error' });
           }
-          setIsClearPasswordOpen(false);
         }}
         onCancel={() => setIsClearPasswordOpen(false)}
       />
@@ -353,16 +347,17 @@ export const OrdersLedger = memo(function OrdersLedger() {
         title="حذف الطلب"
         message={`هل أنت متأكد من رغبتك في حذف الطلب #${orderToDeleteId} نهائياً من النظام؟ هذا الإجراء لا يمكن التراجع عنه وسيؤدي لحذف تفاصيل الطلب وسجل حالته بالكامل.`}
         onConfirm={async () => {
-          if (orderToDeleteId) {
+          const idToDelete = orderToDeleteId;
+          if (idToDelete) {
+            setIsDeleteConfirmOpen(false);
+            setOrderToDeleteId(null);
             try {
-              await deleteOrder(orderToDeleteId);
-              setToast({ message: `تم حذف الطلب #${orderToDeleteId} بنجاح!`, type: 'success' });
+              await deleteOrder(idToDelete);
+              setToast({ message: `تم حذف الطلب #${idToDelete} بنجاح!`, type: 'success' });
             } catch {
               setToast({ message: 'فشل حذف الطلب. الرجاء المحاولة مرة أخرى.', type: 'error' });
             }
           }
-          setIsDeleteConfirmOpen(false);
-          setOrderToDeleteId(null);
         }}
         onCancel={() => {
           setIsDeleteConfirmOpen(false);

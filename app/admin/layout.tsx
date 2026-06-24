@@ -182,10 +182,12 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         try {
           const verifyRes = await fetch('/api/admin/verify');
           if (verifyRes.ok) {
-            setIsAuthenticated(true);
+            window.location.reload();
+          } else {
+            setError('فشل التحقق من الجلسة بعد تسجيل الدخول.');
           }
         } catch {
-          setIsAuthenticated(true);
+          window.location.reload();
         }
       }
     } catch (err: unknown) {
