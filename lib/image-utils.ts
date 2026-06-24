@@ -109,7 +109,7 @@ function extractFileName(imageUrl: string): string {
   return decodeURIComponent(rawFileName.split('?')[0]);
 }
 
-async function deleteStorageImage(bucket: string, _marker: string, imageUrl: string): Promise<void> {
+async function deleteStorageImage(bucket: string, imageUrl: string): Promise<void> {
   if (!imageUrl) return;
 
   // Accept both full URLs and bare filenames
@@ -130,7 +130,7 @@ async function deleteStorageImage(bucket: string, _marker: string, imageUrl: str
 }
 
 export async function deleteProductImage(imageUrl: string): Promise<void> {
-  await deleteStorageImage('product-images', '/product-images/', imageUrl);
+  await deleteStorageImage('product-images', imageUrl);
 }
 
 const STORAGE_LIST_LIMIT = 100;
@@ -177,5 +177,5 @@ export async function clearAllProductImages(): Promise<void> {
 }
 
 export async function deleteReceiptImage(imageUrl: string): Promise<void> {
-  await deleteStorageImage('instapay-receipts', '/instapay-receipts/', imageUrl);
+  await deleteStorageImage('instapay-receipts', imageUrl);
 }

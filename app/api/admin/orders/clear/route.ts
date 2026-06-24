@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { getServerSupabase } from '@/lib/supabase-server-cookies'
+import { createSupabaseAdminClient } from '@/lib/supabase-server'
 import { validateRequestOrigin } from '@/lib/csrf'
 
 export async function DELETE(request: Request) {
@@ -38,8 +39,16 @@ export async function DELETE(request: Request) {
     return NextResponse.json({ error: 'كلمة المرور غير صحيحة.' }, { status: 401 })
   }
 
+  // Delete receipt files from storage before clearing DB records
+  const adminClient = createSupabaseAdminClient()
+  const { data: ordersWithScreenshots } = await adminClient.from('orders').select('instapay_screenshot')
+  const receiptFiles = ordersWithScreenshots?.map(o => o.instapay_screenshot).filter(Boolean) || []
+  if (receiptFiles.length > 0) {
+    await adminClient.storage.from('instapay-receipts').remove(receiptFiles)
+  }
+
   // Count orders for audit log
-  const { data: ordersData } = await supabaseClient.from('orders').select('id_unique_tracking')
+  const { data: ordersData } = await adminClient.from('orders').select('id_unique_tracking')
   const count = ordersData?.length || 0
 
   const { error: itemsError } = await supabaseClient.from('order_items').delete().neq('id', '')

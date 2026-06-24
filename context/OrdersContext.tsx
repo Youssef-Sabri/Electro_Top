@@ -326,8 +326,6 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
     setStatusHistory([]);
 
     try {
-      await clearAllReceipts();
-
       const response = await fetch('/api/admin/orders/clear', {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
@@ -337,6 +335,8 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
         const data = await response.json();
         throw new Error(data.error || 'Failed to clear orders');
       }
+
+      await clearAllReceipts();
     } catch (e) {
       setOrders(previousOrders);
       setOrderItems(previousItems);

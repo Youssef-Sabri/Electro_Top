@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createSupabaseAdminClient } from '@/lib/supabase-server'
 import { getServerSupabase } from '@/lib/supabase-server-cookies'
+import { validateRequestOrigin } from '@/lib/csrf'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { getClientIp } from '@/lib/ip-utils'
 
@@ -77,6 +78,10 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  if (!validateRequestOrigin(request)) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  }
+
   const ip = getClientIp(request);
 
   const supabaseClient = createSupabaseAdminClient()

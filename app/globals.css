@@ -49,16 +49,16 @@
   --color-status-internal: #14B8A6;
 
   /* Font Families */
-  --font-montserrat: var(--font-montserrat), sans-serif;
-  --font-poppins: var(--font-poppins), sans-serif;
-  --font-body-lg: var(--font-poppins), sans-serif;
-  --font-body-md: var(--font-poppins), sans-serif;
-  --font-label-sm: var(--font-poppins), sans-serif;
-  --font-label-md: var(--font-poppins), sans-serif;
-  --font-headline-md: var(--font-montserrat), sans-serif;
-  --font-headline-lg-mobile: var(--font-montserrat), sans-serif;
-  --font-display-lg: var(--font-montserrat), sans-serif;
-  --font-headline-lg: var(--font-montserrat), sans-serif;
+  --font-montserrat: var(--font-montserrat);
+  --font-poppins: var(--font-poppins);
+  --font-body-lg: var(--font-poppins);
+  --font-body-md: var(--font-poppins);
+  --font-label-sm: var(--font-poppins);
+  --font-label-md: var(--font-poppins);
+  --font-headline-md: var(--font-montserrat);
+  --font-headline-lg-mobile: var(--font-montserrat);
+  --font-display-lg: var(--font-montserrat);
+  --font-headline-lg: var(--font-montserrat);
 
   /* Font Sizes */
   --font-size-body-lg: 18px;
