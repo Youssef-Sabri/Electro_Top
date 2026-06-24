@@ -87,21 +87,14 @@ export function ProductsProvider({ children }: { children: ReactNode }) {
   }, [loadData]);
 
   useEffect(() => {
-    const POLLING_INTERVAL = 60_000;
-
-    const poll = () => loadData(true);
-
-    const intervalId = setInterval(poll, POLLING_INTERVAL);
-
     const handleVisibility = () => {
       if (document.visibilityState === 'visible') {
-        poll();
+        loadData(true);
       }
     };
     document.addEventListener('visibilitychange', handleVisibility);
 
     return () => {
-      clearInterval(intervalId);
       document.removeEventListener('visibilitychange', handleVisibility);
     };
   }, [loadData]);
