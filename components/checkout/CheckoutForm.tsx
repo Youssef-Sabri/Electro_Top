@@ -179,10 +179,12 @@ export function CheckoutForm() {
         finalScreenshotUrl = uploadData.fileName;
       }
 
-      // 2. Create order in context
+      // 2. Create order in context (includes bot-detection fields for server re-validation)
       const orderData = {
         ...validationResult.data,
         instapay_screenshot: finalScreenshotUrl,
+        honeypot,
+        submission_time: pageLoadTimeRef.current,
       };
 
       const newOrder = await createOrder(orderData, items);

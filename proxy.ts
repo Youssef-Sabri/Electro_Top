@@ -26,13 +26,11 @@ function generateNonce(): string {
   return result
 }
 
-function buildCsp(nonce: string, supabaseHost: string, isAdminRoute: boolean): string {
+function buildCsp(nonce: string, supabaseHost: string, _isAdminRoute: boolean): string {
   const isDev = process.env.NODE_ENV === 'development'
   const evalSrc = isDev ? " 'unsafe-eval'" : ""
 
-  const scriptSrc = isAdminRoute
-    ? `script-src 'self' 'nonce-${nonce}' 'unsafe-eval'`
-    : `script-src 'self' 'nonce-${nonce}'${evalSrc}`
+  const scriptSrc = `script-src 'self' 'nonce-${nonce}'${evalSrc}`
 
   return [
     `default-src 'self'`,
@@ -64,10 +62,14 @@ export async function proxy(request: NextRequest) {
 
   // Host header validation — prevents DNS rebinding and host-poisoning attacks.
   // Uses NEXT_PUBLIC_SITE_URL as the single source of truth for the expected host.
+  // Also allows Vercel preview deployments (VERCEL_URL is set automatically by Vercel).
   if (process.env.NODE_ENV === 'production') {
     const requestHost = request.headers.get('host') || '';
     const expectedHost = getExpectedHost();
-    if (expectedHost && requestHost !== expectedHost) {
+    const vercelUrl = process.env.VERCEL_URL || '';
+    const isAllowed = (!expectedHost || requestHost === expectedHost) || 
+                      (vercelUrl && requestHost === vercelUrl);
+    if (!isAllowed) {
       return new NextResponse('Forbidden', { status: 403 });
     }
   }

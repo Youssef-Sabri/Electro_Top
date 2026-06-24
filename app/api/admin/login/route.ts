@@ -88,5 +88,5 @@ export async function POST(request: NextRequest) {
   await clearRateLimit(supabaseClient, ip, LOGIN_RATE_LIMIT);
 
   // Return success response. Note: createServerClient writes directly to the cookies via the proxy setters.
-  return NextResponse.json({ success: true, user });
+  return NextResponse.json({ success: true });
 }

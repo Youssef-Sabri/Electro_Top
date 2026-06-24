@@ -38,6 +38,19 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 })
   }
 
+  // Server-side bot detection — re-validate honeypot and timing
+  const honeypotValue = (body.honeypot as string) || '';
+  if (honeypotValue) {
+    return NextResponse.json({ error: 'Invalid submission' }, { status: 400 })
+  }
+
+  const submissionTime = (body.submission_time as number) || 0;
+  if (submissionTime && Date.now() - submissionTime < 3000) {
+    return NextResponse.json({ error: 'الرجاء الانتظار قليلاً قبل إرسال الطلب' }, { status: 400 })
+  }
+
+  delete body.honeypot
+  delete body.submission_time
   const { cartItems, ...formData } = body
 
   const validation = checkoutSchema.safeParse(formData)
