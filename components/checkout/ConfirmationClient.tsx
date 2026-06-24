@@ -3,89 +3,30 @@
 import { useEffect, useState, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { useOrders } from '@/hooks/useOrders';
+import { useOrderTracking } from '@/hooks/useOrderTracking';
 import { useProducts } from '@/hooks/useProducts';
 import { formatCurrency } from '@/lib/format-currency';
 import { getSafeUrl } from '@/lib/safe-url';
+import { formatOrderDate, formatOrderTimestamp } from '@/lib/date-utils';
 import type { Order, OrderItem } from '@/types';
-import { supabase } from '@/lib/supabase';
 
 export function ConfirmationClient() {
   const searchParams = useSearchParams();
   const orderId = searchParams.get('id');
 
-  const { getOrderById, getOrderItems } = useOrders();
+  const { order, items, loading } = useOrderTracking(orderId);
   const { getProductsMap } = useProducts();
 
   const productsById = getProductsMap();
-
-  const [isHydrated, setIsHydrated] = useState(false);
-  const [order, setOrder] = useState<Order | undefined>(undefined);
-  const [items, setItems] = useState<OrderItem[]>([]);
+  
   const [copied, setCopied] = useState(false);
   const copyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const [pollTick, setPollTick] = useState(0);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      if (document.visibilityState === 'visible') {
-        setPollTick((t) => t + 1);
-      }
-    }, 30_000);
-    return () => {
-      clearInterval(interval);
-      setPollTick(0);
-    };
-  }, []);
 
   useEffect(() => {
     return () => {
       if (copyTimerRef.current) clearTimeout(copyTimerRef.current);
     };
   }, []);
-
-  /* eslint-disable react-hooks/set-state-in-effect */
-  useEffect(() => {
-    if (!orderId) {
-      setIsHydrated(true);
-      return;
-    }
-
-    const isValidId = /^ET-[A-Z0-9]{10}$/i.test(orderId);
-
-    const fromContext = getOrderById(orderId);
-    if (fromContext) {
-      setOrder(fromContext);
-      setItems(getOrderItems(orderId));
-      setIsHydrated(true);
-      return;
-    }
-
-    async function fetchFromSupabase() {
-      try {
-        if (!isValidId) {
-          setIsHydrated(true);
-          return;
-        }
-
-        const { data, error } = await supabase
-          .rpc('get_order_details_for_tracking', { tracking_id: orderId });
-
-        if (data && !error) {
-          const payload = data as { order: Order; items: OrderItem[] };
-          setOrder(payload.order);
-          if (payload.items) setItems(payload.items);
-        }
-      } catch (err) {
-        if (process.env.NODE_ENV !== 'production') console.error('Failed to fetch order details for confirmation:', err)
-      } finally {
-        setIsHydrated(true);
-      }
-    }
-
-    fetchFromSupabase();
-  }, [orderId, getOrderById, getOrderItems, pollTick]);
-  /* eslint-enable react-hooks/set-state-in-effect */
 
   const resetCopiedAfter = () => {
     if (copyTimerRef.current) clearTimeout(copyTimerRef.current);
@@ -131,13 +72,13 @@ export function ConfirmationClient() {
     }
   };
 
-  if (!isHydrated) {
+  if (loading) {
     return (
       <div className="max-w-3xl mx-auto text-center py-20 font-poppins">
         <div className="flex justify-center mb-4">
           <span className="material-symbols-outlined text-primary text-[48px] animate-spin select-none">sync</span>
         </div>
-        <p className="text-on-surface-variant text-sm">جاري استرداد تفاصيل تأكيد طلبك...</p>
+        <p className="text-on-surface-variant text-sm">جاري تحميل تفاصيل تأكيد طلبك...</p>
       </div>
     );
   }
@@ -242,9 +183,9 @@ export function ConfirmationClient() {
         <div className="flex items-center gap-2 text-on-surface-variant text-xs mb-5">
           <span className="material-symbols-outlined text-[14px] text-primary select-none">calendar_today</span>
           <span>
-            {new Date(order.created_at).toLocaleDateString('ar-EG', { month: 'short', day: 'numeric', year: 'numeric' })}
+            {formatOrderDate(order.created_at)}
             {' — '}
-            {new Date(order.created_at).toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' })}
+            {formatOrderTimestamp(order.created_at)}
           </span>
         </div>
 
@@ -279,7 +220,7 @@ export function ConfirmationClient() {
               return (
                 <div key={item.id} className="flex justify-between items-center text-sm">
                   <span className="text-on-surface-variant font-medium">
-                    {product ? product.name : item.product_name || item.product_id}
+                    {product ? product.name : item.product_id}
                   </span>
                   <div className="flex items-center gap-4">
                     <span className="text-on-surface-variant text-xs">×{item.quantity} — {formatCurrency(item.unit_price)}</span>

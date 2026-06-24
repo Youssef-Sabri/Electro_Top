@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useOrders } from '@/hooks/useOrders';
+import { useOrderTracking } from '@/hooks/useOrderTracking';
 import { useProducts } from '@/hooks/useProducts';
 import { StatusTimeline } from '@/components/tracking/StatusTimeline';
 import { formatCurrency } from '@/lib/format-currency';
@@ -19,76 +19,14 @@ interface TrackingDetailClientProps {
 
 export function TrackingDetailClient({ id }: TrackingDetailClientProps) {
   const router = useRouter();
-  const { getOrderById, getOrderItems, getStatusHistory } = useOrders();
+  const { order, items: orderItems, history: statusHistory, loading } = useOrderTracking(id);
   const { getProductsMap } = useProducts();
 
   // Single batch lookup — avoids per-item function call overhead
   const productsById = getProductsMap();
 
-  const [order, setOrder] = useState<Order | null>(null);
-  const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
-  const [statusHistory, setStatusHistory] = useState<OrderStatusHistory[]>([]);
-  const [loading, setLoading] = useState(true);
   const [retryId, setRetryId] = useState('');
   const [retryError, setRetryError] = useState('');
-  const [pollTick, setPollTick] = useState(0);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      if (document.visibilityState === 'visible') {
-        setPollTick((t) => t + 1);
-      }
-    }, 20_000);
-    return () => {
-      clearInterval(interval);
-      setPollTick(0);
-    };
-  }, []);
-
-  /* eslint-disable react-hooks/set-state-in-effect */
-  useEffect(() => {
-    const isValidId = /^ET-[A-Z0-9]{10}$/i.test(id);
-
-    const fromContext = getOrderById(id);
-    if (fromContext) {
-      setOrder(fromContext);
-      setOrderItems(getOrderItems(id));
-      setStatusHistory(getStatusHistory(id));
-      setLoading(false);
-      return;
-    }
-
-    async function loadFromDB() {
-      try {
-        if (!isValidId) {
-          setLoading(false);
-          return;
-        }
-
-        const response = await fetch(`/api/track/${id}`);
-
-        if (response.ok) {
-          const payload = await response.json() as { order: Order; items: OrderItem[]; history: OrderStatusHistory[] };
-          setOrder(payload.order);
-          setOrderItems(payload.items);
-          setStatusHistory(payload.history);
-        } else {
-          setOrder(null);
-          setOrderItems([]);
-          setStatusHistory([]);
-        }
-      } catch {
-        setOrder(null);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    loadFromDB();
-  }, [id, getOrderById, getOrderItems, getStatusHistory, pollTick]);
-  /* eslint-enable react-hooks/set-state-in-effect */
-
-
 
   const handleRetrySubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -246,8 +184,8 @@ export function TrackingDetailClient({ id }: TrackingDetailClientProps) {
             <div className="space-y-4 max-h-[300px] overflow-y-auto pe-1">
               {orderItems.map((item) => {
                 const product = productsById.get(item.product_id);
-                const name = product ? product.name : item.product_name || 'عنصر غير معروف';
-                const imageUrl = product ? product.image_url : item.product_image;
+                const name = product ? product.name : 'عنصر غير معروف';
+                const imageUrl = product ? product.image_url : null;
 
                 return (
                   <div key={item.id} className="flex items-center gap-4 text-white">
