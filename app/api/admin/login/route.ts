@@ -2,74 +2,24 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createSupabaseAdminClient } from '@/lib/supabase-server'
 import { getServerSupabase } from '@/lib/supabase-server-cookies'
 import { validateRequestOrigin } from '@/lib/csrf'
-import type { SupabaseClient } from '@supabase/supabase-js'
 import { getClientIp } from '@/lib/ip-utils'
+import { checkRateLimit, incrementRateLimit, clearRateLimit } from '@/lib/rate-limit'
+import type { RateLimitConfig } from '@/lib/rate-limit'
 
-const MAX_ATTEMPTS = 5;
-const WINDOW_MS = 60_000;
-
-async function checkRateLimit(supabaseClient: SupabaseClient, ip: string) {
-  const { data } = await supabaseClient
-    .from('login_attempts')
-    .select('attempt_count, last_attempt_at')
-    .eq('ip_address', ip)
-    .single();
-
-  if (!data) return { blocked: false };
-
-  const elapsed = Date.now() - new Date(data.last_attempt_at).getTime();
-  if (elapsed > WINDOW_MS) {
-    await supabaseClient.from('login_attempts').delete().eq('ip_address', ip);
-    return { blocked: false };
-  }
-
-  if (data.attempt_count >= MAX_ATTEMPTS) {
-    return { blocked: true, cooldown: Math.ceil((WINDOW_MS - elapsed) / 1000) };
-  }
-
-  return { blocked: false, count: data.attempt_count };
-}
-
-async function incrementAttempts(supabaseClient: SupabaseClient, ip: string) {
-  const { data } = await supabaseClient
-    .from('login_attempts')
-    .select('attempt_count')
-    .eq('ip_address', ip)
-    .single();
-
-  const now = new Date().toISOString();
-
-  if (!data) {
-    await supabaseClient.from('login_attempts').insert({
-      ip_address: ip,
-      attempt_count: 1,
-      first_attempt_at: now,
-      last_attempt_at: now,
-    });
-    return 1;
-  }
-
-  const { error } = await supabaseClient
-    .from('login_attempts')
-    .update({ attempt_count: data.attempt_count + 1, last_attempt_at: now })
-    .eq('ip_address', ip);
-
-  if (error) {
-    if (process.env.NODE_ENV !== 'production') console.error('Rate limit increment failed:', error.message);
-  }
-
-  return data.attempt_count + 1;
-}
-
-async function clearAttempts(supabaseClient: SupabaseClient, ip: string) {
-  await supabaseClient.from('login_attempts').delete().eq('ip_address', ip);
-}
+const LOGIN_RATE_LIMIT: RateLimitConfig = {
+  table: 'login_attempts',
+  countColumn: 'attempt_count',
+  lastColumn: 'last_attempt_at',
+  firstColumn: 'first_attempt_at',
+  maxAttempts: 5,
+  windowMs: 60_000,
+};
 
 export async function GET(request: NextRequest) {
   const ip = getClientIp(request);
   const supabaseClient = createSupabaseAdminClient()
 
-  const rateLimit = await checkRateLimit(supabaseClient, ip);
+  const rateLimit = await checkRateLimit(supabaseClient, ip, LOGIN_RATE_LIMIT);
   if (rateLimit.blocked) {
     return NextResponse.json({ blocked: true, cooldown: rateLimit.cooldown });
   }
@@ -88,7 +38,7 @@ export async function POST(request: NextRequest) {
 
 
   // Check rate limit first
-  const rateLimit = await checkRateLimit(supabaseClient, ip);
+  const rateLimit = await checkRateLimit(supabaseClient, ip, LOGIN_RATE_LIMIT);
   if (rateLimit.blocked) {
     return NextResponse.json({
       blocked: true,
@@ -117,7 +67,12 @@ export async function POST(request: NextRequest) {
   });
 
   if (loginError || !user) {
-    const attempts = await incrementAttempts(supabaseClient, ip);
+    const attempts = await incrementRateLimit(supabaseClient, ip, LOGIN_RATE_LIMIT);
+    await supabaseClient.from('admin_audit_log').insert({
+      admin_email: email,
+      action: 'login_failed',
+      details: { ip, reason: loginError?.message || 'User not found' }
+    }).maybeSingle();
     return NextResponse.json({
       error: 'فشل تسجيل الدخول. تحقق من البريد الإلكتروني وكلمة المرور.',
       attempts,
@@ -127,7 +82,12 @@ export async function POST(request: NextRequest) {
   // Verify the authenticated user has the admin role in their app_metadata
   if (user.app_metadata?.role !== 'admin') {
     await supabaseClientWithCookies.auth.signOut();
-    const attempts = await incrementAttempts(supabaseClient, ip);
+    const attempts = await incrementRateLimit(supabaseClient, ip, LOGIN_RATE_LIMIT);
+    await supabaseClient.from('admin_audit_log').insert({
+      admin_email: user.email,
+      action: 'login_failed',
+      details: { ip, reason: 'User is not admin' }
+    }).maybeSingle();
     return NextResponse.json({
       error: 'فشل تسجيل الدخول. تحقق من البريد الإلكتروني وكلمة المرور.',
       attempts,
@@ -135,7 +95,15 @@ export async function POST(request: NextRequest) {
   }
 
   // Successful login, clear rate limit entries
-  await clearAttempts(supabaseClient, ip);
+  await clearRateLimit(supabaseClient, ip, LOGIN_RATE_LIMIT);
+
+  // Server-Side Audit Log
+  await supabaseClient.from('admin_audit_log').insert({
+    admin_id: user.id,
+    admin_email: user.email,
+    action: 'login',
+    details: { ip }
+  }).maybeSingle();
 
   // Return success response. Note: createServerClient writes directly to the cookies via the proxy setters.
   return NextResponse.json({ success: true, user });

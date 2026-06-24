@@ -1,32 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createSupabaseAdminClient } from '@/lib/supabase-server'
 import { validateRequestOrigin } from '@/lib/csrf'
-
-function isAllowedMime(mime: string): boolean {
-  return ['image/jpeg', 'image/png', 'image/webp'].includes(mime)
-}
-
-function validateMagicBytes(buffer: Uint8Array, mime: string): boolean {
-  const header = Array.from(buffer.slice(0, 12))
-    .map((b) => b.toString(16).padStart(2, '0'))
-    .join(' ')
-
-  switch (mime) {
-    case 'image/jpeg':
-      return header.startsWith('ff d8 ff')
-    case 'image/png':
-      return header.startsWith('89 50 4e 47')
-    case 'image/webp': {
-      if (!header.startsWith('52 49 46 46')) return false
-      const webpHeader = Array.from(buffer.slice(8, 12))
-        .map((b) => String.fromCharCode(b))
-        .join('')
-      return webpHeader === 'WEBP'
-    }
-    default:
-      return false
-  }
-}
+import { detectImageMimeType } from '@/lib/magic-bytes'
 
 export async function POST(request: NextRequest) {
   if (!validateRequestOrigin(request)) {
@@ -47,11 +22,6 @@ export async function POST(request: NextRequest) {
   const match = body.file.match(/^data:(image\/\w+);base64,(.+)$/)
   if (!match) {
     return NextResponse.json({ error: 'تنسيق الملف غير صالح.' }, { status: 400 })
-  }
-
-  const mime = match[1]
-  if (!isAllowedMime(mime)) {
-    return NextResponse.json({ error: 'نوع الملف غير مدعوم. الأنواع المسموحة: JPG, PNG, WEBP.' }, { status: 400 })
   }
 
   let rawBase64: string
@@ -76,11 +46,17 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'حجم الملف كبير جداً. الحد الأقصى 5 ميجابايت.' }, { status: 400 })
   }
 
-  if (!validateMagicBytes(fileBuffer, mime)) {
-    return NextResponse.json({ error: 'الملف لا يبدو صورة صالحة. تم رفض الرفع.' }, { status: 400 })
+  const detectedType = detectImageMimeType(fileBuffer)
+  if (!detectedType) {
+    return NextResponse.json({ error: 'الملف لا يبدو صورة صالحة. الأنواع المسموحة: JPG, PNG, WEBP.' }, { status: 400 })
   }
 
-  const ext = mime.split('/')[1]
+  const clientMime = match[1]
+  if (clientMime !== detectedType) {
+    return NextResponse.json({ error: 'نوع الملف المذكور لا يتطابق مع المحتوى الفعلي.' }, { status: 400 })
+  }
+
+  const [_, ext] = detectedType.split('/')
   const random = Array.from(crypto.getRandomValues(new Uint8Array(16)), (b) => b.toString(36).charAt(0)).join('')
   const fileName = `receipt-${random}.${ext}`
 
@@ -89,8 +65,8 @@ export async function POST(request: NextRequest) {
   const { error: uploadError } = await supabaseClient.storage
     .from('instapay-receipts')
     .upload(fileName, fileBuffer, {
-      contentType: mime,
-      metadata: { mimetype: mime },
+      contentType: detectedType,
+      metadata: { mimetype: detectedType },
     })
 
   if (uploadError) {

@@ -168,10 +168,6 @@ async function clearBucket(bucketName: string): Promise<void> {
   }
 }
 
-export async function clearAllReceipts(): Promise<void> {
-  await clearBucket('instapay-receipts');
-}
-
 export async function clearAllProductImages(): Promise<void> {
   await clearBucket('product-images');
 }

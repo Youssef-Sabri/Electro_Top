@@ -1,56 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createSupabaseAdminClient } from '@/lib/supabase-server'
-import type { SupabaseClient } from '@supabase/supabase-js'
 import { validateRequestOrigin } from '@/lib/csrf'
 import { checkoutSchema } from '@/lib/validators'
 import { generateOrderId } from '@/lib/id-generator'
 import { getClientIp } from '@/lib/ip-utils'
+import { checkAndIncrementRateLimit } from '@/lib/rate-limit'
+import type { RateLimitConfig } from '@/lib/rate-limit'
 
-async function checkIpRateLimit(adminClient: SupabaseClient, ip: string): Promise<{ blocked: boolean; cooldown?: number }> {
-  const WINDOW_MS = 60_000
-  const MAX_ORDERS_PER_IP = 5
-  
-  const { data } = await adminClient
-    .from('order_rate_limits')
-    .select('request_count, last_request_at')
-    .eq('ip_address', ip)
-    .single();
-
-  const now = new Date();
-  
-  if (!data) {
-    await adminClient.from('order_rate_limits').upsert({
-      ip_address: ip,
-      request_count: 1,
-      first_request_at: now.toISOString(),
-      last_request_at: now.toISOString(),
-    }, { onConflict: 'ip_address' });
-    return { blocked: false };
-  }
-
-  const elapsed = Date.now() - new Date(data.last_request_at).getTime();
-  if (elapsed > WINDOW_MS) {
-    await adminClient.from('order_rate_limits').upsert({
-      ip_address: ip,
-      request_count: 1,
-      first_request_at: now.toISOString(),
-      last_request_at: now.toISOString(),
-    }, { onConflict: 'ip_address' });
-    return { blocked: false };
-  }
-
-  if (data.request_count >= MAX_ORDERS_PER_IP) {
-    const cooldown = Math.ceil((WINDOW_MS - elapsed) / 1000);
-    return { blocked: true, cooldown };
-  }
-
-  await adminClient
-    .from('order_rate_limits')
-    .update({ request_count: data.request_count + 1, last_request_at: now.toISOString() })
-    .eq('ip_address', ip);
-
-  return { blocked: false };
-}
+const ORDER_RATE_LIMIT: RateLimitConfig = {
+  table: 'order_rate_limits',
+  countColumn: 'request_count',
+  lastColumn: 'last_request_at',
+  firstColumn: 'first_request_at',
+  maxAttempts: 5,
+  windowMs: 60_000,
+};
 
 export async function POST(request: NextRequest) {
   if (!validateRequestOrigin(request)) {
@@ -59,7 +23,7 @@ export async function POST(request: NextRequest) {
 
   const ip = getClientIp(request)
   const adminClient = createSupabaseAdminClient()
-  const rateLimit = await checkIpRateLimit(adminClient, ip)
+  const rateLimit = await checkAndIncrementRateLimit(adminClient, ip, ORDER_RATE_LIMIT)
   if (rateLimit.blocked) {
     return NextResponse.json({
       error: 'محاولات كثيرة جداً. يرجى الانتظار والمحاولة مرة أخرى.',

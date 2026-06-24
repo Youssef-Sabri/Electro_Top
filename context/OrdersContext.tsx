@@ -33,7 +33,6 @@ export interface OrdersContextType {
   clearAllOrders: (password: string) => Promise<void>;
   deleteOrder: (orderId: string) => void;
   refreshOrders: () => Promise<void>;
-  loadAllOrders: () => Promise<void>;
   nextPage: () => void;
   prevPage: () => void;
   goToPage: (n: number) => void;
@@ -127,26 +126,6 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
       setOrders([]);
       setOrderItems([]);
       setStatusHistory([]);
-    }
-  }, []);
-
-  const loadAllOrders = useCallback(async () => {
-    try {
-      const [
-        { data: oData, error: oError },
-        { data: oiData, error: oiError },
-        { data: hData, error: hError },
-      ] = await Promise.all([
-        supabase.from('orders').select('id_unique_tracking, status, customer_name, phone_number, shipping_address, total_amount, created_at, admin_notes, location_link, instapay_screenshot, instapay_phone_number').order('created_at', { ascending: false }),
-        supabase.from('order_items').select('id, order_id, product_id, quantity, unit_price'),
-        supabase.from('order_status_history').select('id, order_id, status, timestamp'),
-      ]);
-
-      setOrders(oData && !oError ? oData : []);
-      setOrderItems(oiData && !oiError ? oiData : []);
-      setStatusHistory(hData && !hError ? hData : []);
-    } catch (error) {
-      if (process.env.NODE_ENV !== 'production') console.error('Failed to load all orders/items/logs from Supabase:', error);
     }
   }, []);
 
@@ -450,7 +429,6 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
       clearAllOrders,
       deleteOrder,
       refreshOrders,
-      loadAllOrders,
       nextPage,
       prevPage,
       goToPage,
@@ -470,7 +448,6 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
       clearAllOrders,
       deleteOrder,
       refreshOrders,
-      loadAllOrders,
       nextPage,
       prevPage,
       goToPage,
