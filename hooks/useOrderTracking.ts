@@ -5,13 +5,10 @@ export function useOrderTracking(id: string | null) {
   const [order, setOrder] = useState<Order | null>(null);
   const [items, setItems] = useState<OrderItem[]>([]);
   const [history, setHistory] = useState<OrderStatusHistory[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(() => !!id);
 
   useEffect(() => {
-    if (!id) {
-      setLoading(false);
-      return;
-    }
+    if (!id) return;
 
     async function fetchOrder() {
       setLoading(true);
