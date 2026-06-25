@@ -9,7 +9,13 @@ export interface RateLimitConfig {
   windowMs: number;
 }
 
-type Row = Record<string, unknown>;
+interface RateLimitRow {
+  [key: string]: unknown;
+  ip_address: string;
+  attempt_count?: number;
+  last_attempt?: string;
+  first_attempt?: string;
+}
 
 interface RateLimitCheck {
   blocked: boolean;
@@ -28,7 +34,7 @@ export async function checkRateLimit(
     .eq('ip_address', ip)
     .single();
 
-  const row = data as unknown as Row | null;
+  const row = data as RateLimitRow | null;
   if (!row) return { blocked: false };
 
   const elapsed = Date.now() - new Date(row[config.lastColumn] as string).getTime();
@@ -58,7 +64,7 @@ export async function incrementRateLimit(
 
   const now = new Date().toISOString();
 
-  const row = data as unknown as Row | null;
+  const row = data as RateLimitRow | null;
   if (!row) {
     await client.from(config.table).insert({
       ip_address: ip,

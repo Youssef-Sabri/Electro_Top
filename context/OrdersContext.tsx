@@ -273,6 +273,14 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
       }
     });
 
+    // Immediately subscribe if a session already exists (fix: realtime not starting without refresh)
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        loadData(0);
+        subscribe(session);
+      }
+    });
+
     const handleVisibility = async () => {
       if (document.visibilityState === 'visible') {
         const { data: { session } } = await supabase.auth.getSession();

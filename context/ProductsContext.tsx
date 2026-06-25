@@ -60,7 +60,7 @@ export function ProductsProvider({ children }: { children: ReactNode }) {
         { data: prodData, error: prodError },
       ] = await Promise.all([
         supabase.from('categories').select('name').order('name'),
-        supabase.from('products').select(PRODUCT_SELECT_FIELDS).order('created_at'),
+        supabase.from('products').select(PRODUCT_SELECT_FIELDS).eq('is_active', true).order('created_at'),
       ]);
 
       if (!catError && catData) {
@@ -87,15 +87,40 @@ export function ProductsProvider({ children }: { children: ReactNode }) {
   }, [loadData]);
 
   useEffect(() => {
+    const POLL_INTERVAL_MS = 30000;
+    let pollTimer: ReturnType<typeof setInterval> | null = null;
+
+    const startPolling = () => {
+      if (pollTimer) return;
+      pollTimer = setInterval(() => loadData(true), POLL_INTERVAL_MS);
+    };
+
+    const stopPolling = () => {
+      if (pollTimer) {
+        clearInterval(pollTimer);
+        pollTimer = null;
+      }
+    };
+
     const handleVisibility = () => {
       if (document.visibilityState === 'visible') {
         loadData(true);
+        startPolling();
+      } else {
+        stopPolling();
       }
     };
+
+    // Start polling immediately if tab is visible
+    if (document.visibilityState === 'visible') {
+      startPolling();
+    }
+
     document.addEventListener('visibilitychange', handleVisibility);
 
     return () => {
       document.removeEventListener('visibilitychange', handleVisibility);
+      stopPolling();
     };
   }, [loadData]);
 
@@ -151,6 +176,8 @@ export function ProductsProvider({ children }: { children: ReactNode }) {
       }
     }
 
+    // Products WebSocket is admin-only (gated by session) to avoid one WebSocket per visitor.
+    // For customers, the visibilitychange handler below refreshes products on tab switch.
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       if (session) {
         await subscribe(session);
@@ -159,11 +186,24 @@ export function ProductsProvider({ children }: { children: ReactNode }) {
       }
     });
 
+    // Immediately subscribe if a session already exists
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        hasFetchedRef.current = false;
+        loadData(true);
+        subscribe(session);
+      }
+    });
+
     const handleVisibility = async () => {
       if (document.visibilityState === 'visible') {
         const { data: { session } } = await supabase.auth.getSession();
         if (session) {
           await subscribe(session);
+          hasFetchedRef.current = false;
+          loadData(true);
+        } else {
+          // Anonymous visitors refresh data on tab focus instead of a persistent WebSocket
           hasFetchedRef.current = false;
           loadData(true);
         }

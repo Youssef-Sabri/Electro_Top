@@ -137,10 +137,12 @@ export async function PATCH(
   }
 
   if ('admin_notes' in body) {
-    const notes = body.admin_notes
+    let notes = body.admin_notes
     if (typeof notes !== 'string' || notes.length > 2000) {
       return NextResponse.json({ error: 'Admin notes must be a string up to 2000 characters' }, { status: 400 })
     }
+    // Strip HTML tags to prevent XSS if notes are ever rendered in customer-facing pages
+    notes = notes.replace(/<[^>]*>/g, '')
     updates.admin_notes = notes
   }
 

@@ -1,7 +1,6 @@
 'use client';
 
 import { memo, useState, useEffect, useRef } from 'react';
-import { verifyAdminPassword } from '@/lib/verify-admin';
 
 interface PasswordConfirmModalProps {
   isOpen: boolean;
@@ -50,12 +49,12 @@ export const PasswordConfirmModal = memo(function PasswordConfirmModal({
     setError('');
 
     try {
-      const valid = await verifyAdminPassword(password);
-      if (!valid) {
-        setError('كلمة المرور غير صحيحة.');
-        setIsVerifying(false);
-        return;
-      }
+      const res = await fetch('/api/admin/verify-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password }),
+      });
+      if (!res.ok) throw new Error('كلمة المرور غير صحيحة.');
       await onConfirm(password);
     } catch {
       setError('حدث خطأ أثناء التحقق. يرجى المحاولة مرة أخرى.');

@@ -13,17 +13,10 @@ function getExpectedHost(): string | null {
 }
 
 function generateNonce(): string {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
-  let result = ''
-  const array = new Uint8Array(1)
-  const limit = 256 - (256 % chars.length)
-  while (result.length < 16) {
-    crypto.getRandomValues(array)
-    if (array[0] < limit) {
-      result += chars[array[0] % chars.length]
-    }
-  }
-  return result
+  const array = new Uint8Array(16)
+  crypto.getRandomValues(array)
+  return btoa(String.fromCharCode(...array))
+    .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
 }
 
 function buildCsp(nonce: string, supabaseHost: string, _isAdminRoute: boolean): string {

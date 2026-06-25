@@ -5,7 +5,6 @@ import { headers } from 'next/headers';
 import './globals.css';
 import { CartProvider } from '@/context/CartContext';
 import { ProductsProvider } from '@/context/ProductsContext';
-import { OrdersProvider } from '@/context/OrdersContext';
 import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
 
 
@@ -74,18 +73,16 @@ export default async function RootLayout({
                 '@type': 'OfferCatalog',
                 name: 'المستلزمات الكهربائية',
               },
-            }),
+            }).replace(/</g, '\\u003c'),
           }}
         />
       </head>
       <body className="min-h-full bg-background text-on-surface font-body-md flex flex-col">
         <ErrorBoundary>
           <ProductsProvider>
-            <OrdersProvider>
-              <CartProvider>
+            <CartProvider>
                 {children}
               </CartProvider>
-            </OrdersProvider>
           </ProductsProvider>
         </ErrorBoundary>
       </body>

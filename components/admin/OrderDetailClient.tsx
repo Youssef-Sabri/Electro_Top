@@ -63,7 +63,7 @@ export const OrderDetailClient = memo(function OrderDetailClient({ id }: OrderDe
       return;
     }
 
-    const isValidFilename = /^receipt-[a-z0-9]+\.(jpg|jpeg|png|webp)$/i.test(screenshot);
+    const isValidFilename = /^receipt-[a-z0-9]+\.(jpg|jpeg|png|webp|heic|heif|gif)$/i.test(screenshot);
     if (!isValidFilename) {
       setSignedScreenshotUrl(null);
       return;
@@ -161,7 +161,7 @@ export const OrderDetailClient = memo(function OrderDetailClient({ id }: OrderDe
       return;
     }
 
-    const isValidFilename = /^receipt-[a-z0-9]+\.(jpg|jpeg|png|webp)$/i.test(screenshot);
+    const isValidFilename = /^receipt-[a-z0-9]+\.(jpg|jpeg|png|webp|heic|heif|gif)$/i.test(screenshot);
     if (!isValidFilename) return;
 
     try {

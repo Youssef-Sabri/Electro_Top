@@ -2,10 +2,25 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createSupabaseAdminClient } from '@/lib/supabase-server'
 import { validateRequestOrigin } from '@/lib/csrf'
 import { detectImageMimeType } from '@/lib/magic-bytes'
+import { checkAndIncrementRateLimit } from '@/lib/rate-limit'
+import { getClientIp } from '@/lib/ip-utils'
 
 export async function POST(request: NextRequest) {
   if (!validateRequestOrigin(request)) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  }
+
+  const ip = getClientIp(request)
+  const rateCheck = await checkAndIncrementRateLimit(createSupabaseAdminClient(), ip, {
+    table: 'order_rate_limits',
+    countColumn: 'attempt_count',
+    lastColumn: 'last_attempt',
+    firstColumn: 'first_attempt',
+    maxAttempts: 3,
+    windowMs: 60000,
+  })
+  if (rateCheck.blocked) {
+    return NextResponse.json({ error: `محاولات كثيرة جداً. يرجى الانتظار ${rateCheck.cooldown} ثانية.` }, { status: 429 })
   }
 
   let body: { file?: string; filename?: string }
@@ -48,7 +63,7 @@ export async function POST(request: NextRequest) {
 
   const detectedType = detectImageMimeType(fileBuffer)
   if (!detectedType) {
-    return NextResponse.json({ error: 'الملف لا يبدو صورة صالحة. الأنواع المسموحة: JPG, PNG, WEBP.' }, { status: 400 })
+    return NextResponse.json({ error: 'الملف لا يبدو صورة صالحة. الأنواع المسموحة: JPG, PNG, WEBP, HEIC, GIF.' }, { status: 400 })
   }
 
   const clientMime = match[1]
