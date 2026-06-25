@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -10,7 +10,7 @@ import { StatusTimeline } from '@/components/tracking/StatusTimeline';
 import { formatCurrency } from '@/lib/format-currency';
 import { formatOrderDate } from '@/lib/date-utils';
 import { getSafeUrl } from '@/lib/safe-url';
-import type { Order, OrderItem, OrderStatusHistory } from '@/types';
+
 import { translateStatus, publicStatus } from '@/lib/status-utils';
 
 interface TrackingDetailClientProps {

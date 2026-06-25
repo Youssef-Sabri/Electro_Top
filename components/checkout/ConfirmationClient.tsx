@@ -8,7 +8,7 @@ import { useProducts } from '@/hooks/useProducts';
 import { formatCurrency } from '@/lib/format-currency';
 import { getSafeUrl } from '@/lib/safe-url';
 import { formatOrderDate, formatOrderTimestamp } from '@/lib/date-utils';
-import type { Order, OrderItem } from '@/types';
+
 
 export function ConfirmationClient() {
   const searchParams = useSearchParams();
