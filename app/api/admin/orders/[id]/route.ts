@@ -87,7 +87,6 @@ export async function DELETE(
     return NextResponse.json({ error: 'فشل حذف الطلب. يرجى المحاولة مرة أخرى.' }, { status: 500 })
   }
 
-  // Delete Instapay receipt image from storage server-side
   if (orderData?.instapay_screenshot) {
     const fileName = orderData.instapay_screenshot.includes('/')
       ? extractFileName(orderData.instapay_screenshot)

@@ -4,6 +4,7 @@ import { createSupabaseAdminClient } from '@/lib/supabase-server'
 import { validateRequestOrigin } from '@/lib/csrf'
 import { requireAdmin } from '@/lib/api-auth'
 import { verifyAdminPassword } from '@/lib/verify-admin-server'
+import { clearStorageBucket } from '@/lib/file-utils'
 
 export async function DELETE(request: Request) {
   if (!validateRequestOrigin(request)) {
@@ -32,24 +33,7 @@ export async function DELETE(request: Request) {
 
   // Delete all receipt files from storage before clearing DB records (including orphaned files)
   const adminClient = createSupabaseAdminClient()
-  let allFiles: { name: string }[] = []
-  let offset = 0
-  const LIMIT = 100
-  while (true) {
-    const { data: files, error: listError } = await adminClient.storage
-      .from('instapay-receipts')
-      .list(undefined, { limit: LIMIT, offset })
-
-    if (listError || !files || files.length === 0) break
-    allFiles = allFiles.concat(files)
-    if (files.length < LIMIT) break
-    offset += LIMIT
-  }
-
-  if (allFiles.length > 0) {
-    const fileNames = allFiles.map((f) => f.name)
-    await adminClient.storage.from('instapay-receipts').remove(fileNames)
-  }
+  await clearStorageBucket(adminClient, 'instapay-receipts')
 
   const { error: itemsError } = await supabaseClient.from('order_items').delete().neq('id', '')
   if (itemsError) {

@@ -12,9 +12,6 @@ export interface RateLimitConfig {
 interface RateLimitRow {
   [key: string]: unknown;
   ip_address: string;
-  attempt_count?: number;
-  last_attempt?: string;
-  first_attempt?: string;
 }
 
 interface RateLimitCheck {

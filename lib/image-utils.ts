@@ -1,6 +1,6 @@
 import { supabase } from '@/lib/supabase';
 import { isAllowedImageType } from '@/lib/magic-bytes';
-import { readFileAsDataURL } from '@/lib/file-utils';
+import { readFileAsDataURL, clearStorageBucket } from '@/lib/file-utils';
 
 interface ImageProcessResult {
   dataUrl: string;
@@ -115,41 +115,6 @@ export async function deleteProductImage(imageUrl: string): Promise<void> {
   await deleteStorageImage('product-images', imageUrl);
 }
 
-const STORAGE_LIST_LIMIT = 100;
-
-async function clearBucket(bucketName: string): Promise<void> {
-  try {
-    let allFiles: { name: string }[] = [];
-    let offset = 0;
-
-    while (true) {
-      const { data: files, error: listError } = await supabase.storage
-        .from(bucketName)
-        .list(undefined, { limit: STORAGE_LIST_LIMIT, offset });
-
-      if (listError) {
-        if (process.env.NODE_ENV !== 'production') console.error(`Failed to list files in '${bucketName}':`, listError.message);
-        return;
-      }
-
-      if (!files || files.length === 0) break;
-      allFiles = allFiles.concat(files);
-      if (files.length < STORAGE_LIST_LIMIT) break;
-      offset += STORAGE_LIST_LIMIT;
-    }
-
-    if (allFiles.length > 0) {
-      const fileNames = allFiles.map((file) => file.name);
-      const { error: removeError } = await supabase.storage.from(bucketName).remove(fileNames);
-      if (removeError) {
-        if (process.env.NODE_ENV !== 'production') console.error(`Failed to delete files from '${bucketName}':`, removeError.message);
-      }
-    }
-  } catch (err) {
-    if (process.env.NODE_ENV !== 'production') console.error(`Error clearing bucket '${bucketName}':`, err);
-  }
-}
-
 export async function clearAllProductImages(): Promise<void> {
-  await clearBucket('product-images');
+  await clearStorageBucket(supabase, 'product-images');
 }

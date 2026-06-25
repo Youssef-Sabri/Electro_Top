@@ -32,7 +32,7 @@ The platform includes a comprehensive **admin dashboard** for inventory manageme
 - **Shopping cart** — `localStorage`-persisted with real-time stock-aware quantity limits and price reconciliation
 - **InstaPay payments** — Upload receipt screenshot with client-side Canvas API compression
 - **Order tracking** — Real-time status timeline with itemized invoice
-- **Product catalog** — Server-rendered (ISR), filterable by category, with search/sort, and 30s client-side auto-polling
+- **Product catalog** — Server-rendered (ISR, 60s revalidation), filterable by category, with search/sort, and real-time stock updates via Supabase Realtime subscriptions
 - **Arabic RTL** — Full right-to-left layout with Cairo & Tajawal typography
 
 ### Admin Dashboard
@@ -71,23 +71,23 @@ The platform includes a comprehensive **admin dashboard** for inventory manageme
 ## Project Structure
 
 ```
-├── proxy.ts                 # Next.js middleware
-├── app/                     # App Router pages, layouts, API routes
-│   ├── (store)/             # Public: home, shop, cart, checkout, track, support
-│   ├── admin/               # Admin: dashboard, orders, inventory
-│   └── api/                 # API routes (orders, products, upload, admin)
-├── components/              # React components organized by domain
-│   ├── ui/                  # Reusable: ConfirmationModal, Spinner, Toast, etc.
-│   ├── admin/               # DashboardClient, InventoryClient, OrdersLedger
-│   ├── cart/                # CartClient, CartItem
-│   ├── catalog/             # LandingPage, ProductCard, ShopPageContent
-│   ├── checkout/            # CheckoutForm, ConfirmationClient
-│   ├── layout/              # Navbar, Footer, CartReconciler
-│   └── tracking/            # TrackingSearch, TrackingDetailClient, StatusTimeline
-├── context/                 # CartContext, OrdersContext, ProductsContext
-├── hooks/                   # useCart, useOrders, useProducts, usePagination
-├── lib/                     # Supabase clients, Zod validators, utility functions
-└── types/                   # Shared TypeScript interfaces (Product, Order, etc.)
+proxy.ts                     # Next.js middleware (CSP, CSRF, admin route guard)
+app/                         # App Router pages, layouts, API routes
+├── (store)/                 # Public: home, shop, cart, checkout, track, support
+├── admin/                   # Admin: dashboard, orders, inventory
+└── api/                     # API routes (orders, products, upload, admin)
+components/                  # React components organized by domain
+├── ui/                      # Reusable: ConfirmationModal, Spinner, Toast, etc.
+├── admin/                   # DashboardClient, InventoryClient, OrdersLedger
+├── cart/                    # CartClient, CartItem
+├── catalog/                 # LandingPage, ProductCard, ShopPageContent
+├── checkout/                # CheckoutForm, ConfirmationClient
+├── layout/                  # Navbar, Footer, CartReconciler
+└── tracking/                # TrackingSearch, TrackingDetailClient, StatusTimeline
+context/                     # CartContext, OrdersContext, ProductsContext
+hooks/                       # useCart, useOrders, useProducts, usePagination
+lib/                         # Supabase clients, Zod validators, utility functions
+types/                       # Shared TypeScript interfaces (Product, Order, etc.)
 ```
 
 ---
@@ -155,7 +155,7 @@ All configuration is managed through environment variables:
 
 ## Admin Panel
 
-Accessible at `/admin`. Authentication is handled by Supabase Auth (email/password). Only users with `app_metadata.role === "admin"` are granted access. The session is verified on every request via middleware and the `/api/admin/verify` endpoint. Inactivity beyond 55 minutes triggers automatic logout.
+Accessible at `/admin`. Authentication is handled by Supabase Auth (email/password). Only users with `app_metadata.role === "admin"` are granted access. The session is verified on every request via the `proxy.ts` middleware guard which runs on all `/admin` routes. Inactivity beyond 55 minutes triggers automatic logout.
 
 ---
 

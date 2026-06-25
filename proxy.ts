@@ -49,9 +49,6 @@ export async function proxy(request: NextRequest) {
   const supabaseHost = getSupabaseHostname()
   const nonce = generateNonce()
 
-  // Host header validation — prevents DNS rebinding and host-poisoning attacks.
-  // Uses NEXT_PUBLIC_SITE_URL as the single source of truth for the expected host.
-  // Also allows Vercel preview deployments (VERCEL_URL is set automatically by Vercel).
   if (process.env.NODE_ENV === 'production') {
     const requestHost = request.headers.get('host') || '';
     const expectedHost = getExpectedHost();
