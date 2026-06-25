@@ -40,8 +40,7 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-/ProjectMD-files
-/.opencode
+setup.html
 # IDEs and editors
 .vscode/
 .idea/
