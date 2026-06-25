@@ -3,19 +3,14 @@
 import { createContext, useState, useEffect, useMemo, useCallback, useRef, ReactNode } from 'react';
 import type { Order, OrderItem, OrderStatusHistory, OrderStatus, CartItem } from '@/types';
 import type { CheckoutFormData } from '@/lib/validators';
+import type { Session } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
-import { ORDER_SELECT_FIELDS, ORDER_ITEM_SELECT_FIELDS, STATUS_HISTORY_SELECT_FIELDS } from '@/lib/db-constants';
+import { ORDER_SELECT_FIELDS, ORDER_ITEM_SELECT_FIELDS, STATUS_HISTORY_SELECT_FIELDS, VALID_ORDER_STATUSES, ADMIN_NOTES_MAX_LENGTH } from '@/lib/db-constants';
 import { now } from '@/lib/date-utils';
-
-const VALID_ORDER_STATUSES: readonly OrderStatus[] = [
-  'Pending Review', 'Accepted', 'Processing', 'Delivered', 'Declined', 'Check Internal Note',
-] as const;
 
 function isValidOrderStatus(value: string): value is OrderStatus {
   return (VALID_ORDER_STATUSES as readonly string[]).includes(value);
 }
-
-const ADMIN_NOTES_MAX_LENGTH = 2000;
 
 const PAGE_SIZE = 50;
 
@@ -155,7 +150,7 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     let channel: ReturnType<typeof supabase.channel> | null = null;
 
-    async function subscribe(session: unknown) {
+    async function subscribe(session: Session) {
       if (channel || !session) return;
 
       channel = supabase

@@ -9,3 +9,7 @@ export function readFileAsDataURL(file: File): Promise<string> {
     reader.readAsDataURL(file)
   })
 }
+
+export function extractFileName(filePath: string): string | undefined {
+  return filePath.split('/').pop()?.split('?')[0]
+}

@@ -4,10 +4,8 @@ import { createSupabaseAdminClient } from '@/lib/supabase-server'
 import { validateRequestOrigin } from '@/lib/csrf'
 import { requireAdmin } from '@/lib/api-auth'
 import { now } from '@/lib/date-utils'
-
-const VALID_ORDER_STATUSES = [
-  'Pending Review', 'Accepted', 'Processing', 'Delivered', 'Declined', 'Check Internal Note',
-] as const
+import { VALID_ORDER_STATUSES, ADMIN_NOTES_MAX_LENGTH } from '@/lib/db-constants'
+import { extractFileName } from '@/lib/file-utils'
 
 export async function GET(
   request: Request,
@@ -92,7 +90,7 @@ export async function DELETE(
   // Delete Instapay receipt image from storage server-side
   if (orderData?.instapay_screenshot) {
     const fileName = orderData.instapay_screenshot.includes('/')
-      ? orderData.instapay_screenshot.split('/').pop()?.split('?')[0]
+      ? extractFileName(orderData.instapay_screenshot)
       : orderData.instapay_screenshot;
     if (fileName) {
       const adminClient = createSupabaseAdminClient()
@@ -138,8 +136,8 @@ export async function PATCH(
 
   if ('admin_notes' in body) {
     let notes = body.admin_notes
-    if (typeof notes !== 'string' || notes.length > 2000) {
-      return NextResponse.json({ error: 'Admin notes must be a string up to 2000 characters' }, { status: 400 })
+    if (typeof notes !== 'string' || notes.length > ADMIN_NOTES_MAX_LENGTH) {
+      return NextResponse.json({ error: `Admin notes must be a string up to ${ADMIN_NOTES_MAX_LENGTH} characters` }, { status: 400 })
     }
     // Strip HTML tags to prevent XSS if notes are ever rendered in customer-facing pages
     notes = notes.replace(/<[^>]*>/g, '')

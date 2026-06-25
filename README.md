@@ -31,8 +31,8 @@ The platform includes a comprehensive **admin dashboard** for inventory manageme
 - **Guest checkout** — No registration. Orders tracked via unique `ET-XXXXXXXXXX` alphanumeric ID
 - **Shopping cart** — `localStorage`-persisted with real-time stock-aware quantity limits and price reconciliation
 - **InstaPay payments** — Upload receipt screenshot with client-side Canvas API compression
-- **Order tracking** — Real-time status timeline with itemized invoice and 20s auto-polling
-- **Product catalog** — Server-rendered (ISR), filterable by category, with search and sort
+- **Order tracking** — Real-time status timeline with itemized invoice
+- **Product catalog** — Server-rendered (ISR), filterable by category, with search/sort, and 30s client-side auto-polling
 - **Arabic RTL** — Full right-to-left layout with Cairo & Tajawal typography
 
 ### Admin Dashboard

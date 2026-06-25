@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { createSupabaseServerClient } from '@/lib/supabase-server'
+import { getSupabaseHostname } from '@/lib/supabase-url'
 
 function getExpectedHost(): string | null {
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL
@@ -45,12 +46,7 @@ export async function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname
   const isAdminRoute = pathname.startsWith('/admin') || pathname.startsWith('/api/admin')
 
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
-  let supabaseHost = '*.supabase.co'
-  try {
-    supabaseHost = new URL(supabaseUrl).hostname
-  } catch {}
-
+  const supabaseHost = getSupabaseHostname()
   const nonce = generateNonce()
 
   // Host header validation — prevents DNS rebinding and host-poisoning attacks.

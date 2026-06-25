@@ -1,16 +1,9 @@
 import type { NextConfig } from "next";
 
 const isDev = process.env.NODE_ENV === 'development';
+import { getSupabaseHostname } from '@/lib/supabase-url';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-let supabaseHost = '*.supabase.co';
-if (supabaseUrl) {
-  try {
-    supabaseHost = new URL(supabaseUrl).hostname;
-  } catch {
-    // Fallback
-  }
-}
+const supabaseHost = getSupabaseHostname();
 
 const nextConfig: NextConfig = {
   ...(isDev && {

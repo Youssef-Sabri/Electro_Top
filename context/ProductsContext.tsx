@@ -3,6 +3,7 @@
 import { createContext, useState, useEffect, useMemo, useCallback, useRef, ReactNode } from 'react';
 import { z } from 'zod';
 import type { Product } from '@/types';
+import type { Session } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
 
 import { PRODUCT_SELECT_FIELDS } from '@/lib/db-constants';
@@ -127,7 +128,7 @@ export function ProductsProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     let channel: ReturnType<typeof supabase.channel> | null = null;
 
-    async function subscribe(session: unknown) {
+    async function subscribe(session: Session) {
       if (channel || !session) return;
 
       channel = supabase

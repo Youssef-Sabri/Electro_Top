@@ -4,6 +4,7 @@ import { createSupabaseAdminClient } from '@/lib/supabase-server'
 import { validateRequestOrigin } from '@/lib/csrf'
 import { productFormSchema } from '@/lib/validators'
 import { requireAdmin } from '@/lib/api-auth'
+import { extractFileName } from '@/lib/file-utils'
 
 const ALLOWED_UPDATE_FIELDS = ['name', 'description', 'price', 'stock', 'image_url', 'is_active', 'category'] as const
 
@@ -67,7 +68,7 @@ export async function PATCH(
   // Delete old image if new image was successfully updated in DB
   if (oldImageUrl && oldImageUrl !== validation.data.image_url) {
     const fileName = oldImageUrl.includes('/')
-      ? oldImageUrl.split('/').pop()?.split('?')[0]
+      ? extractFileName(oldImageUrl)
       : oldImageUrl;
     if (fileName) {
       const adminClient = createSupabaseAdminClient()
@@ -117,7 +118,7 @@ export async function DELETE(
   // Delete product image from storage server-side
   if (productData?.image_url) {
     const fileName = productData.image_url.includes('/')
-      ? productData.image_url.split('/').pop()?.split('?')[0]
+      ? extractFileName(productData.image_url)
       : productData.image_url;
     if (fileName) {
       const adminClient = createSupabaseAdminClient()
