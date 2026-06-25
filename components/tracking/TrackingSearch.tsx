@@ -34,7 +34,7 @@ export const TrackingSearch = memo(function TrackingSearch() {
            <img
              alt="شعار إلكترو توب"
              className="h-12 md:h-16 w-auto object-contain mix-blend-multiply"
-             src="/logo.jpg"
+             src="/logo.png"
              width="64"
              height="64"
              style={{ width: 'auto' }}

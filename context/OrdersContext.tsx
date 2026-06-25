@@ -149,13 +149,16 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     let channel: ReturnType<typeof supabase.channel> | null = null;
+    let subscribing = false;
 
     async function subscribe(session: Session) {
-      if (channel || !session) return;
+      if (channel || subscribing || !session) return;
+      subscribing = true;
+      try {
+        const newChannel = supabase.channel('orders-realtime');
 
-      channel = supabase
-        .channel('orders-realtime')
-        .on(
+        newChannel
+          .on(
           'postgres_changes',
           { event: 'INSERT', schema: 'public', table: 'orders' },
           (payload) => {
@@ -244,9 +247,13 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
             setStatusHistory((prev) => prev.filter((h) => h.id !== deletedId));
           }
         )
-        .subscribe((status) => {
+        channel = newChannel;
+        newChannel.subscribe((status) => {
           if (process.env.NODE_ENV !== 'production') console.log('Supabase Realtime orders channel status:', status);
         });
+      } finally {
+        subscribing = false;
+      }
     }
 
     function unsubscribe() {
@@ -268,13 +275,7 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
       }
     });
 
-    // Immediately subscribe if a session already exists (fix: realtime not starting without refresh)
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
-        loadData(0);
-        subscribe(session);
-      }
-    });
+    // onAuthStateChange automatically fires with initial session on mount, no redundant call needed.
 
     const handleVisibility = async () => {
       if (document.visibilityState === 'visible') {

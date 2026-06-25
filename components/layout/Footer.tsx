@@ -16,7 +16,7 @@ export const Footer = memo(function Footer() {
                <img
                  alt="شعار إلكترو توب"
                  className="h-8 w-auto"
-                 src="/logo.jpg"
+                 src="/logo.png"
                  width="32"
                  height="32"
                  style={{ width: 'auto' }}
