@@ -1,6 +1,6 @@
 import type { OrderStatus } from '@/types'
 
-export const STATUS_LABELS: Record<OrderStatus, string> = {
+const STATUS_LABELS: Record<OrderStatus, string> = {
   'Pending Review': 'قيد المراجعة',
   'Accepted': 'مقبول',
   'Processing': 'قيد التحضير',
@@ -9,7 +9,7 @@ export const STATUS_LABELS: Record<OrderStatus, string> = {
   'Check Internal Note': 'قيد الفحص',
 }
 
-export const HISTORY_LABELS: Record<OrderStatus, string> = {
+const HISTORY_LABELS: Record<OrderStatus, string> = {
   'Pending Review': 'تم تسجيل الطلب والدفع',
   'Accepted': 'تم قبول وتأكيد الطلب',
   'Processing': 'جاري تحضير الشحنة',

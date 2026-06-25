@@ -153,7 +153,3 @@ async function clearBucket(bucketName: string): Promise<void> {
 export async function clearAllProductImages(): Promise<void> {
   await clearBucket('product-images');
 }
-
-export async function deleteReceiptImage(imageUrl: string): Promise<void> {
-  await deleteStorageImage('instapay-receipts', imageUrl);
-}

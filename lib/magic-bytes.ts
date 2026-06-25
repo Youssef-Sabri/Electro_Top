@@ -1,4 +1,4 @@
-export const SUPPORTED_IMAGE_TYPES = [
+const SUPPORTED_IMAGE_TYPES = [
   'image/jpeg',
   'image/png',
   'image/webp',
@@ -7,7 +7,7 @@ export const SUPPORTED_IMAGE_TYPES = [
   'image/heif',
 ] as const;
 
-export type ImageMimeType = (typeof SUPPORTED_IMAGE_TYPES)[number];
+type ImageMimeType = (typeof SUPPORTED_IMAGE_TYPES)[number];
 
 function toUint8(buffer: ArrayBuffer | Uint8Array): Uint8Array {
   return buffer instanceof Uint8Array ? buffer : new Uint8Array(buffer);

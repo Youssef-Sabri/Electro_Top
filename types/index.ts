@@ -42,10 +42,6 @@ export interface OrderItem {
   product_image?: string;
 }
 
-export interface Category {
-  name: string;
-}
-
 export interface OrderStatusHistory {
   id: string;
   order_id: string;

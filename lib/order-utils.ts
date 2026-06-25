@@ -1,6 +1,6 @@
 import type { Order } from '@/types';
 
-export interface OrderMetrics {
+interface OrderMetrics {
   totalCount: number;
   pendingCount: number;
   activeFulfillmentCount: number;
