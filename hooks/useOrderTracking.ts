@@ -21,7 +21,7 @@ export function useOrderTracking(id: string | null) {
           setHistory(data.history);
         }
       } catch (error) {
-        console.error('Failed to fetch order:', error);
+        if (process.env.NODE_ENV !== 'production') console.error('Failed to fetch order:', error);
       } finally {
         setLoading(false);
       }

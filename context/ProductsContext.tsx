@@ -138,7 +138,6 @@ export function ProductsProvider({ children }: { children: ReactNode }) {
           { event: 'INSERT', schema: 'public', table: 'products' },
           (payload) => {
             const newProduct = payload.new as Product;
-            if (process.env.NODE_ENV !== 'production') console.log('Realtime INSERT product:', newProduct);
             setProducts((prev) => {
               if (prev.some((p) => p.id === newProduct.id)) return prev;
               return [...prev, newProduct];
@@ -150,7 +149,6 @@ export function ProductsProvider({ children }: { children: ReactNode }) {
           { event: 'UPDATE', schema: 'public', table: 'products' },
           (payload) => {
             const updatedProduct = payload.new as Product;
-            if (process.env.NODE_ENV !== 'production') console.log('Realtime UPDATE product:', updatedProduct);
             setProducts((prev) =>
               prev.map((p) => (p.id === updatedProduct.id ? updatedProduct : p))
             );
@@ -161,13 +159,10 @@ export function ProductsProvider({ children }: { children: ReactNode }) {
           { event: 'DELETE', schema: 'public', table: 'products' },
           (payload) => {
             const deletedId = payload.old.id;
-            if (process.env.NODE_ENV !== 'production') console.log('Realtime DELETE product ID:', deletedId);
             setProducts((prev) => prev.filter((p) => p.id !== deletedId));
           }
         )
-        .subscribe((status) => {
-          if (process.env.NODE_ENV !== 'production') console.log('Supabase Realtime products channel status:', status);
-        });
+        .subscribe();
     }
 
     function unsubscribe() {
