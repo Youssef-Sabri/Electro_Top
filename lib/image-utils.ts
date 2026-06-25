@@ -1,6 +1,6 @@
 import { supabase } from '@/lib/supabase';
 import { isAllowedImageType } from '@/lib/magic-bytes';
-import { readFileAsDataURL, clearStorageBucket } from '@/lib/file-utils';
+import { readFileAsDataURL, clearStorageBucket, extractFileName } from '@/lib/file-utils';
 
 interface ImageProcessResult {
   dataUrl: string;
@@ -83,12 +83,6 @@ export async function uploadProductImage(file: File): Promise<{ imageUrl: string
   }
 
   return { imageUrl, info };
-}
-
-function extractFileName(imageUrl: string): string {
-  const urlParts = imageUrl.split('/');
-  const rawFileName = urlParts[urlParts.length - 1] || '';
-  return decodeURIComponent(rawFileName.split('?')[0]);
 }
 
 async function deleteStorageImage(bucket: string, imageUrl: string): Promise<void> {

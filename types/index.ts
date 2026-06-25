@@ -18,10 +18,6 @@ export interface Product {
   created_at: string;
 }
 
-export interface Category {
-  name: string;
-  created_at: string;
-}
 
 export interface Order {
   id_unique_tracking: string;

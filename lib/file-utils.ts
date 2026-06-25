@@ -13,7 +13,8 @@ export function readFileAsDataURL(file: File): Promise<string> {
 }
 
 export function extractFileName(filePath: string): string | undefined {
-  return filePath.split('/').pop()?.split('?')[0]
+  const raw = filePath.split('/').pop()?.split('?')[0]
+  return raw ? decodeURIComponent(raw) : undefined
 }
 
 const STORAGE_LIST_LIMIT = 100;
