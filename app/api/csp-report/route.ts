@@ -2,17 +2,20 @@ import { NextRequest, NextResponse } from 'next/server';
 import { checkAndIncrementRateLimit } from '@/lib/rate-limit';
 import { createSupabaseAdminClient } from '@/lib/supabase-server';
 import { getClientIp } from '@/lib/ip-utils';
+import { TABLES } from '@/lib/db-constants';
+
+const CSP_RATE_LIMIT = {
+  table: TABLES.orderRateLimits,
+  countColumn: 'request_count' as const,
+  lastColumn: 'last_request_at' as const,
+  firstColumn: 'first_request_at' as const,
+  maxAttempts: 10,
+  windowMs: 60000,
+};
 
 export async function POST(request: NextRequest) {
   const ip = getClientIp(request);
-  const rateCheck = await checkAndIncrementRateLimit(createSupabaseAdminClient(), ip, {
-    table: 'order_rate_limits',
-    countColumn: 'request_count',
-    lastColumn: 'last_request_at',
-    firstColumn: 'first_request_at',
-    maxAttempts: 10,
-    windowMs: 60000,
-  });
+  const rateCheck = await checkAndIncrementRateLimit(createSupabaseAdminClient(), ip, CSP_RATE_LIMIT);
   if (rateCheck.blocked) {
     return new NextResponse(null, { status: 429 });
   }

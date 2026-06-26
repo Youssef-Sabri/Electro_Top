@@ -5,7 +5,7 @@ import type { Order, OrderItem, OrderStatusHistory, OrderStatus, CartItem } from
 import type { CheckoutFormData } from '@/lib/validators';
 import type { Session } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
-import { ORDER_SELECT_FIELDS, ORDER_ITEM_SELECT_FIELDS, STATUS_HISTORY_SELECT_FIELDS, VALID_ORDER_STATUSES, ADMIN_NOTES_MAX_LENGTH } from '@/lib/db-constants';
+import { TABLES, ORDER_SELECT_FIELDS, ORDER_ITEM_SELECT_FIELDS, STATUS_HISTORY_SELECT_FIELDS, VALID_ORDER_STATUSES, ADMIN_NOTES_MAX_LENGTH } from '@/lib/db-constants';
 import { now } from '@/lib/date-utils';
 
 function isValidOrderStatus(value: string): value is OrderStatus {
@@ -94,7 +94,7 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
       const to = from + PAGE_SIZE - 1;
 
       const { data: oData, error: oError, count: oCount } = await supabase
-        .from('orders')
+        .from(TABLES.orders)
         .select(ORDER_SELECT_FIELDS, { count: 'exact', head: false })
         .order('created_at', { ascending: false })
         .range(from, to);
@@ -105,10 +105,10 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
 
       const [oiResult, hResult] = await Promise.all([
         orderIds.length > 0
-          ? supabase.from('order_items').select(ORDER_ITEM_SELECT_FIELDS).in('order_id', orderIds)
+          ? supabase.from(TABLES.orderItems).select(ORDER_ITEM_SELECT_FIELDS).in('order_id', orderIds)
           : { data: [] as OrderItem[], error: null },
         orderIds.length > 0
-          ? supabase.from('order_status_history').select(STATUS_HISTORY_SELECT_FIELDS).in('order_id', orderIds)
+          ? supabase.from(TABLES.orderStatusHistory).select(STATUS_HISTORY_SELECT_FIELDS).in('order_id', orderIds)
           : { data: [] as OrderStatusHistory[], error: null },
       ]);
 
@@ -160,7 +160,7 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
         newChannel
           .on(
           'postgres_changes',
-          { event: 'INSERT', schema: 'public', table: 'orders' },
+          { event: 'INSERT', schema: 'public', table: TABLES.orders },
           (payload) => {
             const newOrder = payload.new as Order;
             setOrders((prev) => {
@@ -171,7 +171,7 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
         )
         .on(
           'postgres_changes',
-          { event: 'UPDATE', schema: 'public', table: 'orders' },
+          { event: 'UPDATE', schema: 'public', table: TABLES.orders },
           (payload) => {
             const updatedOrder = payload.new as Order;
             setOrders((prev) =>
@@ -183,7 +183,7 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
         )
         .on(
           'postgres_changes',
-          { event: 'DELETE', schema: 'public', table: 'orders' },
+          { event: 'DELETE', schema: 'public', table: TABLES.orders },
           (payload) => {
             const deletedOrder = payload.old as { id_unique_tracking: string };
             setOrders((prev) =>
@@ -193,7 +193,7 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
         )
         .on(
           'postgres_changes',
-          { event: 'INSERT', schema: 'public', table: 'order_items' },
+          { event: 'INSERT', schema: 'public', table: TABLES.orderItems },
           (payload) => {
             const newItem = payload.new as OrderItem;
             setOrderItems((prev) => {
@@ -204,7 +204,7 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
         )
         .on(
           'postgres_changes',
-          { event: 'UPDATE', schema: 'public', table: 'order_items' },
+          { event: 'UPDATE', schema: 'public', table: TABLES.orderItems },
           (payload) => {
             const updatedItem = payload.new as OrderItem;
             setOrderItems((prev) =>
@@ -214,7 +214,7 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
         )
         .on(
           'postgres_changes',
-          { event: 'DELETE', schema: 'public', table: 'order_items' },
+          { event: 'DELETE', schema: 'public', table: TABLES.orderItems },
           (payload) => {
             const deletedId = payload.old.id;
             setOrderItems((prev) => prev.filter((item) => item.id !== deletedId));
@@ -222,7 +222,7 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
         )
         .on(
           'postgres_changes',
-          { event: 'INSERT', schema: 'public', table: 'order_status_history' },
+          { event: 'INSERT', schema: 'public', table: TABLES.orderStatusHistory },
           (payload) => {
             const newHistory = payload.new as OrderStatusHistory;
             setStatusHistory((prev) => {
@@ -233,7 +233,7 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
         )
         .on(
           'postgres_changes',
-          { event: 'DELETE', schema: 'public', table: 'order_status_history' },
+          { event: 'DELETE', schema: 'public', table: TABLES.orderStatusHistory },
           (payload) => {
             const deletedId = payload.old.id;
             setStatusHistory((prev) => prev.filter((h) => h.id !== deletedId));

@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createSupabaseAdminClient } from '@/lib/supabase-server'
 import { getClientIp } from '@/lib/ip-utils'
-import { checkRateLimit, incrementRateLimit } from '@/lib/rate-limit'
+import { checkAndIncrementRateLimit } from '@/lib/rate-limit'
 import type { RateLimitConfig } from '@/lib/rate-limit'
+import { TABLES } from '@/lib/db-constants'
 
 const TRACKING_RATE_LIMIT: RateLimitConfig = {
-  table: 'tracking_lookups',
+  table: TABLES.trackingLookups,
   countColumn: 'lookup_count',
   lastColumn: 'last_lookup_at',
   firstColumn: 'first_lookup_at',
@@ -57,15 +58,13 @@ export async function GET(
   const ip = getClientIp(request)
   const adminClient = createSupabaseAdminClient()
 
-  const rateLimit = await checkRateLimit(adminClient, ip, TRACKING_RATE_LIMIT)
+  const rateLimit = await checkAndIncrementRateLimit(adminClient, ip, TRACKING_RATE_LIMIT)
   if (rateLimit.blocked) {
     return NextResponse.json(
       { error: 'Too many lookups', retryAfter: rateLimit.cooldown },
       { status: 429, headers: { 'Retry-After': String(rateLimit.cooldown) } }
     )
   }
-
-  await incrementRateLimit(adminClient, ip, TRACKING_RATE_LIMIT)
 
   const { data, error } = await adminClient.rpc('get_order_details_for_tracking', { tracking_id: uppercaseId })
 

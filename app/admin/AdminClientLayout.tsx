@@ -6,6 +6,8 @@ import { usePathname } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
 
+const SESSION_TIMEOUT_MS = 55 * 60 * 1000;
+
 interface AdminClientLayoutProps {
   children: React.ReactNode;
   initialAuthState: boolean;
@@ -106,7 +108,6 @@ export default function AdminClientLayout({ children, initialAuthState }: AdminC
   }, [loginCooldown]);
 
   const lastActivityRef = useRef(0);
-  const SESSION_TIMEOUT_MS = 55 * 60 * 1000;
 
   const resetActivityTimer = useCallback(() => {
     lastActivityRef.current = Date.now();
@@ -136,7 +137,7 @@ export default function AdminClientLayout({ children, initialAuthState }: AdminC
       }
       clearInterval(interval);
     };
-  }, [isAuthenticated, resetActivityTimer, SESSION_TIMEOUT_MS]);
+  }, [isAuthenticated, resetActivityTimer]);
 
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

@@ -4,7 +4,7 @@ import { createSupabaseAdminClient } from '@/lib/supabase-server'
 import { validateRequestOrigin } from '@/lib/csrf'
 import { requireAdmin } from '@/lib/api-auth'
 import { now } from '@/lib/date-utils'
-import { VALID_ORDER_STATUSES, ADMIN_NOTES_MAX_LENGTH } from '@/lib/db-constants'
+import { TABLES, STORAGE_BUCKETS, VALID_ORDER_STATUSES, ADMIN_NOTES_MAX_LENGTH } from '@/lib/db-constants'
 import { extractFileName } from '@/lib/file-utils'
 
 export async function GET(
@@ -57,7 +57,7 @@ export async function DELETE(
 
   // Fetch the order first to check for screenshot to delete
   const { data: orderData, error: fetchError } = await supabaseClient
-    .from('orders')
+    .from(TABLES.orders)
     .select('instapay_screenshot')
     .eq('id_unique_tracking', uppercaseId)
     .maybeSingle()
@@ -68,8 +68,8 @@ export async function DELETE(
   }
 
   const [{ error: itemsError }, { error: historyError }] = await Promise.all([
-    supabaseClient.from('order_items').delete().eq('order_id', uppercaseId),
-    supabaseClient.from('order_status_history').delete().eq('order_id', uppercaseId),
+    supabaseClient.from(TABLES.orderItems).delete().eq('order_id', uppercaseId),
+    supabaseClient    .from(TABLES.orderStatusHistory).delete().eq('order_id', uppercaseId),
   ])
 
   if (itemsError || historyError) {
@@ -78,7 +78,7 @@ export async function DELETE(
   }
 
   const { error } = await supabaseClient
-    .from('orders')
+    .from(TABLES.orders)
     .delete()
     .eq('id_unique_tracking', uppercaseId)
 
@@ -92,8 +92,8 @@ export async function DELETE(
       ? extractFileName(orderData.instapay_screenshot)
       : orderData.instapay_screenshot;
     if (fileName) {
-      const adminClient = createSupabaseAdminClient()
-      await adminClient.storage.from('instapay-receipts').remove([fileName])
+          const adminClient = createSupabaseAdminClient()
+          await adminClient.storage.from(STORAGE_BUCKETS.receipts).remove([fileName])
     }
   }
 
@@ -138,7 +138,10 @@ export async function PATCH(
     if (typeof notes !== 'string' || notes.length > ADMIN_NOTES_MAX_LENGTH) {
       return NextResponse.json({ error: `Admin notes must be a string up to ${ADMIN_NOTES_MAX_LENGTH} characters` }, { status: 400 })
     }
-    // Strip HTML tags to prevent XSS if notes are ever rendered in customer-facing pages
+    // Strip HTML tags as a belt-and-suspenders measure.
+    // IMPORTANT: admin notes must always be rendered via JSX text interpolation {notes},
+    // never via dangerouslySetInnerHTML. The regex handles the current admin-only scope;
+    // if rich-text rendering is ever planned, replace with a proper sanitiser (e.g. DOMPurify).
     notes = notes.replace(/<[^>]*>/g, '')
     updates.admin_notes = notes
   }
@@ -149,7 +152,7 @@ export async function PATCH(
 
   // Perform update
   const { error: updateError } = await supabaseClient
-    .from('orders')
+    .from(TABLES.orders)
     .update(updates)
     .eq('id_unique_tracking', uppercaseId)
 
@@ -162,7 +165,7 @@ export async function PATCH(
   if ('status' in updates) {
     const historyId = `h-${uppercaseId}-${Date.now()}`
     const { error: historyError } = await supabaseClient
-      .from('order_status_history')
+      .from(TABLES.orderStatusHistory)
       .insert({
         id: historyId,
         order_id: uppercaseId,

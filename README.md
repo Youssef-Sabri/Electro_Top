@@ -4,8 +4,8 @@
 
 **A production-grade Arabic-first e-commerce platform for electrical supplies**
 
-[![Next.js](https://img.shields.io/badge/Next.js-16.2.7-black?logo=next.js)](https://nextjs.org/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.7-blue?logo=typescript)](https://www.typescriptlang.org/)
+[![Next.js](https://img.shields.io/badge/Next.js-16.2.9-black?logo=next.js)](https://nextjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-6-blue?logo=typescript)](https://www.typescriptlang.org/)
 [![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL-3ECF8E?logo=supabase)](https://supabase.com/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind%20CSS-v4-06B6D4?logo=tailwindcss)](https://tailwindcss.com/)
 [![React](https://img.shields.io/badge/React-19-61DAFB?logo=react)](https://react.dev/)
@@ -102,7 +102,7 @@ types/                       # Shared TypeScript interfaces (Product, Order, etc
 
 ### Database Setup
 
-Follow the [Supabase Setup Guide](./ProjectMD-files/supabase-setup-prd.md) to initialize all required tables, triggers, RPCs, storage buckets, and RLS policies.
+Follow the [Supabase Setup Guide](./setup.html) to initialize all required tables, triggers, RPCs, storage buckets, and RLS policies.
 
 ### Installation
 

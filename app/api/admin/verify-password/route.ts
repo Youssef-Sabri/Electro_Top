@@ -26,7 +26,9 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'كلمة المرور مطلوبة.' }, { status: 400 })
   }
 
-  const pwError = await verifyAdminPassword(supabaseClient, authResult.email!, password)
+  const email = authResult.email
+  if (!email) return NextResponse.json({ error: 'User email not found' }, { status: 500 })
+  const pwError = await verifyAdminPassword(supabaseClient, email, password)
   if (pwError) return pwError
 
   return NextResponse.json({ success: true })

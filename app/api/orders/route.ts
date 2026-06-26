@@ -5,11 +5,12 @@ import { checkoutSchema } from '@/lib/validators'
 import { generateOrderId } from '@/lib/id-generator'
 import { getClientIp } from '@/lib/ip-utils'
 import { checkAndIncrementRateLimit } from '@/lib/rate-limit'
+import { TABLES } from '@/lib/db-constants'
 import { now } from '@/lib/date-utils'
 import type { RateLimitConfig } from '@/lib/rate-limit'
 
 const ORDER_RATE_LIMIT: RateLimitConfig = {
-  table: 'order_rate_limits',
+  table: TABLES.orderRateLimits,
   countColumn: 'request_count',
   lastColumn: 'last_request_at',
   firstColumn: 'first_request_at',
@@ -71,7 +72,7 @@ export async function POST(request: NextRequest) {
   // Fetch current product prices from DB — never trust client prices
   const productIds = [...new Set(cartItems.map((item: { product: { id: string } }) => item.product.id))]
   const { data: dbProducts, error: priceErr } = await adminClient
-    .from('products')
+    .from(TABLES.products)
     .select('id, name, price, stock, is_active')
     .in('id', productIds)
 
@@ -101,6 +102,13 @@ export async function POST(request: NextRequest) {
   let totalAmount = 0
   const timestamp = now()
 
+  // Validate instapay_screenshot: must be a storage filename or empty string — never a data-URI
+  const screenshotValue = (formData.instapay_screenshot as string) || ''
+  const SAFE_FILENAME_RE = /^receipt-[a-z0-9]+\.(jpg|jpeg|png|webp|heic|heif|gif)$/i
+  if (screenshotValue && !SAFE_FILENAME_RE.test(screenshotValue)) {
+    return NextResponse.json({ error: 'Invalid instapay_screenshot format.' }, { status: 400 })
+  }
+
   const newItems = cartItems.map((item: { product: { id: string }; quantity: number }, index: number) => {
     const dbProduct = productPriceMap.get(item.product.id)!
     totalAmount += dbProduct.price * item.quantity
@@ -123,7 +131,7 @@ export async function POST(request: NextRequest) {
     created_at: timestamp,
     admin_notes: '',
     location_link: validation.data.location_link || '',
-    instapay_screenshot: formData.instapay_screenshot || '',
+    instapay_screenshot: screenshotValue,
     instapay_phone_number: validation.data.instapay_phone_number || '',
   }
 
@@ -134,19 +142,19 @@ export async function POST(request: NextRequest) {
     timestamp,
   }
 
-  const { error: oErr } = await adminClient.from('orders').insert([newOrder])
+  const { error: oErr } = await adminClient.from(TABLES.orders).insert([newOrder])
   if (oErr) {
     if (process.env.NODE_ENV !== 'production') console.error('Create order error:', oErr)
     return NextResponse.json({ error: 'فشل إنشاء الطلب. يرجى المحاولة مرة أخرى.' }, { status: 500 })
   }
 
   const [{ error: oiErr }, { error: hErr }] = await Promise.all([
-    adminClient.from('order_items').insert(newItems),
-    adminClient.from('order_status_history').insert([initialHistory]),
+    adminClient.from(TABLES.orderItems).insert(newItems),
+    adminClient.from(TABLES.orderStatusHistory).insert([initialHistory]),
   ])
 
   if (oiErr || hErr) {
-    await adminClient.from('orders').delete().eq('id_unique_tracking', trackingId).maybeSingle()
+    await adminClient.from(TABLES.orders).delete().eq('id_unique_tracking', trackingId).maybeSingle()
     if (process.env.NODE_ENV !== 'production') console.error('Create order rollback:', oiErr || hErr)
     return NextResponse.json({ error: 'فشل حفظ بيانات الطلب.' }, { status: 500 })
   }

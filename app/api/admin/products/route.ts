@@ -5,6 +5,7 @@ import { productFormSchema } from '@/lib/validators'
 import { requireAdmin } from '@/lib/api-auth'
 import { verifyAdminPassword } from '@/lib/verify-admin-server'
 import { now } from '@/lib/date-utils'
+import { TABLES } from '@/lib/db-constants'
 
 export async function POST(request: Request) {
   if (!validateRequestOrigin(request)) {
@@ -35,7 +36,7 @@ export async function POST(request: Request) {
     ...validation.data
   }
 
-  const { error: insertError } = await supabaseClient.from('products').insert([newProduct])
+  const { error: insertError } = await supabaseClient.from(TABLES.products).insert([newProduct])
   if (insertError) {
     return NextResponse.json({ error: insertError.message || 'Failed to add product' }, { status: 500 })
   }
@@ -65,15 +66,17 @@ export async function DELETE(request: Request) {
     return NextResponse.json({ error: 'كلمة المرور مطلوبة.' }, { status: 400 })
   }
 
-  const pwError = await verifyAdminPassword(supabaseClient, authResult.email!, password)
+  const email = authResult.email
+  if (!email) return NextResponse.json({ error: 'User email not found' }, { status: 500 })
+  const pwError = await verifyAdminPassword(supabaseClient, email, password)
   if (pwError) return pwError
 
-  const { error: prodError } = await supabaseClient.from('products').delete().neq('id', '')
+  const { error: prodError } = await supabaseClient.from(TABLES.products).delete().neq('id', '')
   if (prodError) {
     return NextResponse.json({ error: prodError.message || 'Failed to clear products' }, { status: 500 })
   }
 
-  const { error: catError } = await supabaseClient.from('categories').delete().neq('name', '')
+  const { error: catError } = await supabaseClient.from(TABLES.categories).delete().neq('name', '')
   if (catError) {
     return NextResponse.json({ error: catError.message || 'Failed to clear categories' }, { status: 500 })
   }

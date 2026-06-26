@@ -49,7 +49,6 @@
   --color-status-internal: #14B8A6;
 
   /* Font Families */
-  --font-montserrat: var(--font-montserrat);
   --font-poppins: var(--font-poppins);
   --font-body-lg: var(--font-poppins);
   --font-body-md: var(--font-poppins);
@@ -61,7 +60,6 @@
   --font-headline-lg: var(--font-montserrat);
 
   /* Font Sizes */
-  --font-size-body-lg: 18px;
   --font-size-headline-md: 24px;
   --font-size-headline-lg-mobile: 28px;
   --font-size-display-lg: 48px;

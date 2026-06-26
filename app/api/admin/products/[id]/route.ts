@@ -5,6 +5,7 @@ import { validateRequestOrigin } from '@/lib/csrf'
 import { productFormSchema } from '@/lib/validators'
 import { requireAdmin } from '@/lib/api-auth'
 import { extractFileName } from '@/lib/file-utils'
+import { TABLES, STORAGE_BUCKETS } from '@/lib/db-constants'
 
 const ALLOWED_UPDATE_FIELDS = ['name', 'description', 'price', 'stock', 'image_url', 'is_active', 'category'] as const
 
@@ -46,7 +47,7 @@ export async function PATCH(
   let oldImageUrl: string | null = null
   if ('image_url' in validation.data && validation.data.image_url) {
     const { data: oldProduct, error: fetchError } = await supabaseClient
-      .from('products')
+      .from(TABLES.products)
       .select('image_url')
       .eq('id', id)
       .maybeSingle()
@@ -56,7 +57,7 @@ export async function PATCH(
   }
 
   const { error } = await supabaseClient
-    .from('products')
+    .from(TABLES.products)
     .update(validation.data)
     .eq('id', id)
 
@@ -72,7 +73,7 @@ export async function PATCH(
       : oldImageUrl;
     if (fileName) {
       const adminClient = createSupabaseAdminClient()
-      await adminClient.storage.from('product-images').remove([fileName])
+      await adminClient.storage.from(STORAGE_BUCKETS.productImages).remove([fileName])
     }
   }
 
@@ -95,7 +96,7 @@ export async function DELETE(
 
   // Fetch product data first to retrieve image_url
   const { data: productData, error: fetchError } = await supabaseClient
-    .from('products')
+    .from(TABLES.products)
     .select('image_url')
     .eq('id', id)
     .maybeSingle()
@@ -106,7 +107,7 @@ export async function DELETE(
   }
 
   const { error } = await supabaseClient
-    .from('products')
+    .from(TABLES.products)
     .delete()
     .eq('id', id)
 
@@ -122,7 +123,7 @@ export async function DELETE(
       : productData.image_url;
     if (fileName) {
       const adminClient = createSupabaseAdminClient()
-      await adminClient.storage.from('product-images').remove([fileName])
+      await adminClient.storage.from(STORAGE_BUCKETS.productImages).remove([fileName])
     }
   }
 

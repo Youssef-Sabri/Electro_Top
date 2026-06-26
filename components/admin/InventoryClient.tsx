@@ -388,8 +388,10 @@ export const InventoryClient = memo(function InventoryClient() {
     if (!deletingProduct) return;
     const productName = deletingProduct.name;
     const productId = deletingProduct.id;
+    const imageUrl = deletingProduct.image_url;
     setDeletingProduct(null);
     try {
+      await deleteProductImage(imageUrl);
       await deleteProduct(productId);
       showToast(`تم حذف المنتج "${productName}" بنجاح!`);
     } catch {

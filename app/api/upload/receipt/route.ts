@@ -4,6 +4,7 @@ import { validateRequestOrigin } from '@/lib/csrf'
 import { detectImageMimeType } from '@/lib/magic-bytes'
 import { checkAndIncrementRateLimit } from '@/lib/rate-limit'
 import { getClientIp } from '@/lib/ip-utils'
+import { TABLES, STORAGE_BUCKETS } from '@/lib/db-constants'
 
 export async function POST(request: NextRequest) {
   if (!validateRequestOrigin(request)) {
@@ -12,7 +13,7 @@ export async function POST(request: NextRequest) {
 
   const ip = getClientIp(request)
   const rateCheck = await checkAndIncrementRateLimit(createSupabaseAdminClient(), ip, {
-    table: 'order_rate_limits',
+    table: TABLES.orderRateLimits,
     countColumn: 'request_count',
     lastColumn: 'last_request_at',
     firstColumn: 'first_request_at',
@@ -78,7 +79,7 @@ export async function POST(request: NextRequest) {
   const supabaseClient = createSupabaseAdminClient()
 
   const { error: uploadError } = await supabaseClient.storage
-    .from('instapay-receipts')
+    .from(STORAGE_BUCKETS.receipts)
     .upload(fileName, fileBuffer, {
       contentType: detectedType,
       metadata: { mimetype: detectedType },

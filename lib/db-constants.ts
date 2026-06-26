@@ -11,3 +11,19 @@ export const VALID_ORDER_STATUSES = [
 ] as const
 
 export const ADMIN_NOTES_MAX_LENGTH = 2000
+
+export const TABLES = {
+  orders: 'orders',
+  products: 'products',
+  orderItems: 'order_items',
+  orderStatusHistory: 'order_status_history',
+  categories: 'categories',
+  loginAttempts: 'login_attempts',
+  trackingLookups: 'tracking_lookups',
+  orderRateLimits: 'order_rate_limits',
+} as const
+
+export const STORAGE_BUCKETS = {
+  receipts: 'instapay-receipts',
+  productImages: 'product-images',
+} as const

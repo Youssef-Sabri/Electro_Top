@@ -6,7 +6,7 @@ import type { Product } from '@/types';
 import type { Session } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
 
-import { PRODUCT_SELECT_FIELDS } from '@/lib/db-constants';
+import { TABLES, PRODUCT_SELECT_FIELDS } from '@/lib/db-constants';
 import { clearAllProductImages } from '@/lib/image-utils';
 
 const categorySchema = z.string().min(1, 'اسم الفئة مطلوب').max(50, 'اسم الفئة يجب ألا يتجاوز 50 حرفاً');
@@ -60,8 +60,8 @@ export function ProductsProvider({ children }: { children: ReactNode }) {
         { data: catData, error: catError },
         { data: prodData, error: prodError },
       ] = await Promise.all([
-        supabase.from('categories').select('name').order('name'),
-        supabase.from('products').select(PRODUCT_SELECT_FIELDS).eq('is_active', true).order('created_at'),
+        supabase.from(TABLES.categories).select('name').order('name'),
+        supabase.from(TABLES.products).select(PRODUCT_SELECT_FIELDS).eq('is_active', true).order('created_at'),
       ]);
 
       if (!catError && catData) {
@@ -87,46 +87,11 @@ export function ProductsProvider({ children }: { children: ReactNode }) {
     loadData();
   }, [loadData]);
 
-  useEffect(() => {
-    const POLL_INTERVAL_MS = 30000;
-    let pollTimer: ReturnType<typeof setInterval> | null = null;
-
-    const startPolling = () => {
-      if (pollTimer) return;
-      pollTimer = setInterval(() => loadData(true), POLL_INTERVAL_MS);
-    };
-
-    const stopPolling = () => {
-      if (pollTimer) {
-        clearInterval(pollTimer);
-        pollTimer = null;
-      }
-    };
-
-    const handleVisibility = () => {
-      if (document.visibilityState === 'visible') {
-        loadData(true);
-        startPolling();
-      } else {
-        stopPolling();
-      }
-    };
-
-    // Start polling immediately if tab is visible
-    if (document.visibilityState === 'visible') {
-      startPolling();
-    }
-
-    document.addEventListener('visibilitychange', handleVisibility);
-
-    return () => {
-      document.removeEventListener('visibilitychange', handleVisibility);
-      stopPolling();
-    };
-  }, [loadData]);
+  // Polling is handled inside the subscription useEffect below — merged visibilitychange
 
   useEffect(() => {
     let channel: ReturnType<typeof supabase.channel> | null = null;
+    let pollTimer: ReturnType<typeof setInterval> | null = null;
 
     async function subscribe(session: Session) {
       if (channel || !session) return;
@@ -135,7 +100,7 @@ export function ProductsProvider({ children }: { children: ReactNode }) {
         .channel('products-realtime')
         .on(
           'postgres_changes',
-          { event: 'INSERT', schema: 'public', table: 'products' },
+          { event: 'INSERT', schema: 'public', table: TABLES.products },
           (payload) => {
             const newProduct = payload.new as Product;
             setProducts((prev) => {
@@ -146,7 +111,7 @@ export function ProductsProvider({ children }: { children: ReactNode }) {
         )
         .on(
           'postgres_changes',
-          { event: 'UPDATE', schema: 'public', table: 'products' },
+          { event: 'UPDATE', schema: 'public', table: TABLES.products },
           (payload) => {
             const updatedProduct = payload.new as Product;
             setProducts((prev) =>
@@ -156,7 +121,7 @@ export function ProductsProvider({ children }: { children: ReactNode }) {
         )
         .on(
           'postgres_changes',
-          { event: 'DELETE', schema: 'public', table: 'products' },
+          { event: 'DELETE', schema: 'public', table: TABLES.products },
           (payload) => {
             const deletedId = payload.old.id;
             setProducts((prev) => prev.filter((p) => p.id !== deletedId));
@@ -172,8 +137,20 @@ export function ProductsProvider({ children }: { children: ReactNode }) {
       }
     }
 
+    function startPolling() {
+      if (pollTimer) return;
+      pollTimer = setInterval(() => loadData(true), 30000);
+    }
+
+    function stopPolling() {
+      if (pollTimer) {
+        clearInterval(pollTimer);
+        pollTimer = null;
+      }
+    }
+
     // Products WebSocket is admin-only (gated by session) to avoid one WebSocket per visitor.
-    // For customers, the visibilitychange handler below refreshes products on tab switch.
+    // For customers, the polling fallback refreshes products on tab focus.
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       if (session) {
         await subscribe(session);
@@ -193,24 +170,29 @@ export function ProductsProvider({ children }: { children: ReactNode }) {
 
     const handleVisibility = async () => {
       if (document.visibilityState === 'visible') {
+        hasFetchedRef.current = false;
+        loadData(true);
+        startPolling();
         const { data: { session } } = await supabase.auth.getSession();
         if (session) {
           await subscribe(session);
-          hasFetchedRef.current = false;
-          loadData(true);
-        } else {
-          // Anonymous visitors refresh data on tab focus instead of a persistent WebSocket
-          hasFetchedRef.current = false;
-          loadData(true);
         }
       } else {
+        stopPolling();
         unsubscribe();
       }
     };
+
+    // Start polling immediately if tab is visible
+    if (document.visibilityState === 'visible') {
+      startPolling();
+    }
+
     document.addEventListener('visibilitychange', handleVisibility);
 
     return () => {
       document.removeEventListener('visibilitychange', handleVisibility);
+      stopPolling();
       unsubscribe();
       subscription.unsubscribe();
     };

@@ -1,3 +1,8 @@
+function safeDate(date: string): Date | null {
+  const d = new Date(date)
+  return Number.isNaN(d.getTime()) ? null : d
+}
+
 export function now(): string {
   return new Date().toISOString()
 }
@@ -7,13 +12,17 @@ export function todayStamp(): string {
 }
 
 export function formatOrderDate(date: string): string {
-  return new Date(date).toLocaleDateString('ar-EG', {
+  const d = safeDate(date)
+  if (!d) return date
+  return d.toLocaleDateString('ar-EG', {
     month: 'short', day: 'numeric', year: 'numeric',
   })
 }
 
 export function formatOrderTimestamp(date: string): string {
-  return new Date(date).toLocaleDateString('ar-EG', {
+  const d = safeDate(date)
+  if (!d) return date
+  return d.toLocaleDateString('ar-EG', {
     month: 'short', day: 'numeric', year: 'numeric',
     hour: 'numeric', minute: 'numeric',
   })

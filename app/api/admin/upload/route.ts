@@ -3,6 +3,7 @@ import { getServerSupabase } from '@/lib/supabase-server-cookies'
 import { validateRequestOrigin } from '@/lib/csrf'
 import { requireAdmin } from '@/lib/api-auth'
 import { detectImageMimeType } from '@/lib/magic-bytes'
+import { STORAGE_BUCKETS } from '@/lib/db-constants'
 
 const EXT_MAP: Record<string, string> = {
   'image/jpeg': 'jpg',
@@ -67,7 +68,7 @@ export async function POST(request: Request) {
   const fileName = `product-${randomPart}.${ext}`
 
   const { error: uploadError } = await supabaseClient.storage
-    .from('product-images')
+    .from(STORAGE_BUCKETS.productImages)
     .upload(fileName, file, {
       contentType: detectedType,
       upsert: false,
@@ -79,7 +80,7 @@ export async function POST(request: Request) {
   }
 
   const { data: { publicUrl } } = supabaseClient.storage
-    .from('product-images')
+    .from(STORAGE_BUCKETS.productImages)
     .getPublicUrl(fileName)
 
   return NextResponse.json({ imageUrl: publicUrl })

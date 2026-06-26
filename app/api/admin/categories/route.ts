@@ -3,6 +3,7 @@ import { getServerSupabase } from '@/lib/supabase-server-cookies'
 import { validateRequestOrigin } from '@/lib/csrf'
 import { z } from 'zod'
 import { requireAdmin } from '@/lib/api-auth'
+import { TABLES } from '@/lib/db-constants'
 
 const categorySchema = z.string().min(1, 'اسم الفئة مطلوب').max(50, 'اسم الفئة يجب ألا يتجاوز 50 حرفاً')
 
@@ -31,7 +32,7 @@ export async function POST(request: Request) {
   const trimmedName = validation.data.trim()
 
   const { error: insertError } = await supabaseClient
-    .from('categories')
+    .from(TABLES.categories)
     .insert([{ name: trimmedName }])
 
   if (insertError) {
@@ -62,7 +63,7 @@ export async function DELETE(request: Request) {
   const trimmedName = name.trim()
 
   const { error: deleteError } = await supabaseClient
-    .from('categories')
+    .from(TABLES.categories)
     .delete()
     .eq('name', trimmedName)
 

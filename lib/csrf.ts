@@ -8,7 +8,17 @@ export function validateRequestOrigin(request: Request): boolean {
   }
 
   if (!siteUrl) {
-    return process.env.NODE_ENV !== 'production'
+    // Fail closed in production — never allow all origins without an explicit site URL
+    if (process.env.NODE_ENV === 'production') return false
+
+    // In development, allow only localhost origins so the dev server works without the var set
+    const check = origin || referer || ''
+    try {
+      const host = new URL(check).hostname
+      return host === 'localhost' || host === '127.0.0.1'
+    } catch {
+      return false
+    }
   }
 
   try {
@@ -29,4 +39,3 @@ export function validateRequestOrigin(request: Request): boolean {
 
   return false
 }
-

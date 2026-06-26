@@ -15,12 +15,20 @@ import { getSafeUrl } from '@/lib/safe-url';
 import { Toast } from '@/components/ui/Toast';
 import { CustomDropdown } from '@/components/ui/CustomDropdown';
 import { ConfirmationModal } from '@/components/ui/ConfirmationModal';
-import { supabase } from '@/lib/supabase';
+
 
 const MAX_NOTES_LENGTH = 2000;
 
 interface OrderDetailClientProps {
   id: string;
+}
+
+async function fetchSignedUrl(filename: string, orderId: string): Promise<string> {
+  const params = new URLSearchParams({ filename, orderId });
+  const res = await fetch(`/api/admin/receipt-signed-url?${params}`);
+  if (!res.ok) throw new Error(await res.text());
+  const { signedUrl } = await res.json() as { signedUrl: string };
+  return signedUrl;
 }
 
 export const OrderDetailClient = memo(function OrderDetailClient({ id }: OrderDetailClientProps) {
@@ -69,22 +77,13 @@ export const OrderDetailClient = memo(function OrderDetailClient({ id }: OrderDe
       return;
     }
 
-    try {
-      supabase.storage
-        .from('instapay-receipts')
-        .createSignedUrl(screenshot, 300)
-        .then(({ data, error }) => {
-          if (!error && data?.signedUrl) {
-            setSignedScreenshotUrl(data.signedUrl);
-          } else {
-            if (process.env.NODE_ENV !== 'production') console.error('Failed to generate signed URL for receipt:', error);
-            setSignedScreenshotUrl(null);
-          }
-        });
-    } catch {
-      setSignedScreenshotUrl(null);
-    }
-  }, [order?.instapay_screenshot]);
+    fetchSignedUrl(screenshot, order?.id_unique_tracking ?? '')
+      .then(setSignedScreenshotUrl)
+      .catch((err) => {
+        if (process.env.NODE_ENV !== 'production') console.error('Failed to fetch signed URL for receipt:', err);
+        setSignedScreenshotUrl(null);
+      });
+  }, [order?.instapay_screenshot, order?.id_unique_tracking]);
 
   useEffect(() => {
     const fromContext = getOrderById(id);
@@ -165,17 +164,10 @@ export const OrderDetailClient = memo(function OrderDetailClient({ id }: OrderDe
     if (!isValidFilename) return;
 
     try {
-      const { data, error } = await supabase.storage
-        .from('instapay-receipts')
-        .createSignedUrl(screenshot, 300);
-
-      if (!error && data?.signedUrl) {
-        window.open(data.signedUrl, '_blank', 'noopener,noreferrer');
-      } else {
-        if (process.env.NODE_ENV !== 'production') console.error('Failed to generate fresh signed URL:', error);
-      }
+      const signedUrl = await fetchSignedUrl(screenshot, order?.id_unique_tracking ?? '');
+      window.open(signedUrl, '_blank', 'noopener,noreferrer');
     } catch (err) {
-      if (process.env.NODE_ENV !== 'production') console.error('Error generating fresh signed URL:', err);
+      if (process.env.NODE_ENV !== 'production') console.error('Error fetching fresh signed URL:', err);
     }
   };
 
