@@ -3,7 +3,7 @@ import { memo } from 'react';
 import { getSupportEnv } from '@/lib/env-utils';
 
 export const Footer = memo(function Footer() {
-  const { whatsapp: whatsappNumber, facebook: facebookUrl, phone: phoneNumber } = getSupportEnv();
+  const { whatsapp: whatsappNumbers, phone: phoneNumbers, facebook: facebookUrl } = getSupportEnv();
 
   return (
     <footer className="bg-on-background text-secondary-fixed w-full">
@@ -14,14 +14,14 @@ export const Footer = memo(function Footer() {
             <div className="bg-white rounded-xl p-1.5 shadow-lg">
               {/* eslint-disable-next-line @next/next/no-img-element -- static logo */}
                <img
-                 alt="شعار إلكترو توب"
-                 className="h-8 w-auto"
-                 src="/logo.png"
-                 width="32"
-                 height="32"
-                 style={{ width: 'auto' }}
-                 loading="lazy"
-               />
+                alt="شعار إلكترو توب"
+                className="h-8 w-auto"
+                src="/logo.png"
+                width="32"
+                height="32"
+                style={{ width: 'auto' }}
+                loading="lazy"
+              />
             </div>
             <span className="font-headline-md text-headline-md text-secondary-fixed font-extrabold tracking-tighter">
               إلكترو توب
@@ -51,24 +51,28 @@ export const Footer = memo(function Footer() {
             الاتصال والدعم
           </h4>
           <div className="flex flex-col gap-3">
-            <a
-              href={`tel:${phoneNumber}`}
-              className="flex items-center md:justify-end gap-2 text-surface-variant hover:text-secondary-fixed transition-colors font-medium text-sm"
-            >
-              <span className="material-symbols-outlined text-[18px]">phone</span>
-              <span dir="ltr">{phoneNumber}</span>
-            </a>
-            {whatsappNumber && (
+            {phoneNumbers.map((number, index) => (
               <a
-                href={`https://wa.me/${whatsappNumber}`}
+                key={index}
+                href={`tel:${number}`}
+                className="flex items-center md:justify-end gap-2 text-surface-variant hover:text-secondary-fixed transition-colors font-medium text-sm"
+              >
+                <span className="material-symbols-outlined text-[18px]">phone</span>
+                <span dir="ltr">{number} {phoneNumbers.length > 1 && `(${index + 1})`}</span>
+              </a>
+            ))}
+            {whatsappNumbers.map((number, index) => (
+              <a
+                key={index}
+                href={`https://wa.me/${number}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center md:justify-end gap-2 text-surface-variant hover:text-secondary-fixed transition-colors font-medium text-sm"
               >
                 <span className="material-symbols-outlined text-[18px]">chat</span>
-                <span>مراسلتنا عبر واتساب</span>
+                <span>مراسلتنا عبر واتساب {whatsappNumbers.length > 1 && `(${index + 1})`}</span>
               </a>
-            )}
+            ))}
           </div>
         </div>
       </div>

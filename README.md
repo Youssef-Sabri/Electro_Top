@@ -136,8 +136,10 @@ All configuration is managed through environment variables:
 | `NEXT_PUBLIC_SITE_URL` | Yes | Site URL used for CSP and CSRF origin validation |
 | `NEXT_PUBLIC_INSTAPAY_ACCOUNT_NAME` | Yes | Merchant name displayed during checkout |
 | `NEXT_PUBLIC_INSTAPAY_PHONE` | Yes | InstaPay phone number |
-| `NEXT_PUBLIC_SUPPORT_WHATSAPP` | No | WhatsApp number for customer support |
-| `NEXT_PUBLIC_SUPPORT_PHONE` | No | Support hotline |
+| `NEXT_PUBLIC_SUPPORT_WHATSAPP_1` | No | Primary WhatsApp number for customer support |
+| `NEXT_PUBLIC_SUPPORT_WHATSAPP_2` | No | Secondary WhatsApp number for customer support |
+| `NEXT_PUBLIC_SUPPORT_PHONE_1` | No | Primary support hotline |
+| `NEXT_PUBLIC_SUPPORT_PHONE_2` | No | Secondary support hotline |
 | `NEXT_PUBLIC_SUPPORT_FACEBOOK` | No | Facebook page URL |
 | `NEXT_PUBLIC_CURRENCY_SYMBOL` | No | Currency symbol (defaults to EGP) |
 

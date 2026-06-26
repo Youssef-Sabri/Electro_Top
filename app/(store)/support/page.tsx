@@ -7,7 +7,7 @@ export const metadata: Metadata = {
 };
 
 export default function SupportPage() {
-  const { whatsapp: whatsappNumber, facebook: facebookUrl, phone: phoneNumber } = getSupportEnv();
+  const { whatsapp: whatsappNumbers, phone: phoneNumbers, facebook: facebookUrl } = getSupportEnv();
 
     return (
       <div className="min-h-screen bg-surface font-tajawal">
@@ -41,17 +41,18 @@ export default function SupportPage() {
                 الدعم الأسرع! راسلنا مباشرة عبر واتساب للطلبات، الاستفسارات، أو لتأكيد التحويل المالي.
               </p>
             </div>
-            {whatsappNumber && (
+            {whatsappNumbers.map((number, index) => (
               <a
-                href={`https://wa.me/${whatsappNumber}`}
+                key={index}
+                href={`https://wa.me/${number}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3.5 px-6 rounded-xl font-label-md flex items-center justify-center gap-2 transition-colors cursor-pointer"
               >
                 <span className="material-symbols-outlined text-[20px] select-none">chat</span>
-                مراسلتنا عبر واتساب
+                مراسلتنا عبر واتساب {whatsappNumbers.length > 1 && `(${index + 1})`}
               </a>
-            )}
+            ))}
           </div>
 
           {/* Facebook Card */}
@@ -91,13 +92,16 @@ export default function SupportPage() {
                 هل تفضل التحدث عبر الهاتف؟ اتصل بنا مباشرة للتحدث مع ممثلي متجرنا.
               </p>
             </div>
-            <a
-              href={`tel:${phoneNumber}`}
-              className="w-full bg-primary hover:bg-primary/90 text-white py-3.5 px-6 rounded-xl font-label-md flex items-center justify-center gap-2 transition-colors cursor-pointer"
-            >
-              <span className="material-symbols-outlined text-[20px] select-none">phone</span>
-              اتصل بنا الآن
-            </a>
+            {phoneNumbers.map((number, index) => (
+              <a
+                key={index}
+                href={`tel:${number}`}
+                className="w-full bg-primary hover:bg-primary/90 text-white py-3.5 px-6 rounded-xl font-label-md flex items-center justify-center gap-2 transition-colors cursor-pointer"
+              >
+                <span className="material-symbols-outlined text-[20px] select-none">phone</span>
+                اتصل بنا الآن {phoneNumbers.length > 1 && `(${index + 1})`}
+              </a>
+            ))}
           </div>
         </div>
       </div>
