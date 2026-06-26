@@ -2,7 +2,7 @@
 
 export default function AdminError({ reset }: { reset: () => void }) {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-on-background font-poppins text-white">
+    <div className="min-h-screen flex items-center justify-center bg-on-background font-tajawal text-white">
       <div className="text-center p-8 max-w-md">
         <span className="material-symbols-outlined text-[64px] text-primary select-none mb-4">error_outline</span>
         <h2 className="font-headline-md text-headline-md mb-2">حدث خطأ في لوحة التحكم</h2>

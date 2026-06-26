@@ -42,7 +42,7 @@ export const LandingPage = memo(function LandingPage({ initialCategories = [], i
 
 
   return (
-    <div className="w-full font-poppins text-on-surface bg-white">
+    <div className="w-full font-tajawal text-on-surface bg-white">
       <section className="relative bg-on-background py-28 md:py-36 overflow-hidden hero-clip">
         <div className="absolute inset-0 diagonal-accents opacity-10"></div>
         <div className="max-w-max-width mx-auto px-margin-mobile md:px-margin-desktop relative z-10">

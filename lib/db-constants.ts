@@ -21,6 +21,8 @@ export const TABLES = {
   loginAttempts: 'login_attempts',
   trackingLookups: 'tracking_lookups',
   orderRateLimits: 'order_rate_limits',
+  receiptUploadLimits: 'receipt_upload_limits',
+  cspReportLimits: 'csp_report_limits',
 } as const
 
 export const STORAGE_BUCKETS = {

@@ -1,11 +1,13 @@
 import { NextResponse } from 'next/server'
 import { getServerSupabase } from '@/lib/supabase-server-cookies'
+import { createSupabaseAdminClient } from '@/lib/supabase-server'
 import { validateRequestOrigin } from '@/lib/csrf'
 import { productFormSchema } from '@/lib/validators'
 import { requireAdmin } from '@/lib/api-auth'
 import { verifyAdminPassword } from '@/lib/verify-admin-server'
 import { now } from '@/lib/date-utils'
-import { TABLES } from '@/lib/db-constants'
+import { TABLES, STORAGE_BUCKETS } from '@/lib/db-constants'
+import { clearStorageBucket } from '@/lib/file-utils'
 
 export async function POST(request: Request) {
   if (!validateRequestOrigin(request)) {
@@ -80,6 +82,8 @@ export async function DELETE(request: Request) {
   if (catError) {
     return NextResponse.json({ error: catError.message || 'Failed to clear categories' }, { status: 500 })
   }
+
+  await clearStorageBucket(createSupabaseAdminClient(), STORAGE_BUCKETS.productImages)
 
   return NextResponse.json({ success: true })
 }

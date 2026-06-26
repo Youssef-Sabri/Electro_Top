@@ -424,7 +424,7 @@ export const InventoryClient = memo(function InventoryClient() {
   };
 
   return (
-    <div className="space-y-8 font-poppins text-on-surface" dir="rtl">
+    <div className="space-y-8 font-tajawal text-on-surface" dir="rtl">
       {toastMessage && (
         <Toast
           message={toastMessage}
@@ -434,7 +434,7 @@ export const InventoryClient = memo(function InventoryClient() {
       )}
 
       {isSaving && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-[2px] flex flex-col items-center justify-center z-[110] font-poppins">
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-[2px] flex flex-col items-center justify-center z-[110] font-tajawal">
           <div className="bg-white p-6 rounded-xl shadow-xl border border-outline-variant/30 flex flex-col items-center gap-4 text-center">
             <span className="material-symbols-outlined text-primary text-[48px] animate-spin select-none">sync</span>
             <div>

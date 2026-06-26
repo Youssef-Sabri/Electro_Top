@@ -39,7 +39,7 @@ export const ConfirmationModal = memo(function ConfirmationModal({
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm transition-opacity duration-300">
       <div
-        className="relative w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden border border-outline-variant/20 p-6 text-start font-poppins"
+        className="relative w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden border border-outline-variant/20 p-6 text-start font-tajawal"
         style={{ animation: 'modalAppear 0.2s ease-out forwards' }}
       >
         <div className="flex items-start gap-4">

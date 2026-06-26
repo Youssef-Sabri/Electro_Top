@@ -38,8 +38,6 @@
   --color-electro-gold: #C6B254;
   --color-electro-red: #CA202B;
   --color-brand-whatsapp: #25D366;
-  --color-surface-bright: #ffffff;
-
   /* Status Badge Colors */
   --color-status-pending: #FACC15;
   --color-status-accepted: #3B82F6;
@@ -49,15 +47,13 @@
   --color-status-internal: #14B8A6;
 
   /* Font Families */
-  --font-poppins: var(--font-poppins);
-  --font-body-lg: var(--font-poppins);
-  --font-body-md: var(--font-poppins);
-  --font-label-sm: var(--font-poppins);
-  --font-label-md: var(--font-poppins);
-  --font-headline-md: var(--font-montserrat);
-  --font-headline-lg-mobile: var(--font-montserrat);
-  --font-display-lg: var(--font-montserrat);
-  --font-headline-lg: var(--font-montserrat);
+  --font-tajawal: var(--font-tajawal);
+  --font-label-sm: var(--font-tajawal);
+  --font-label-md: var(--font-tajawal);
+  --font-headline-md: var(--font-cairo);
+  --font-headline-lg-mobile: var(--font-cairo);
+  --font-display-lg: var(--font-cairo);
+  --font-headline-lg: var(--font-cairo);
 
   /* Font Sizes */
   --font-size-headline-md: 24px;
@@ -84,7 +80,7 @@
 body {
   background: var(--color-background);
   color: var(--color-on-surface);
-  font-family: var(--font-poppins), sans-serif;
+  font-family: var(--font-tajawal), sans-serif;
   -webkit-font-smoothing: antialiased;
 }
 

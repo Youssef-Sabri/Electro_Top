@@ -107,7 +107,7 @@ export const OrdersLedger = memo(function OrdersLedger() {
   }, [router]);
 
   return (
-    <section className="space-y-gutter font-poppins">
+    <section className="space-y-gutter font-tajawal">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 text-start">
         <div className="flex flex-col sm:flex-row sm:items-center gap-4">
           <div>

@@ -32,7 +32,7 @@ The platform includes a comprehensive **admin dashboard** for inventory manageme
 - **Shopping cart** — `localStorage`-persisted with real-time stock-aware quantity limits and price reconciliation
 - **InstaPay payments** — Upload receipt screenshot with client-side Canvas API compression
 - **Order tracking** — Real-time status timeline with itemized invoice
-- **Product catalog** — Server-rendered (ISR, 60s revalidation), filterable by category, with search/sort, and real-time stock updates via Supabase Realtime subscriptions
+- **Product catalog** — Server-rendered, filterable by category, with search/sort, and real-time stock updates via Supabase Realtime subscriptions
 - **Arabic RTL** — Full right-to-left layout with Cairo & Tajawal typography
 
 ### Admin Dashboard
@@ -56,7 +56,7 @@ The platform includes a comprehensive **admin dashboard** for inventory manageme
 | Layer | Technology |
 |---|---|
 | Framework | Next.js 16 (App Router, Turbopack) |
-| Language | TypeScript 6 (strict mode) |
+| Language | TypeScript 5 (strict mode) |
 | Styling | Tailwind CSS v4 |
 | Database | Supabase (PostgreSQL with RLS) |
 | Auth | Supabase Auth (email/password, admin only) |
@@ -110,10 +110,10 @@ Follow the [Supabase Setup Guide](./setup.html) to initialize all required table
 git clone https://github.com/your-username/electro-top.git
 cd electro-top
 npm install
-# Create .env.local with the required variables listed below
+# Copy .env.local.example to .env.local and fill in your values
 ```
 
-Edit `.env.local` with your Supabase credentials and store configuration, then:
+Edit `.env.local` (based on `.env.local.example`) with your Supabase credentials and store configuration, then:
 
 ```bash
 npm run dev
@@ -146,7 +146,7 @@ All configuration is managed through environment variables:
 
 | Command | Description |
 |---|---|
-| `npm run dev` | Start development server with Turbopack |
+| `npm run dev` | Start development server |
 | `npm run build` | Create production build |
 | `npm start` | Start production server |
 | `npm run lint` | Run ESLint across the codebase |

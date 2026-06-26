@@ -203,7 +203,7 @@ export default function AdminClientLayout({ children, initialAuthState }: AdminC
   // Email/Password gate view if not authenticated
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-on-background flex items-center justify-center p-4 font-poppins text-white">
+      <div className="min-h-screen bg-on-background flex items-center justify-center p-4 font-tajawal text-white">
         <div className="w-full max-w-md bg-white/5 border border-white/10 backdrop-blur-md rounded-xl p-8 shadow-2xl text-center space-y-6">
           {/* Lock Icon */}
           <div className="w-16 h-16 bg-primary/10 rounded-full border border-primary/20 flex items-center justify-center text-primary mx-auto">
@@ -317,7 +317,7 @@ export default function AdminClientLayout({ children, initialAuthState }: AdminC
 
   // Render full dashboard layout if authenticated
   return (
-    <div className="min-h-screen bg-surface flex flex-col md:flex-row font-poppins text-on-surface">
+    <div className="min-h-screen bg-surface flex flex-col md:flex-row font-tajawal text-on-surface">
       {/* Mobile Top Header */}
       <header className="md:hidden fixed top-0 left-0 right-0 h-16 bg-on-background text-white flex items-center justify-between px-6 z-50 shadow-md select-none print:hidden">
         <div className="flex items-center gap-3">

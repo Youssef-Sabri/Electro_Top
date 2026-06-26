@@ -37,7 +37,7 @@ export const CustomDropdown = memo(function CustomDropdown({ options, value, onC
   };
 
   return (
-    <div ref={dropdownRef} className={`relative inline-block text-left font-poppins min-w-[160px] ${className}`}>
+    <div ref={dropdownRef} className={`relative inline-block text-left font-tajawal min-w-[160px] ${className}`}>
        <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}

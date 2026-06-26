@@ -100,7 +100,7 @@ export function CheckoutForm() {
 
   if (!uiState.isHydrated || (items.length === 0 && !uiState.isSubmitting)) {
     return (
-      <div className="max-w-max-width mx-auto px-margin-mobile md:px-margin-desktop py-20 text-center font-poppins">
+      <div className="max-w-max-width mx-auto px-margin-mobile md:px-margin-desktop py-20 text-center font-tajawal">
         <p className="text-on-surface-variant text-sm">جاري تحميل الدفع...</p>
       </div>
     );
@@ -195,7 +195,7 @@ export function CheckoutForm() {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="max-w-max-width mx-auto px-margin-mobile md:px-margin-desktop font-poppins">
+    <form onSubmit={handleSubmit} className="max-w-max-width mx-auto px-margin-mobile md:px-margin-desktop font-tajawal">
       {/* Honeypot field for bot prevention — positioned off-screen to avoid modern bots detecting display:none */}
       <div aria-hidden="true" className="absolute -left-[9999px] opacity-0 pointer-events-none" style={{ position: 'absolute', left: '-9999px', height: 0, overflow: 'hidden' }}>
         <label htmlFor="company_phone">Company Phone</label>

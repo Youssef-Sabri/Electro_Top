@@ -14,14 +14,14 @@ const materialSymbolsUrl = 'https://fonts.googleapis.com/css2?family=Material+Sy
 const cairo = Cairo({
   subsets: ['arabic', 'latin'],
   weight: ['700', '800', '900'],
-  variable: '--font-montserrat',
+  variable: '--font-cairo',
   display: 'swap',
 });
 
 const tajawal = Tajawal({
   subsets: ['arabic', 'latin'],
   weight: ['400', '500', '700'],
-  variable: '--font-poppins',
+  variable: '--font-tajawal',
   display: 'swap',
 });
 
@@ -45,7 +45,6 @@ export default async function RootLayout({
       className={`${cairo.variable} ${tajawal.variable} h-full antialiased`}
     >
       <head>
-        <meta name="referrer" content="strict-origin-when-cross-origin" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         {/* Lazy-load Google Material Symbols Outlined icon font (non-render-blocking) */}

@@ -10,7 +10,7 @@ const DashboardClient = dynamic(
   () => import('@/components/admin/DashboardClient').then((mod) => mod.DashboardClient),
   {
     loading: () => (
-      <div className="w-full py-20 text-center font-poppins text-on-surface-variant">
+      <div className="w-full py-20 text-center font-tajawal text-on-surface-variant">
         <p className="text-sm">جاري تحميل إحصاءات لوحة التحكم...</p>
       </div>
     ),

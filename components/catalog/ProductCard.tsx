@@ -67,7 +67,7 @@ export const ProductCard = React.memo(function ProductCard({ product, onOpenDeta
         )}
       </div>
 
-       <div className="p-4 flex flex-col flex-grow text-start font-poppins">
+       <div className="p-4 flex flex-col flex-grow text-start font-tajawal">
         <h3 className="font-headline-md text-[16px] text-on-surface mb-1 truncate">
           {product.name}
         </h3>

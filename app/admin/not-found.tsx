@@ -2,7 +2,7 @@ import Link from 'next/link';
 
 export default function AdminNotFound() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-on-background font-poppins text-white">
+    <div className="min-h-screen flex items-center justify-center bg-on-background font-tajawal text-white">
       <div className="text-center p-8 max-w-md">
         <span className="material-symbols-outlined text-[64px] text-primary select-none mb-4">search_off</span>
         <h2 className="font-headline-md text-headline-md mb-2">الصفحة غير موجودة</h2>

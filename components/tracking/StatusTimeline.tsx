@@ -50,7 +50,7 @@ export const StatusTimeline = memo(function StatusTimeline({ currentStatus, stat
       : null;
 
     return (
-      <div className="bg-red-50 border border-error/30 rounded-xl p-8 flex items-start gap-4 font-poppins text-start shadow-sm mb-12">
+      <div className="bg-red-50 border border-error/30 rounded-xl p-8 flex items-start gap-4 font-tajawal text-start shadow-sm mb-12">
         <span className="material-symbols-outlined text-4xl text-error select-none shrink-0">
           cancel
         </span>
@@ -77,7 +77,7 @@ export const StatusTimeline = memo(function StatusTimeline({ currentStatus, stat
     currentStatusIndex === -1 ? 0 : (currentStatusIndex / (STATUS_FLOW.length - 1)) * 100;
 
   return (
-    <div className="space-y-12 bg-surface-container-lowest p-8 md:p-12 rounded-xl border border-outline-variant/30 shadow-sm text-start font-poppins">
+    <div className="space-y-12 bg-surface-container-lowest p-8 md:p-12 rounded-xl border border-outline-variant/30 shadow-sm text-start font-tajawal">
       <h2 className="font-headline-md text-headline-md mb-8 text-on-surface">مسار شحنتك</h2>
       
       <div className="relative pr-12 space-y-12">

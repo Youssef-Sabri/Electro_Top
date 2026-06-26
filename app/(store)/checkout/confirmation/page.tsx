@@ -12,7 +12,7 @@ export default function ConfirmationPage() {
   return (
     <main className="min-h-screen bg-white py-12 flex items-center justify-center">
       <Suspense fallback={
-        <div className="flex flex-col items-center justify-center py-20 font-poppins">
+        <div className="flex flex-col items-center justify-center py-20 font-tajawal">
           <Spinner className="h-10 w-10 mb-4" />
           <p className="text-gray-500 text-sm">جاري تحميل تفاصيل تأكيد الطلب...</p>
         </div>

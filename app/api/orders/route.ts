@@ -7,6 +7,7 @@ import { getClientIp } from '@/lib/ip-utils'
 import { checkAndIncrementRateLimit } from '@/lib/rate-limit'
 import { TABLES } from '@/lib/db-constants'
 import { now } from '@/lib/date-utils'
+import { SAFE_FILENAME_RE } from '@/lib/validators'
 import type { RateLimitConfig } from '@/lib/rate-limit'
 
 const ORDER_RATE_LIMIT: RateLimitConfig = {
@@ -104,7 +105,6 @@ export async function POST(request: NextRequest) {
 
   // Validate instapay_screenshot: must be a storage filename or empty string — never a data-URI
   const screenshotValue = (formData.instapay_screenshot as string) || ''
-  const SAFE_FILENAME_RE = /^receipt-[a-z0-9]+\.(jpg|jpeg|png|webp|heic|heif|gif)$/i
   if (screenshotValue && !SAFE_FILENAME_RE.test(screenshotValue)) {
     return NextResponse.json({ error: 'Invalid instapay_screenshot format.' }, { status: 400 })
   }

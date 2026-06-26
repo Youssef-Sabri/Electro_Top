@@ -13,7 +13,7 @@ export async function POST(request: NextRequest) {
 
   const ip = getClientIp(request)
   const rateCheck = await checkAndIncrementRateLimit(createSupabaseAdminClient(), ip, {
-    table: TABLES.orderRateLimits,
+    table: TABLES.receiptUploadLimits,
     countColumn: 'request_count',
     lastColumn: 'last_request_at',
     firstColumn: 'first_request_at',

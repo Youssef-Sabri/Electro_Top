@@ -15,7 +15,7 @@ export function CartClient() {
 
   if (!isHydrated) {
     return (
-      <div className="max-w-max-width mx-auto px-margin-mobile md:px-margin-desktop py-20 text-center font-poppins">
+      <div className="max-w-max-width mx-auto px-margin-mobile md:px-margin-desktop py-20 text-center font-tajawal">
         <p className="text-on-surface-variant text-sm">جاري تحميل عربة تسوق إلكترو توب...</p>
       </div>
     );
@@ -23,7 +23,7 @@ export function CartClient() {
 
   if (itemCount === 0) {
     return (
-      <div className="max-w-xl mx-auto px-4 py-20 text-center font-poppins">
+      <div className="max-w-xl mx-auto px-4 py-20 text-center font-tajawal">
         <div className="inline-flex items-center justify-center p-4 bg-surface-container rounded-full mb-6">
           <span className="material-symbols-outlined text-[48px] text-primary select-none">
             shopping_bag
@@ -43,7 +43,7 @@ export function CartClient() {
   }
 
   return (
-    <div className="max-w-max-width mx-auto px-margin-mobile md:px-margin-desktop font-poppins">
+    <div className="max-w-max-width mx-auto px-margin-mobile md:px-margin-desktop font-tajawal">
       <h1 className="font-headline-lg text-headline-lg mb-8 text-on-background text-start">
         مراجعة عربة التسوق
       </h1>

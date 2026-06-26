@@ -67,7 +67,7 @@ export function TrackingDetailClient({ id }: TrackingDetailClientProps) {
 
   if (loading) {
     return (
-      <div className="max-w-max-width mx-auto px-margin-mobile md:px-margin-desktop py-20 text-center font-poppins">
+      <div className="max-w-max-width mx-auto px-margin-mobile md:px-margin-desktop py-20 text-center font-tajawal">
         <p className="text-on-surface-variant text-sm">جاري البحث في قاعدة بيانات تتبع طلبات إلكترو توب...</p>
       </div>
     );
@@ -75,7 +75,7 @@ export function TrackingDetailClient({ id }: TrackingDetailClientProps) {
 
   if (!order) {
     return (
-      <div className="max-w-md mx-auto px-margin-mobile py-16 text-center font-poppins space-y-6">
+      <div className="max-w-md mx-auto px-margin-mobile py-16 text-center font-tajawal space-y-6">
         <div className="bg-surface-container-lowest p-8 border border-outline-variant/30 rounded-xl shadow-xl text-start space-y-6">
           <div className="mb-4 flex justify-center">
             <div className="w-16 h-16 bg-amber-50 rounded-full flex items-center justify-center border border-amber-200 text-amber-600">
@@ -126,7 +126,7 @@ export function TrackingDetailClient({ id }: TrackingDetailClientProps) {
   }
 
   return (
-    <div className="max-w-max-width mx-auto px-margin-mobile md:px-margin-desktop py-12 font-poppins">
+    <div className="max-w-max-width mx-auto px-margin-mobile md:px-margin-desktop py-12 font-tajawal">
       <div className="mb-8 flex justify-start">
         <Link href="/track" className="group flex items-center gap-2 text-primary font-label-md w-fit">
           <span className="material-symbols-outlined select-none rotate-180">arrow_back</span>

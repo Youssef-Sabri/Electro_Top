@@ -91,6 +91,9 @@ export async function GET(
   if (order.instapay_phone_number) {
     order.instapay_phone_number = maskPhone(order.instapay_phone_number)
   }
+  if (order.location_link) {
+    order.location_link = ''
+  }
 
   return NextResponse.json({
     ...data,

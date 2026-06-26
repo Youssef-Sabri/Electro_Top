@@ -29,4 +29,6 @@ export const productFormSchema = z.object({
   category: z.string().optional().nullable(),
 });
 
+export const SAFE_FILENAME_RE = /^receipt-[a-z0-9]+\.(jpg|jpeg|png|webp|heic|heif|gif)$/i;
+
 export type ProductFormData = z.infer<typeof productFormSchema>;

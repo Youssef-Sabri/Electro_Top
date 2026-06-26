@@ -5,7 +5,7 @@ import { getClientIp } from '@/lib/ip-utils';
 import { TABLES } from '@/lib/db-constants';
 
 const CSP_RATE_LIMIT = {
-  table: TABLES.orderRateLimits,
+  table: TABLES.cspReportLimits,
   countColumn: 'request_count' as const,
   lastColumn: 'last_request_at' as const,
   firstColumn: 'first_request_at' as const,

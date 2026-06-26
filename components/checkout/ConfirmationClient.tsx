@@ -74,7 +74,7 @@ export function ConfirmationClient() {
 
   if (loading) {
     return (
-      <div className="max-w-3xl mx-auto text-center py-20 font-poppins">
+      <div className="max-w-3xl mx-auto text-center py-20 font-tajawal">
         <div className="flex justify-center mb-4">
           <span className="material-symbols-outlined text-primary text-[48px] animate-spin select-none">sync</span>
         </div>
@@ -85,7 +85,7 @@ export function ConfirmationClient() {
 
   if (!order) {
     return (
-      <div className="max-w-md mx-auto px-margin-mobile py-20 text-center font-poppins">
+      <div className="max-w-md mx-auto px-margin-mobile py-20 text-center font-tajawal">
         <div className="mb-8 flex justify-center">
           <div className="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center border border-red-100 text-primary">
             <span className="material-symbols-outlined text-5xl select-none">warning</span>
@@ -107,7 +107,7 @@ export function ConfirmationClient() {
   }
 
   return (
-    <div className="max-w-3xl mx-auto text-center py-12 px-margin-mobile md:px-margin-desktop font-poppins">
+    <div className="max-w-3xl mx-auto text-center py-12 px-margin-mobile md:px-margin-desktop font-tajawal">
       <div className="mb-8 flex justify-center">
         <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center">
           <span

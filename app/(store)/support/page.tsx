@@ -10,7 +10,7 @@ export default function SupportPage() {
   const { whatsapp: whatsappNumber, facebook: facebookUrl, phone: phoneNumber } = getSupportEnv();
 
     return (
-      <div className="min-h-screen bg-surface-bright font-poppins">
+      <div className="min-h-screen bg-surface font-tajawal">
         <div className="bg-on-background text-white py-16 text-center relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-secondary/20 pointer-events-none" />
         <div className="max-w-max-width mx-auto px-margin-mobile md:px-margin-desktop relative z-10">

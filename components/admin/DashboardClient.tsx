@@ -82,7 +82,7 @@ export const DashboardClient = memo(function DashboardClient() {
 
 
   return (
-    <div className="space-y-8 font-poppins text-start">
+    <div className="space-y-8 font-tajawal text-start">
       <div>
         <h1 className="font-headline-lg text-headline-lg font-bold text-on-surface">
           إحصاءات لوحة التحكم

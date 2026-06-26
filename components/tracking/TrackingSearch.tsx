@@ -27,7 +27,7 @@ export const TrackingSearch = memo(function TrackingSearch() {
   }, [router, trackingId]);
 
   return (
-    <section className="py-20 px-margin-mobile md:px-margin-desktop bg-surface-container-low min-h-[80vh] flex items-center font-poppins">
+    <section className="py-20 px-margin-mobile md:px-margin-desktop bg-surface-container-low min-h-[80vh] flex items-center font-tajawal">
       <div className="max-w-max-width mx-auto grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
         <div className="space-y-8 text-start">
           {/* eslint-disable-next-line @next/next/no-img-element -- static logo with CSS blend mode */}

@@ -162,7 +162,7 @@ export const ShopPageContent = memo(function ShopPageContent({ initialProducts, 
   }, []);
 
   return (
-    <div className="min-h-screen bg-white font-poppins text-on-surface">
+    <div className="min-h-screen bg-white font-tajawal text-on-surface">
       <section className="bg-on-background py-16 text-start relative overflow-hidden">
         <div className="absolute inset-0 diagonal-accents opacity-10"></div>
         <div className="max-w-max-width mx-auto px-margin-mobile md:px-margin-desktop relative z-10">
@@ -247,7 +247,7 @@ export const ShopPageContent = memo(function ShopPageContent({ initialProducts, 
               ))}
             </div>
 
-            <div className="flex justify-between items-center bg-surface-container-low border border-outline-variant/30 rounded-xl px-6 py-4 select-none font-poppins">
+            <div className="flex justify-between items-center bg-surface-container-low border border-outline-variant/30 rounded-xl px-6 py-4 select-none font-tajawal">
               <p className="font-label-md text-label-sm text-on-surface-variant font-medium">
                 الصفحة {currentPage} من {totalPages}
               </p>

@@ -10,7 +10,7 @@ const OrdersLedger = dynamic(
   () => import('@/components/admin/OrdersLedger').then((mod) => mod.OrdersLedger),
   {
     loading: () => (
-      <div className="w-full py-20 text-center font-poppins text-on-surface-variant">
+      <div className="w-full py-20 text-center font-tajawal text-on-surface-variant">
         <p className="text-sm">جاري تحميل دفتر الطلبات...</p>
       </div>
     ),

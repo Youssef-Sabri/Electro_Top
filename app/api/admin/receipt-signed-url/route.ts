@@ -3,8 +3,8 @@ import { getServerSupabase } from '@/lib/supabase-server-cookies'
 import { createSupabaseAdminClient } from '@/lib/supabase-server'
 import { requireAdmin } from '@/lib/api-auth'
 import { TABLES, STORAGE_BUCKETS } from '@/lib/db-constants'
+import { SAFE_FILENAME_RE } from '@/lib/validators'
 
-const SAFE_FILENAME_RE = /^receipt-[a-z0-9]+\.(jpg|jpeg|png|webp|heic|heif|gif)$/i
 const SIGNED_URL_TTL = 300 // 5 minutes
 
 export async function GET(request: NextRequest) {

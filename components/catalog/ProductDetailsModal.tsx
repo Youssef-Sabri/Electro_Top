@@ -94,7 +94,7 @@ export const ProductDetailsModal = memo(function ProductDetailsModal({ product, 
           )}
         </div>
  
-        <div className="p-6 flex flex-col flex-grow overflow-y-auto h-[calc(90vh-220px)] md:h-full text-start font-poppins">
+        <div className="p-6 flex flex-col flex-grow overflow-y-auto h-[calc(90vh-220px)] md:h-full text-start font-tajawal">
           <div className="flex justify-between items-start mb-4">
             <div>
               <h2 className="font-headline-md text-[20px] md:text-[22px] text-on-surface leading-tight font-bold">
@@ -147,7 +147,7 @@ export const ProductDetailsModal = memo(function ProductDetailsModal({ product, 
                 >
                   <span className="material-symbols-outlined text-[20px] select-none">remove</span>
                 </button>
-                <span className="w-12 text-center font-bold text-on-surface font-poppins">{quantity}</span>
+                <span className="w-12 text-center font-bold text-on-surface font-tajawal">{quantity}</span>
                 <button
                   onClick={handleIncrement}
                   disabled={quantity >= product.stock}

@@ -10,7 +10,7 @@ const InventoryClient = dynamic(
   () => import('@/components/admin/InventoryClient').then((mod) => mod.InventoryClient),
   {
     loading: () => (
-      <div className="w-full py-20 text-center font-poppins text-on-surface-variant">
+      <div className="w-full py-20 text-center font-tajawal text-on-surface-variant">
         <p className="text-sm">جاري تحميل إدارة المخزون...</p>
       </div>
     ),

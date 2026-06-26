@@ -234,7 +234,7 @@ export const OrderDetailClient = memo(function OrderDetailClient({ id }: OrderDe
 
   if (loading) {
     return (
-      <div className="py-20 text-center font-poppins text-on-surface-variant">
+      <div className="py-20 text-center font-tajawal text-on-surface-variant">
         <p className="text-sm">جاري جلب تفاصيل الطلب...</p>
       </div>
     );
@@ -242,7 +242,7 @@ export const OrderDetailClient = memo(function OrderDetailClient({ id }: OrderDe
 
   if (!order) {
     return (
-      <div className="max-w-md mx-auto px-margin-mobile py-20 text-center font-poppins">
+      <div className="max-w-md mx-auto px-margin-mobile py-20 text-center font-tajawal">
         <div className="bg-surface-container-lowest p-8 border border-outline-variant/30 rounded-xl shadow-xl text-start space-y-6">
           <div className="mb-4 flex justify-center">
             <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center border border-red-100 text-primary">
@@ -273,7 +273,7 @@ export const OrderDetailClient = memo(function OrderDetailClient({ id }: OrderDe
 
   return (
     <>
-      <section className="space-y-gutter font-poppins text-start print:hidden">
+      <section className="space-y-gutter font-tajawal text-start print:hidden">
       <div className="flex items-center gap-4">
         <Link href="/admin/orders" className="flex items-center gap-2 text-primary font-label-md hover:translate-x-[4px] transition-transform">
           <span className="material-symbols-outlined select-none rotate-180">arrow_back</span> العودة إلى جميع الطلبات
