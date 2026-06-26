@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { createSupabaseServerClient } from '@/lib/supabase-server'
 import { getSupabaseHostname } from '@/lib/supabase-url'
+import { validateRequestOrigin } from '@/lib/csrf'
 
 function getExpectedHost(): string | null {
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL
@@ -60,24 +61,8 @@ export async function proxy(request: NextRequest) {
 
   // For non-GET requests, validate Origin/Referrer to prevent CSRF
   if (request.method !== 'GET' && request.method !== 'HEAD') {
-    const origin = request.headers.get('origin');
-    const referer = request.headers.get('referer');
-    if (!origin && !referer) {
+    if (!validateRequestOrigin(request)) {
       return new NextResponse('Forbidden', { status: 403 });
-    }
-    const checkUrl = origin || referer;
-    if (checkUrl) {
-      try {
-        const parsedUrl = new URL(checkUrl);
-        if (parsedUrl.host !== request.headers.get('host')) {
-          // In development, allow LAN IPs for mobile testing
-          if (process.env.NODE_ENV !== 'development' || !parsedUrl.hostname.startsWith('192.168.')) {
-            return new NextResponse('Forbidden', { status: 403 });
-          }
-        }
-      } catch {
-        return new NextResponse('Forbidden', { status: 403 });
-      }
     }
   }
 
@@ -135,4 +120,3 @@ export const config = {
     '/((?!_next/static|_next/image|favicon.ico|public/).*)',
   ],
 }
-

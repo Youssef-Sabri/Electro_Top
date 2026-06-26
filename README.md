@@ -103,7 +103,7 @@ types/                       # Shared TypeScript interfaces (Product, Order, etc
 
 ### Database Setup
 
-Follow the [Supabase Setup Guide](./setup.html) to initialize all required tables, triggers, RPCs, storage buckets, and RLS policies.
+Follow the project setup documentation to initialize all required tables, triggers, RPCs, storage buckets, and RLS policies.
 
 ### Installation
 
@@ -156,7 +156,7 @@ All configuration is managed through environment variables:
 
 ## Admin Panel
 
-Accessible at `/admin`. Authentication is handled by Supabase Auth (email/password). Only users with `app_metadata.role === "admin"` are granted access. The session is verified on every request via the `proxy.ts` middleware guard which runs on all `/admin` routes. Inactivity beyond 55 minutes triggers automatic logout.
+Accessible at `/admin`. Authentication is handled by Supabase Auth (email/password). Only users with `app_metadata.role === "admin"` are granted access. The session is verified on every request via the admin route guards. Inactivity beyond 55 minutes triggers automatic logout.
 
 ---
 
