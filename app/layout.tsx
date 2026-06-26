@@ -57,10 +57,11 @@ export default async function RootLayout({
           href={materialSymbolsUrl}
           rel="stylesheet"
         />
-        <script
-          nonce={nonce}
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
+         <script
+           nonce={nonce}
+           suppressHydrationWarning
+           type="application/ld+json"
+           dangerouslySetInnerHTML={{
             __html: JSON.stringify({
               '@context': 'https://schema.org',
               '@type': 'Store',
