@@ -29,3 +29,46 @@ export const STORAGE_BUCKETS = {
   receipts: 'instapay-receipts',
   productImages: 'product-images',
 } as const
+
+export const RATE_LIMIT_CONFIGS = {
+  login: {
+    table: TABLES.loginAttempts,
+    countColumn: 'attempt_count',
+    lastColumn: 'last_attempt_at',
+    firstColumn: 'first_attempt_at',
+    maxAttempts: 5,
+    windowMs: 60_000,
+  },
+  order: {
+    table: TABLES.orderRateLimits,
+    countColumn: 'request_count',
+    lastColumn: 'last_request_at',
+    firstColumn: 'first_request_at',
+    maxAttempts: 5,
+    windowMs: 60_000,
+  },
+  receiptUpload: {
+    table: TABLES.receiptUploadLimits,
+    countColumn: 'request_count',
+    lastColumn: 'last_request_at',
+    firstColumn: 'first_request_at',
+    maxAttempts: 3,
+    windowMs: 60_000,
+  },
+  tracking: {
+    table: TABLES.trackingLookups,
+    countColumn: 'lookup_count',
+    lastColumn: 'last_lookup_at',
+    firstColumn: 'first_lookup_at',
+    maxAttempts: 10,
+    windowMs: 60_000,
+  },
+  cspReport: {
+    table: TABLES.cspReportLimits,
+    countColumn: 'request_count',
+    lastColumn: 'last_request_at',
+    firstColumn: 'first_request_at',
+    maxAttempts: 10,
+    windowMs: 60_000,
+  },
+} as const

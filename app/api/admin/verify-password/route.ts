@@ -3,6 +3,7 @@ import { getServerSupabase } from '@/lib/supabase-server-cookies'
 import { validateRequestOrigin } from '@/lib/csrf'
 import { requireAdmin } from '@/lib/api-auth'
 import { verifyAdminPassword } from '@/lib/verify-admin-server'
+import { parseJsonBody } from '@/lib/parse-json'
 
 export async function POST(request: Request) {
   if (!validateRequestOrigin(request)) {
@@ -14,12 +15,8 @@ export async function POST(request: Request) {
   const authResult = await requireAdmin(supabaseClient)
   if (authResult instanceof NextResponse) return authResult
 
-  let body: Record<string, unknown>;
-  try {
-    body = await request.json()
-  } catch {
-    return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 })
-  }
+  const body = await parseJsonBody<Record<string, unknown>>(request)
+  if (body instanceof NextResponse) return body
 
   const password = body.password as string | undefined
   if (!password) {

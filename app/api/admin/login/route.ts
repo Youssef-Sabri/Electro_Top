@@ -4,38 +4,30 @@ import { getServerSupabase } from '@/lib/supabase-server-cookies'
 import { validateRequestOrigin } from '@/lib/csrf'
 import { getClientIp } from '@/lib/ip-utils'
 import { checkAndIncrementRateLimit } from '@/lib/rate-limit'
-import type { RateLimitConfig } from '@/lib/rate-limit'
-import { TABLES } from '@/lib/db-constants'
-
-const LOGIN_RATE_LIMIT: RateLimitConfig = {
-  table: TABLES.loginAttempts,
-  countColumn: 'attempt_count',
-  lastColumn: 'last_attempt_at',
-  firstColumn: 'first_attempt_at',
-  maxAttempts: 5,
-  windowMs: 60_000,
-};
+import { RATE_LIMIT_CONFIGS } from '@/lib/db-constants'
+import { parseJsonBody } from '@/lib/parse-json'
 
 export async function GET(request: NextRequest) {
   const ip = getClientIp(request);
   const supabaseClient = createSupabaseAdminClient()
-
+  
   const { data, error } = await supabaseClient
-    .from(LOGIN_RATE_LIMIT.table)
+    .from(RATE_LIMIT_CONFIGS.login.table)
     .select('attempt_count, first_attempt_at')
     .eq('ip_address', ip)
     .maybeSingle();
-
+  
   if (error || !data) {
     return NextResponse.json({ blocked: false });
   }
-
+  
   const elapsed = Date.now() - new Date(data.first_attempt_at).getTime();
-  const blocked = data.attempt_count >= LOGIN_RATE_LIMIT.maxAttempts && elapsed < LOGIN_RATE_LIMIT.windowMs;
-  const cooldown = blocked ? Math.ceil((LOGIN_RATE_LIMIT.windowMs - elapsed) / 1000) : undefined;
-
+  const blocked = data.attempt_count >= RATE_LIMIT_CONFIGS.login.maxAttempts && elapsed < RATE_LIMIT_CONFIGS.login.windowMs;
+  const cooldown = blocked ? Math.ceil((RATE_LIMIT_CONFIGS.login.windowMs - elapsed) / 1000) : undefined;
+  
   return NextResponse.json({ blocked, cooldown });
 }
+
 
 export async function POST(request: NextRequest) {
   if (!validateRequestOrigin(request)) {
@@ -46,7 +38,7 @@ export async function POST(request: NextRequest) {
   const supabaseClient = createSupabaseAdminClient()
 
   // Atomic check-and-increment — prevents TOCTOU race under concurrent serverless invocations
-  const rateLimit = await checkAndIncrementRateLimit(supabaseClient, ip, LOGIN_RATE_LIMIT);
+  const rateLimit = await checkAndIncrementRateLimit(supabaseClient, ip, RATE_LIMIT_CONFIGS.login);
   if (rateLimit.blocked) {
     return NextResponse.json({
       blocked: true,
@@ -54,12 +46,8 @@ export async function POST(request: NextRequest) {
     }, { status: 429 });
   }
 
-  let body: Record<string, unknown>;
-  try {
-    body = await request.json();
-  } catch {
-    return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
-  }
+  const body = await parseJsonBody<Record<string, unknown>>(request)
+  if (body instanceof NextResponse) return body
 
   const email = body.email as string | undefined;
   const password = body.password as string | undefined;
@@ -93,10 +81,10 @@ export async function POST(request: NextRequest) {
 
   // Successful login, clear rate limit entries via DELETE
   await supabaseClient
-    .from(LOGIN_RATE_LIMIT.table)
+    .from(RATE_LIMIT_CONFIGS.login.table)
     .delete()
     .eq('ip_address', ip)
-    .lt('first_attempt_at', new Date(Date.now() - LOGIN_RATE_LIMIT.windowMs).toISOString());
+    .lt('first_attempt_at', new Date(Date.now() - RATE_LIMIT_CONFIGS.login.windowMs).toISOString());
 
   // Return success response. Note: createServerClient writes directly to the cookies via the proxy setters.
   return NextResponse.json({ success: true });

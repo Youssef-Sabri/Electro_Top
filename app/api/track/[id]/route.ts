@@ -2,17 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createSupabaseAdminClient } from '@/lib/supabase-server'
 import { getClientIp } from '@/lib/ip-utils'
 import { checkAndIncrementRateLimit } from '@/lib/rate-limit'
-import type { RateLimitConfig } from '@/lib/rate-limit'
-import { TABLES } from '@/lib/db-constants'
+import { RATE_LIMIT_CONFIGS } from '@/lib/db-constants'
 
-const TRACKING_RATE_LIMIT: RateLimitConfig = {
-  table: TABLES.trackingLookups,
-  countColumn: 'lookup_count',
-  lastColumn: 'last_lookup_at',
-  firstColumn: 'first_lookup_at',
-  maxAttempts: 10,
-  windowMs: 60_000,
-}
+const TRACKING_RATE_LIMIT = RATE_LIMIT_CONFIGS.tracking;
 const TRACKING_ID_REGEX = /^ET-[A-Z0-9]{10}$/i
 
 function maskName(name: string): string {

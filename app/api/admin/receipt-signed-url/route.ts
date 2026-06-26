@@ -13,6 +13,9 @@ export async function GET(request: NextRequest) {
   const authResult = await requireAdmin(supabase)
   if (authResult instanceof NextResponse) return authResult
 
+  const adminClient = createSupabaseAdminClient()
+
+
   // 2. Parse and validate query params
   const { searchParams } = new URL(request.url)
   const filename = searchParams.get('filename') ?? ''
@@ -25,8 +28,8 @@ export async function GET(request: NextRequest) {
   // 3. Ownership check — verify the receipt belongs to the claimed order
   if (orderId) {
     const upperOrderId = orderId.toUpperCase()
-    const adminClient = createSupabaseAdminClient()
     const { data: orderRow, error: fetchError } = await adminClient
+
       .from(TABLES.orders)
       .select('instapay_screenshot')
       .eq('id_unique_tracking', upperOrderId)
@@ -51,8 +54,8 @@ export async function GET(request: NextRequest) {
   }
 
   // 4. Generate signed URL server-side using the service-role key (never the anon key)
-  const adminClient = createSupabaseAdminClient()
   const { data, error } = await adminClient.storage
+
     .from(STORAGE_BUCKETS.receipts)
     .createSignedUrl(filename, SIGNED_URL_TTL)
 

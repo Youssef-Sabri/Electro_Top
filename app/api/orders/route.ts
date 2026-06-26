@@ -5,20 +5,12 @@ import { checkoutSchema, SAFE_FILENAME_RE } from '@/lib/validators'
 import { generateOrderId } from '@/lib/id-generator'
 import { getClientIp } from '@/lib/ip-utils'
 import { checkAndIncrementRateLimit } from '@/lib/rate-limit'
-import { TABLES } from '@/lib/db-constants'
+import { TABLES, RATE_LIMIT_CONFIGS } from '@/lib/db-constants'
 import { now } from '@/lib/date-utils'
 import { parseJsonBody } from '@/lib/parse-json'
 import { devLog } from '@/lib/dev-log'
-import type { RateLimitConfig } from '@/lib/rate-limit'
 
-const ORDER_RATE_LIMIT: RateLimitConfig = {
-  table: TABLES.orderRateLimits,
-  countColumn: 'request_count',
-  lastColumn: 'last_request_at',
-  firstColumn: 'first_request_at',
-  maxAttempts: 5,
-  windowMs: 60_000,
-};
+const ORDER_RATE_LIMIT = RATE_LIMIT_CONFIGS.order;
 
 export async function POST(request: NextRequest) {
   if (!validateRequestOrigin(request)) {
@@ -148,12 +140,18 @@ export async function POST(request: NextRequest) {
     adminClient.from(TABLES.orderItems).insert(newItems),
     adminClient.from(TABLES.orderStatusHistory).insert([initialHistory]),
   ])
-
+  
   if (oiErr || hErr) {
+    const errorMsg = (oiErr || hErr)?.message || '';
     await adminClient.from(TABLES.orders).delete().eq('id_unique_tracking', trackingId).maybeSingle()
-    devLog('Create order rollback:', oiErr || hErr)
-    return NextResponse.json({ error: 'فشل حفظ بيانات الطلب.' }, { status: 500 })
+    devLog('Create order rollback:', errorMsg)
+    
+    if (errorMsg.includes('Insufficient stock')) {
+      return NextResponse.json({ error: 'عذراً، بعض المنتجات لم تعد متوفرة بالكمية المطلوبة.' }, { status: 400 })
+    }
+    return NextResponse.json({ error: 'فشل حفظ بيانات الطلب. يرجى المحاولة مرة أخرى.' }, { status: 500 })
   }
+
 
   return NextResponse.json({ success: true, trackingId })
 }

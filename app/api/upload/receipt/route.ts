@@ -5,6 +5,7 @@ import { detectImageMimeType } from '@/lib/magic-bytes'
 import { checkAndIncrementRateLimit } from '@/lib/rate-limit'
 import { getClientIp } from '@/lib/ip-utils'
 import { TABLES, STORAGE_BUCKETS } from '@/lib/db-constants'
+import { parseJsonBody } from '@/lib/parse-json'
 
 export async function POST(request: NextRequest) {
   if (!validateRequestOrigin(request)) {
@@ -12,7 +13,8 @@ export async function POST(request: NextRequest) {
   }
 
   const ip = getClientIp(request)
-  const rateCheck = await checkAndIncrementRateLimit(createSupabaseAdminClient(), ip, {
+  const adminClient = createSupabaseAdminClient()
+  const rateCheck = await checkAndIncrementRateLimit(adminClient, ip, {
     table: TABLES.receiptUploadLimits,
     countColumn: 'request_count',
     lastColumn: 'last_request_at',
@@ -24,12 +26,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: `محاولات كثيرة جداً. يرجى الانتظار ${rateCheck.cooldown} ثانية.` }, { status: 429 })
   }
 
-  let body: { file?: string; filename?: string }
-  try {
-    body = await request.json()
-  } catch {
-    return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 })
-  }
+  const body = await parseJsonBody<{ file?: string; filename?: string }>(request)
+  if (body instanceof NextResponse) return body
 
   if (!body.file || typeof body.file !== 'string') {
     return NextResponse.json({ error: 'الملف مطلوب.' }, { status: 400 })
@@ -76,7 +74,7 @@ export async function POST(request: NextRequest) {
   const random = Array.from(crypto.getRandomValues(new Uint8Array(16)), (b) => b.toString(36).charAt(0)).join('')
   const fileName = `receipt-${random}.${ext}`
 
-  const supabaseClient = createSupabaseAdminClient()
+  const supabaseClient = adminClient
 
 const { error: uploadError } = await supabaseClient.storage
      .from(STORAGE_BUCKETS.receipts)

@@ -1,4 +1,5 @@
 import type { OrderStatus } from '@/types'
+import { VALID_ORDER_STATUSES } from '@/lib/db-constants'
 
 const STATUS_LABELS: Record<OrderStatus, string> = {
   'Pending Review': 'قيد المراجعة',
@@ -20,12 +21,10 @@ const HISTORY_LABELS: Record<OrderStatus, string> = {
 
 export const STATUS_OPTIONS = [
   { value: 'All', label: 'الكل' },
-  { value: 'Pending Review', label: 'قيد المراجعة' },
-  { value: 'Accepted', label: 'مقبول' },
-  { value: 'Processing', label: 'قيد التحضير' },
-  { value: 'Delivered', label: 'تم التوصيل' },
-  { value: 'Declined', label: 'مرفوض' },
-  { value: 'Check Internal Note', label: 'قيد الفحص' },
+  ...VALID_ORDER_STATUSES.map(status => ({
+    value: status,
+    label: STATUS_LABELS[status as OrderStatus]
+  }))
 ]
 
 export function translateStatus(status: string, isPublic = false): string {

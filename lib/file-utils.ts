@@ -13,7 +13,7 @@ export function readFileAsDataURL(file: File): Promise<string> {
   })
 }
 
-export function extractFileName(filePath: string): string | undefined {
+function extractFileName(filePath: string): string | undefined {
   const raw = filePath.split('/').pop()?.split('?')[0]
   return raw ? decodeURIComponent(raw) : undefined
 }
