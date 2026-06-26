@@ -56,7 +56,7 @@ The platform includes a comprehensive **admin dashboard** for inventory manageme
 | Layer | Technology |
 |---|---|
 | Framework | Next.js 16 (App Router, Turbopack) |
-| Language | TypeScript 5 (strict mode) |
+| Language | TypeScript 6 (strict mode) |
 | Styling | Tailwind CSS v4 |
 | Database | Supabase (PostgreSQL with RLS) |
 | Auth | Supabase Auth (email/password, admin only) |
@@ -110,7 +110,7 @@ Follow the [Supabase Setup Guide](./setup.html) to initialize all required table
 git clone https://github.com/your-username/electro-top.git
 cd electro-top
 npm install
-cp .env.local.example .env.local
+# Create .env.local with the required variables listed below
 ```
 
 Edit `.env.local` with your Supabase credentials and store configuration, then:

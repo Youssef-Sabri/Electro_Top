@@ -1,7 +1,12 @@
 import { useState, useEffect } from 'react';
 import type { Order, OrderItem, OrderStatusHistory } from '@/types';
 
-export function useOrderTracking(id: string | null) {
+export function useOrderTracking(id: string | null): {
+  order: Order | null;
+  items: OrderItem[];
+  history: OrderStatusHistory[];
+  loading: boolean;
+} {
   const [order, setOrder] = useState<Order | null>(null);
   const [items, setItems] = useState<OrderItem[]>([]);
   const [history, setHistory] = useState<OrderStatusHistory[]>([]);

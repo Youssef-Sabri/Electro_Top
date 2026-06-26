@@ -22,15 +22,16 @@ export const Navbar = memo(function Navbar() {
 
   useEffect(() => {
     setIsMounted(true);
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      setIsAdmin(user?.app_metadata?.role === 'admin');
-    });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      if (session) {
-        const { data: { user } } = await supabase.auth.getUser();
-        setIsAdmin(user?.app_metadata?.role === 'admin');
-      } else {
+      try {
+        if (session) {
+          const { data: { user } } = await supabase.auth.getUser();
+          setIsAdmin(user?.app_metadata?.role === 'admin');
+        } else {
+          setIsAdmin(false);
+        }
+      } catch {
         setIsAdmin(false);
       }
     });

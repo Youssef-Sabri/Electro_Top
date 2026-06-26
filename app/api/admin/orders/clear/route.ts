@@ -17,14 +17,14 @@ export async function DELETE(request: Request) {
   const authResult = await requireAdmin(supabaseClient)
   if (authResult instanceof NextResponse) return authResult
 
-  let body;
+  let body: Record<string, unknown>;
   try {
     body = await request.json()
   } catch {
     return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 })
   }
 
-  const { password } = body
+  const password = body.password as string | undefined
   if (!password) {
     return NextResponse.json({ error: 'كلمة المرور مطلوبة.' }, { status: 400 })
   }

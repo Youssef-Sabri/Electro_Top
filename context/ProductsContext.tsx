@@ -61,7 +61,7 @@ export function ProductsProvider({ children }: { children: ReactNode }) {
         { data: prodData, error: prodError },
       ] = await Promise.all([
         supabase.from(TABLES.categories).select('name').order('name'),
-        supabase.from(TABLES.products).select(PRODUCT_SELECT_FIELDS).eq('is_active', true).order('created_at'),
+        supabase.from(TABLES.products).select(PRODUCT_SELECT_FIELDS).order('created_at'),
       ]);
 
       if (!catError && catData) {

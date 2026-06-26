@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useOrders } from '@/hooks/useOrders';
 import { useProducts } from '@/hooks/useProducts';
+import { z } from 'zod';
 import type { OrderStatus, Order, OrderItem, OrderStatusHistory } from '@/types';
 import { formatCurrency } from '@/lib/format-currency';
 import { now, formatOrderDate } from '@/lib/date-utils';
@@ -23,11 +24,13 @@ interface OrderDetailClientProps {
   id: string;
 }
 
+const signedUrlSchema = z.object({ signedUrl: z.string() });
+
 async function fetchSignedUrl(filename: string, orderId: string): Promise<string> {
   const params = new URLSearchParams({ filename, orderId });
   const res = await fetch(`/api/admin/receipt-signed-url?${params}`);
   if (!res.ok) throw new Error(await res.text());
-  const { signedUrl } = await res.json() as { signedUrl: string };
+  const { signedUrl } = signedUrlSchema.parse(await res.json());
   return signedUrl;
 }
 

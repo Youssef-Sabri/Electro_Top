@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -27,6 +27,24 @@ export function TrackingDetailClient({ id }: TrackingDetailClientProps) {
 
   const [retryId, setRetryId] = useState('');
   const [retryError, setRetryError] = useState('');
+
+  const statusColorInfo = useMemo(() => {
+    const displayStatus = publicStatus(order?.status ?? 'Accepted');
+    switch (displayStatus) {
+      case 'Pending Review':
+        return { dot: 'bg-yellow-400', text: 'text-yellow-700 bg-yellow-500/10 border-yellow-500/20' };
+      case 'Accepted':
+        return { dot: 'bg-blue-500', text: 'text-blue-700 bg-blue-500/10 border-blue-500/20' };
+      case 'Processing':
+        return { dot: 'bg-purple-500', text: 'text-purple-700 bg-purple-500/10 border-purple-500/20' };
+      case 'Delivered':
+        return { dot: 'bg-green-500', text: 'text-green-700 bg-green-500/10 border-green-200' };
+      case 'Declined':
+        return { dot: 'bg-red-500', text: 'text-red-700 bg-red-500/10 border-red-200' };
+      default:
+        return { dot: 'bg-gray-500', text: 'text-gray-700 bg-gray-500/10 border-gray-200' };
+    }
+  }, [order?.status]);
 
   const handleRetrySubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -106,24 +124,6 @@ export function TrackingDetailClient({ id }: TrackingDetailClientProps) {
       </div>
     );
   }
-
-  const statusColorInfo = (() => {
-    const displayStatus = publicStatus(order.status);
-    switch (displayStatus) {
-      case 'Pending Review':
-        return { dot: 'bg-yellow-400', text: 'text-yellow-700 bg-yellow-500/10 border-yellow-500/20' };
-      case 'Accepted':
-        return { dot: 'bg-blue-500', text: 'text-blue-700 bg-blue-500/10 border-blue-500/20' };
-      case 'Processing':
-        return { dot: 'bg-purple-500', text: 'text-purple-700 bg-purple-500/10 border-purple-500/20' };
-      case 'Delivered':
-        return { dot: 'bg-green-500', text: 'text-green-700 bg-green-500/10 border-green-200' };
-      case 'Declined':
-        return { dot: 'bg-red-500', text: 'text-red-700 bg-red-500/10 border-red-200' };
-      default:
-        return { dot: 'bg-gray-500', text: 'text-gray-700 bg-gray-500/10 border-gray-200' };
-    }
-  })();
 
   return (
     <div className="max-w-max-width mx-auto px-margin-mobile md:px-margin-desktop py-12 font-poppins">

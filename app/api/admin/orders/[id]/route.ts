@@ -116,7 +116,7 @@ export async function PATCH(
   const authResult = await requireAdmin(supabaseClient)
   if (authResult instanceof NextResponse) return authResult
 
-  let body;
+  let body: Record<string, unknown>;
   try {
     body = await request.json()
   } catch {
@@ -126,7 +126,7 @@ export async function PATCH(
   const updates: { status?: (typeof VALID_ORDER_STATUSES)[number]; admin_notes?: string } = {}
 
   if ('status' in body) {
-    const status = body.status
+    const status = body.status as (typeof VALID_ORDER_STATUSES)[number]
     if (!VALID_ORDER_STATUSES.includes(status)) {
       return NextResponse.json({ error: 'Invalid order status' }, { status: 400 })
     }
@@ -134,10 +134,11 @@ export async function PATCH(
   }
 
   if ('admin_notes' in body) {
-    let notes = body.admin_notes
-    if (typeof notes !== 'string' || notes.length > ADMIN_NOTES_MAX_LENGTH) {
+    const rawNotes = body.admin_notes
+    if (typeof rawNotes !== 'string' || rawNotes.length > ADMIN_NOTES_MAX_LENGTH) {
       return NextResponse.json({ error: `Admin notes must be a string up to ${ADMIN_NOTES_MAX_LENGTH} characters` }, { status: 400 })
     }
+    let notes: string = rawNotes
     // Strip HTML tags as a belt-and-suspenders measure.
     // IMPORTANT: admin notes must always be rendered via JSX text interpolation {notes},
     // never via dangerouslySetInnerHTML. The regex handles the current admin-only scope;

@@ -17,7 +17,7 @@ export async function POST(request: Request) {
   const authResult = await requireAdmin(supabaseClient)
   if (authResult instanceof NextResponse) return authResult
 
-  let body;
+  let body: Record<string, unknown>;
   try {
     body = await request.json()
   } catch {

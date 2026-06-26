@@ -20,7 +20,7 @@ function generateNonce(): string {
     .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
 }
 
-function buildCsp(nonce: string, supabaseHost: string, _isAdminRoute: boolean): string {
+function buildCsp(nonce: string, supabaseHost: string): string {
   const isDev = process.env.NODE_ENV === 'development'
   const evalSrc = isDev ? " 'unsafe-eval'" : ""
 
@@ -44,8 +44,6 @@ function buildCsp(nonce: string, supabaseHost: string, _isAdminRoute: boolean): 
 
 export async function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname
-  const isAdminRoute = pathname.startsWith('/admin') || pathname.startsWith('/api/admin')
-
   const supabaseHost = getSupabaseHostname()
   const nonce = generateNonce()
 
@@ -83,6 +81,8 @@ export async function proxy(request: NextRequest) {
     }
   }
 
+  const isAdminRoute = pathname.startsWith('/admin') || pathname.startsWith('/api/admin')
+
   // Set CSP header with nonce and pass nonce to Next.js via x-nonce
   const requestHeaders = new Headers(request.headers)
   requestHeaders.set('x-nonce', nonce)
@@ -93,7 +93,7 @@ export async function proxy(request: NextRequest) {
     }
   })
   response.headers.set('x-nonce', nonce)
-  response.headers.set('Content-Security-Policy', buildCsp(nonce, supabaseHost, isAdminRoute))
+  response.headers.set('Content-Security-Policy', buildCsp(nonce, supabaseHost))
 
   // Allow admin login page and API without session
   if (pathname === '/admin' || pathname === '/api/admin/login') {

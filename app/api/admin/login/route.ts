@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
   const { data, error } = await supabaseClient
     .from(LOGIN_RATE_LIMIT.table)
     .select('attempt_count, first_attempt_at')
-    .eq('ip', ip)
+    .eq('ip_address', ip)
     .maybeSingle();
 
   if (error || !data) {
@@ -54,14 +54,15 @@ export async function POST(request: NextRequest) {
     }, { status: 429 });
   }
 
-  let body;
+  let body: Record<string, unknown>;
   try {
     body = await request.json();
   } catch {
     return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
   }
 
-  const { email, password } = body;
+  const email = body.email as string | undefined;
+  const password = body.password as string | undefined;
   if (!email || !password) {
     return NextResponse.json({ error: 'البريد الإلكتروني وكلمة المرور مطلوبان' }, { status: 400 });
   }
@@ -94,7 +95,7 @@ export async function POST(request: NextRequest) {
   await supabaseClient
     .from(LOGIN_RATE_LIMIT.table)
     .delete()
-    .eq('ip', ip)
+    .eq('ip_address', ip)
     .lt('first_attempt_at', new Date(Date.now() - LOGIN_RATE_LIMIT.windowMs).toISOString());
 
   // Return success response. Note: createServerClient writes directly to the cookies via the proxy setters.

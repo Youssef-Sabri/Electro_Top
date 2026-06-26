@@ -64,9 +64,9 @@ const nextConfig: NextConfig = {
             value: 'camera=(), microphone=(), geolocation=()',
           },
            {
-            key: 'Strict-Transport-Security',
-            value: 'max-age=31536000; includeSubDomains; preload',
-          },
+             key: 'Strict-Transport-Security',
+             value: isDev ? 'max-age=31536000; includeSubDomains' : 'max-age=31536000; includeSubDomains; preload',
+           },
             // Note: Content-Security-Policy is set dynamically in proxy.ts
             // with per-request nonces. The static config cannot support nonces.
         ],
