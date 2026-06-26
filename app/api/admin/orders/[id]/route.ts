@@ -5,7 +5,9 @@ import { validateRequestOrigin } from '@/lib/csrf'
 import { requireAdmin } from '@/lib/api-auth'
 import { now } from '@/lib/date-utils'
 import { TABLES, STORAGE_BUCKETS, VALID_ORDER_STATUSES, ADMIN_NOTES_MAX_LENGTH } from '@/lib/db-constants'
-import { extractFileName } from '@/lib/file-utils'
+import { deleteStorageFile } from '@/lib/file-utils'
+import { parseJsonBody } from '@/lib/parse-json'
+import { devLog } from '@/lib/dev-log'
 
 export async function GET(
   request: Request,
@@ -25,9 +27,7 @@ export async function GET(
     .rpc('get_order_detail_view', { order_id: uppercaseId })
 
   if (rpcError || !rpcResult || rpcResult.length === 0) {
-    if (process.env.NODE_ENV !== 'production' && rpcError) {
-      console.error('Failed to fetch order details via RPC:', rpcError)
-    }
+    if (rpcError) devLog('Failed to fetch order details via RPC:', rpcError)
     return NextResponse.json({ error: 'Order not found' }, { status: 404 })
   }
 
@@ -63,7 +63,7 @@ export async function DELETE(
     .maybeSingle()
 
   if (fetchError) {
-    if (process.env.NODE_ENV !== 'production') console.error('Fetch order before delete error:', fetchError);
+    devLog('Fetch order before delete error:', fetchError);
     return NextResponse.json({ error: 'فشل استرداد بيانات الطلب قبل الحذف.' }, { status: 500 })
   }
 
@@ -73,7 +73,7 @@ export async function DELETE(
   ])
 
   if (itemsError || historyError) {
-    if (process.env.NODE_ENV !== 'production') console.error('Delete order records error:', itemsError || historyError);
+    devLog('Delete order records error:', itemsError || historyError);
     return NextResponse.json({ error: 'فشل حذف سجلات الطلب. يرجى المحاولة مرة أخرى.' }, { status: 500 })
   }
 
@@ -83,18 +83,13 @@ export async function DELETE(
     .eq('id_unique_tracking', uppercaseId)
 
   if (error) {
-    if (process.env.NODE_ENV !== 'production') console.error('Delete order error:', error);
+    devLog('Delete order error:', error);
     return NextResponse.json({ error: 'فشل حذف الطلب. يرجى المحاولة مرة أخرى.' }, { status: 500 })
   }
 
   if (orderData?.instapay_screenshot) {
-    const fileName = orderData.instapay_screenshot.includes('/')
-      ? extractFileName(orderData.instapay_screenshot)
-      : orderData.instapay_screenshot;
-    if (fileName) {
-          const adminClient = createSupabaseAdminClient()
-          await adminClient.storage.from(STORAGE_BUCKETS.receipts).remove([fileName])
-    }
+    const adminClient = createSupabaseAdminClient()
+    await deleteStorageFile(adminClient, STORAGE_BUCKETS.receipts, orderData.instapay_screenshot)
   }
 
   return NextResponse.json({ success: true })
@@ -116,12 +111,8 @@ export async function PATCH(
   const authResult = await requireAdmin(supabaseClient)
   if (authResult instanceof NextResponse) return authResult
 
-  let body: Record<string, unknown>;
-  try {
-    body = await request.json()
-  } catch {
-    return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 })
-  }
+  const body = await parseJsonBody<Record<string, unknown>>(request)
+  if (body instanceof NextResponse) return body
 
   const updates: { status?: (typeof VALID_ORDER_STATUSES)[number]; admin_notes?: string } = {}
 
@@ -141,9 +132,8 @@ export async function PATCH(
     let notes: string = rawNotes
     // Strip HTML tags as a belt-and-suspenders measure.
     // IMPORTANT: admin notes must always be rendered via JSX text interpolation {notes},
-    // never via dangerouslySetInnerHTML. The regex handles the current admin-only scope;
-    // if rich-text rendering is ever planned, replace with a proper sanitiser (e.g. DOMPurify).
-    notes = notes.replace(/<[^>]*>/g, '')
+    // never via dangerouslySetInnerHTML.
+    notes = notes.replace(/<\/?[^>]+(>|$)/g, '')
     updates.admin_notes = notes
   }
 
@@ -158,7 +148,7 @@ export async function PATCH(
     .eq('id_unique_tracking', uppercaseId)
 
   if (updateError) {
-    if (process.env.NODE_ENV !== 'production') console.error('Update order error:', updateError)
+    devLog('Update order error:', updateError)
     return NextResponse.json({ error: 'فشل تحديث الطلب. يرجى المحاولة مرة أخرى.' }, { status: 500 })
   }
 
@@ -175,8 +165,8 @@ export async function PATCH(
       })
 
     if (historyError) {
-      if (process.env.NODE_ENV !== 'production') console.error('Insert order status history error:', historyError)
-      // We don't block status update if history insert fails, but log it
+      devLog('Insert order status history error:', historyError)
+      return NextResponse.json({ error: 'فشل تحديث سجل حالة الطلب. يرجى المحاولة مرة أخرى.' }, { status: 500 })
     }
   }
 

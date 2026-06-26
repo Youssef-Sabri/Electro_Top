@@ -11,19 +11,15 @@ export function todayStamp(): string {
   return now().split('T')[0]
 }
 
-export function formatOrderDate(date: string): string {
+export function formatOrderDate(date: string, options?: { includeTime?: boolean }): string {
   const d = safeDate(date)
   if (!d) return date
   return d.toLocaleDateString('ar-EG', {
     month: 'short', day: 'numeric', year: 'numeric',
+    ...(options?.includeTime ? { hour: 'numeric', minute: 'numeric' } : {}),
   })
 }
 
 export function formatOrderTimestamp(date: string): string {
-  const d = safeDate(date)
-  if (!d) return date
-  return d.toLocaleDateString('ar-EG', {
-    month: 'short', day: 'numeric', year: 'numeric',
-    hour: 'numeric', minute: 'numeric',
-  })
+  return formatOrderDate(date, { includeTime: true })
 }

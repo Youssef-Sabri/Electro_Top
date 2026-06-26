@@ -8,6 +8,7 @@ import { verifyAdminPassword } from '@/lib/verify-admin-server'
 import { now } from '@/lib/date-utils'
 import { TABLES, STORAGE_BUCKETS } from '@/lib/db-constants'
 import { clearStorageBucket } from '@/lib/file-utils'
+import { parseJsonBody } from '@/lib/parse-json'
 
 export async function POST(request: Request) {
   if (!validateRequestOrigin(request)) {
@@ -19,12 +20,8 @@ export async function POST(request: Request) {
   const authResult = await requireAdmin(supabaseClient)
   if (authResult instanceof NextResponse) return authResult
 
-  let body: Record<string, unknown>;
-  try {
-    body = await request.json()
-  } catch {
-    return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 })
-  }
+  const body = await parseJsonBody<Record<string, unknown>>(request)
+  if (body instanceof NextResponse) return body
 
   const validation = productFormSchema.safeParse(body)
   if (!validation.success) {
@@ -56,12 +53,8 @@ export async function DELETE(request: Request) {
   const authResult = await requireAdmin(supabaseClient)
   if (authResult instanceof NextResponse) return authResult
 
-  let body: Record<string, unknown>;
-  try {
-    body = await request.json()
-  } catch {
-    return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 })
-  }
+  const body = await parseJsonBody<{ password?: string }>(request)
+  if (body instanceof NextResponse) return body
 
   const password = body.password as string | undefined
   if (!password) {
@@ -73,6 +66,10 @@ export async function DELETE(request: Request) {
   const pwError = await verifyAdminPassword(supabaseClient, email, password)
   if (pwError) return pwError
 
+  // Delete ALL receipts files from storage before clearing DB records (including orphaned files)
+  const clearClient = createSupabaseAdminClient()
+  await clearStorageBucket(clearClient, STORAGE_BUCKETS.receipts)
+
   const { error: prodError } = await supabaseClient.from(TABLES.products).delete().neq('id', '')
   if (prodError) {
     return NextResponse.json({ error: prodError.message || 'Failed to clear products' }, { status: 500 })
@@ -83,7 +80,7 @@ export async function DELETE(request: Request) {
     return NextResponse.json({ error: catError.message || 'Failed to clear categories' }, { status: 500 })
   }
 
-  await clearStorageBucket(createSupabaseAdminClient(), STORAGE_BUCKETS.productImages)
+  await clearStorageBucket(clearClient, STORAGE_BUCKETS.productImages)
 
   return NextResponse.json({ success: true })
 }

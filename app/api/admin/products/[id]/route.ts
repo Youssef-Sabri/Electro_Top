@@ -4,8 +4,10 @@ import { createSupabaseAdminClient } from '@/lib/supabase-server'
 import { validateRequestOrigin } from '@/lib/csrf'
 import { productFormSchema } from '@/lib/validators'
 import { requireAdmin } from '@/lib/api-auth'
-import { extractFileName } from '@/lib/file-utils'
+import { deleteStorageFile } from '@/lib/file-utils'
 import { TABLES, STORAGE_BUCKETS } from '@/lib/db-constants'
+import { parseJsonBody } from '@/lib/parse-json'
+import { devLog } from '@/lib/dev-log'
 
 const ALLOWED_UPDATE_FIELDS = ['name', 'description', 'price', 'stock', 'image_url', 'is_active', 'category'] as const
 
@@ -19,12 +21,8 @@ export async function PATCH(
 
   const { id } = await params
 
-  let body: Record<string, unknown>
-  try {
-    body = await request.json()
-  } catch {
-    return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 })
-  }
+  const body = await parseJsonBody<Record<string, unknown>>(request)
+  if (body instanceof NextResponse) return body
 
   const allowed: Record<string, unknown> = {}
   for (const key of ALLOWED_UPDATE_FIELDS) {
@@ -62,19 +60,13 @@ export async function PATCH(
     .eq('id', id)
 
   if (error) {
-    if (process.env.NODE_ENV !== 'production') console.error('Update product error:', error);
+    devLog('Update product error:', error);
     return NextResponse.json({ error: 'فشل تحديث المنتج. يرجى المحاولة مرة أخرى.' }, { status: 500 })
   }
 
-  // Delete old image if new image was successfully updated in DB
   if (oldImageUrl && oldImageUrl !== validation.data.image_url) {
-    const fileName = oldImageUrl.includes('/')
-      ? extractFileName(oldImageUrl)
-      : oldImageUrl;
-    if (fileName) {
-      const adminClient = createSupabaseAdminClient()
-      await adminClient.storage.from(STORAGE_BUCKETS.productImages).remove([fileName])
-    }
+    const adminClient = createSupabaseAdminClient()
+    await deleteStorageFile(adminClient, STORAGE_BUCKETS.productImages, oldImageUrl)
   }
 
   return NextResponse.json({ success: true })
@@ -102,7 +94,7 @@ export async function DELETE(
     .maybeSingle()
 
   if (fetchError) {
-    if (process.env.NODE_ENV !== 'production') console.error('Fetch product before delete error:', fetchError);
+    devLog('Fetch product before delete error:', fetchError);
     return NextResponse.json({ error: 'فشل استرداد بيانات المنتج قبل الحذف.' }, { status: 500 })
   }
 
@@ -112,19 +104,13 @@ export async function DELETE(
     .eq('id', id)
 
   if (error) {
-    if (process.env.NODE_ENV !== 'production') console.error('Delete product error:', error);
+    devLog('Delete product error:', error);
     return NextResponse.json({ error: 'فشل حذف المنتج. يرجى المحاولة مرة أخرى.' }, { status: 500 })
   }
 
-  // Delete product image from storage server-side
   if (productData?.image_url) {
-    const fileName = productData.image_url.includes('/')
-      ? extractFileName(productData.image_url)
-      : productData.image_url;
-    if (fileName) {
-      const adminClient = createSupabaseAdminClient()
-      await adminClient.storage.from(STORAGE_BUCKETS.productImages).remove([fileName])
-    }
+    const adminClient = createSupabaseAdminClient()
+    await deleteStorageFile(adminClient, STORAGE_BUCKETS.productImages, productData.image_url)
   }
 
   return NextResponse.json({ success: true })

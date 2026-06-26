@@ -1,11 +1,11 @@
 import { NextResponse } from 'next/server'
 import { getServerSupabase } from '@/lib/supabase-server-cookies'
 import { validateRequestOrigin } from '@/lib/csrf'
-import { z } from 'zod'
 import { requireAdmin } from '@/lib/api-auth'
 import { TABLES } from '@/lib/db-constants'
-
-const categorySchema = z.string().min(1, 'اسم الفئة مطلوب').max(50, 'اسم الفئة يجب ألا يتجاوز 50 حرفاً')
+import { categorySchema } from '@/lib/validators'
+import { parseJsonBody } from '@/lib/parse-json'
+import { devLog } from '@/lib/dev-log'
 
 export async function POST(request: Request) {
   if (!validateRequestOrigin(request)) {
@@ -17,12 +17,8 @@ export async function POST(request: Request) {
   const authResult = await requireAdmin(supabaseClient)
   if (authResult instanceof NextResponse) return authResult
 
-  let body: Record<string, unknown>;
-  try {
-    body = await request.json()
-  } catch {
-    return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 })
-  }
+  const body = await parseJsonBody<{ name?: string }>(request)
+  if (body instanceof NextResponse) return body
 
   const validation = categorySchema.safeParse(body.name)
   if (!validation.success) {
@@ -36,7 +32,7 @@ export async function POST(request: Request) {
     .insert([{ name: trimmedName }])
 
   if (insertError) {
-    if (process.env.NODE_ENV !== 'production') console.error('Add category error:', insertError)
+    devLog('Add category error:', insertError)
     return NextResponse.json({ error: 'فشل إضافة الفئة. يرجى المحاولة مرة أخرى.' }, { status: 500 })
   }
 
@@ -68,7 +64,7 @@ export async function DELETE(request: Request) {
     .eq('name', trimmedName)
 
   if (deleteError) {
-    if (process.env.NODE_ENV !== 'production') console.error('Delete category error:', deleteError)
+    devLog('Delete category error:', deleteError)
     return NextResponse.json({ error: 'فشل حذف الفئة. يرجى المحاولة مرة أخرى.' }, { status: 500 })
   }
 

@@ -7,6 +7,7 @@ import type { Session } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
 import { TABLES, ORDER_SELECT_FIELDS, ORDER_ITEM_SELECT_FIELDS, STATUS_HISTORY_SELECT_FIELDS, VALID_ORDER_STATUSES, ADMIN_NOTES_MAX_LENGTH } from '@/lib/db-constants';
 import { now } from '@/lib/date-utils';
+import { devLog } from '@/lib/dev-log';
 
 function isValidOrderStatus(value: string): value is OrderStatus {
   return (VALID_ORDER_STATUSES as readonly string[]).includes(value);
@@ -118,7 +119,7 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
       setTotalPages(oCount ? Math.ceil(oCount / PAGE_SIZE) : 0);
       setPage(pageNum);
     } catch (error) {
-      if (process.env.NODE_ENV !== 'production') console.error('Failed to load orders/items/logs from Supabase:', error);
+      devLog('Failed to load orders/items/logs from Supabase:', error);
       setOrders([]);
       setOrderItems([]);
       setStatusHistory([]);
@@ -353,7 +354,7 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
 
   const updateOrderStatus = useCallback(async (orderId: string, status: OrderStatus) => {
     if (!isValidOrderStatus(status)) {
-      if (process.env.NODE_ENV !== 'production') console.error(`Invalid order status: "${status}"`);
+      devLog(`Invalid order status: "${status}"`);
       return;
     }
 
@@ -399,7 +400,7 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
 
   const updateAdminNotes = useCallback(async (orderId: string, notes: string) => {
     if (notes.length > ADMIN_NOTES_MAX_LENGTH) {
-      if (process.env.NODE_ENV !== 'production') console.error(`Admin notes exceed ${ADMIN_NOTES_MAX_LENGTH} characters`);
+      devLog(`Admin notes exceed ${ADMIN_NOTES_MAX_LENGTH} characters`);
       return;
     }
 

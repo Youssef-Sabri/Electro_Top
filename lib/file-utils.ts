@@ -1,4 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
+import { devLog } from '@/lib/dev-log'
 
 export function readFileAsDataURL(file: File): Promise<string> {
   return new Promise<string>((resolve, reject) => {
@@ -17,6 +18,16 @@ export function extractFileName(filePath: string): string | undefined {
   return raw ? decodeURIComponent(raw) : undefined
 }
 
+export async function deleteStorageFile(
+  client: SupabaseClient,
+  bucket: string,
+  url: string
+): Promise<void> {
+  const fileName = url.includes('/') ? extractFileName(url) : url;
+  if (!fileName) return;
+  await client.storage.from(bucket).remove([fileName]);
+}
+
 const STORAGE_LIST_LIMIT = 100;
 
 export async function clearStorageBucket(
@@ -33,7 +44,7 @@ export async function clearStorageBucket(
         .list(undefined, { limit: STORAGE_LIST_LIMIT, offset });
 
       if (listError) {
-        if (process.env.NODE_ENV !== 'production') console.error(`Failed to list files in '${bucketName}':`, listError.message);
+        devLog(`Failed to list files in '${bucketName}':`, listError.message);
         return;
       }
 
@@ -47,10 +58,10 @@ export async function clearStorageBucket(
       const fileNames = allFiles.map((file) => file.name);
       const { error: removeError } = await client.storage.from(bucketName).remove(fileNames);
       if (removeError) {
-        if (process.env.NODE_ENV !== 'production') console.error(`Failed to delete files from '${bucketName}':`, removeError.message);
+        devLog(`Failed to delete files from '${bucketName}':`, removeError.message);
       }
     }
   } catch (err) {
-    if (process.env.NODE_ENV !== 'production') console.error(`Error clearing bucket '${bucketName}':`, err);
+    devLog(`Error clearing bucket '${bucketName}':`, err);
   }
 }

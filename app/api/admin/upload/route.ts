@@ -2,16 +2,8 @@ import { NextResponse } from 'next/server'
 import { getServerSupabase } from '@/lib/supabase-server-cookies'
 import { validateRequestOrigin } from '@/lib/csrf'
 import { requireAdmin } from '@/lib/api-auth'
-import { detectImageMimeType } from '@/lib/magic-bytes'
+import { detectImageMimeType, EXT_MAP } from '@/lib/magic-bytes'
 import { STORAGE_BUCKETS } from '@/lib/db-constants'
-
-const EXT_MAP: Record<string, string> = {
-  'image/jpeg': 'jpg',
-  'image/png': 'png',
-  'image/webp': 'webp',
-  'image/gif': 'gif',
-  'image/heic': 'heic',
-}
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024
 
@@ -64,7 +56,7 @@ export async function POST(request: Request) {
   }
 
   const ext = EXT_MAP[detectedType]
-  const randomPart = crypto.randomUUID().split('-')[0]
+  const randomPart = crypto.randomUUID()  // Use full UUID to minimize collision risk
   const fileName = `product-${randomPart}.${ext}`
 
   const { error: uploadError } = await supabaseClient.storage

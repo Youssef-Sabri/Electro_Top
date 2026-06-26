@@ -1,13 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createSupabaseAdminClient } from '@/lib/supabase-server'
 import { validateRequestOrigin } from '@/lib/csrf'
-import { checkoutSchema } from '@/lib/validators'
+import { checkoutSchema, SAFE_FILENAME_RE } from '@/lib/validators'
 import { generateOrderId } from '@/lib/id-generator'
 import { getClientIp } from '@/lib/ip-utils'
 import { checkAndIncrementRateLimit } from '@/lib/rate-limit'
 import { TABLES } from '@/lib/db-constants'
 import { now } from '@/lib/date-utils'
-import { SAFE_FILENAME_RE } from '@/lib/validators'
+import { parseJsonBody } from '@/lib/parse-json'
+import { devLog } from '@/lib/dev-log'
 import type { RateLimitConfig } from '@/lib/rate-limit'
 
 const ORDER_RATE_LIMIT: RateLimitConfig = {
@@ -34,14 +35,9 @@ export async function POST(request: NextRequest) {
     }, { status: 429 })
   }
 
-  let body: Record<string, unknown>
-  try {
-    body = await request.json()
-  } catch {
-    return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 })
-  }
+  const body = await parseJsonBody<Record<string, unknown>>(request)
+  if (body instanceof NextResponse) return body
 
-  // Server-side bot detection — re-validate honeypot and timing
   const honeypotValue = (body.honeypot as string) || '';
   if (honeypotValue) {
     return NextResponse.json({ error: 'Invalid submission' }, { status: 400 })
@@ -144,7 +140,7 @@ export async function POST(request: NextRequest) {
 
   const { error: oErr } = await adminClient.from(TABLES.orders).insert([newOrder])
   if (oErr) {
-    if (process.env.NODE_ENV !== 'production') console.error('Create order error:', oErr)
+    devLog('Create order error:', oErr)
     return NextResponse.json({ error: 'فشل إنشاء الطلب. يرجى المحاولة مرة أخرى.' }, { status: 500 })
   }
 
@@ -155,7 +151,7 @@ export async function POST(request: NextRequest) {
 
   if (oiErr || hErr) {
     await adminClient.from(TABLES.orders).delete().eq('id_unique_tracking', trackingId).maybeSingle()
-    if (process.env.NODE_ENV !== 'production') console.error('Create order rollback:', oiErr || hErr)
+    devLog('Create order rollback:', oiErr || hErr)
     return NextResponse.json({ error: 'فشل حفظ بيانات الطلب.' }, { status: 500 })
   }
 

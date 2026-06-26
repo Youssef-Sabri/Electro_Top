@@ -31,4 +31,6 @@ export const productFormSchema = z.object({
 
 export const SAFE_FILENAME_RE = /^receipt-[a-z0-9]+\.(jpg|jpeg|png|webp|heic|heif|gif)$/i;
 
+export const categorySchema = z.string().min(1, 'اسم الفئة مطلوب').max(50, 'اسم الفئة يجب ألا يتجاوز 50 حرفاً');
+
 export type ProductFormData = z.infer<typeof productFormSchema>;

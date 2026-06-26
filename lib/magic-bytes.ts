@@ -58,6 +58,14 @@ export function detectImageMimeType(buffer: ArrayBuffer | Uint8Array): ImageMime
   return null;
 }
 
+export const EXT_MAP: Record<string, string> = {
+  'image/jpeg': 'jpg',
+  'image/png': 'png',
+  'image/webp': 'webp',
+  'image/gif': 'gif',
+  'image/heic': 'heic',
+}
+
 export function isAllowedImageType(mime: string): mime is ImageMimeType {
   return (SUPPORTED_IMAGE_TYPES as readonly string[]).includes(mime);
 }

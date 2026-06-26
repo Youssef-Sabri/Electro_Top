@@ -52,15 +52,15 @@ The platform includes a comprehensive **admin dashboard** for inventory manageme
 ---
 
 ## Tech Stack
-
+ 
 | Layer | Technology |
 |---|---|
 | Framework | Next.js 16 (App Router, Turbopack) |
-| Language | TypeScript 5 (strict mode) |
+| Language | TypeScript ^5.8 (strict mode) |
 | Styling | Tailwind CSS v4 |
 | Database | Supabase (PostgreSQL with RLS) |
 | Auth | Supabase Auth (email/password, admin only) |
-| Validation | Zod |
+| Validation | Zod ^3.23.8 |
 | State Management | React Context (Products, Orders, Cart) |
 | Storage | Supabase Storage (private + public buckets) |
 | Middleware | `proxy.ts` — CSP, CSRF, admin route guard |

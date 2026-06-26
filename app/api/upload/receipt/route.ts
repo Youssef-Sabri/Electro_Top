@@ -78,12 +78,13 @@ export async function POST(request: NextRequest) {
 
   const supabaseClient = createSupabaseAdminClient()
 
-  const { error: uploadError } = await supabaseClient.storage
-    .from(STORAGE_BUCKETS.receipts)
-    .upload(fileName, fileBuffer, {
-      contentType: detectedType,
-      metadata: { mimetype: detectedType },
-    })
+const { error: uploadError } = await supabaseClient.storage
+     .from(STORAGE_BUCKETS.receipts)
+     .upload(fileName, fileBuffer, {
+       contentType: detectedType,
+       metadata: { mimetype: detectedType },
+       upsert: false,
+     })
 
   if (uploadError) {
     return NextResponse.json({ error: 'فشل رفع الملف إلى التخزين.' }, { status: 500 })

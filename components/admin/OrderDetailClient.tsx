@@ -12,6 +12,7 @@ import { now, formatOrderDate } from '@/lib/date-utils';
 import { getInitials } from '@/lib/string-utils';
 import { STATUS_OPTIONS, translateStatus, translateHistoryStatus } from '@/lib/status-utils';
 import { getSafeUrl } from '@/lib/safe-url';
+import { devLog } from '@/lib/dev-log';
 
 import { Toast } from '@/components/ui/Toast';
 import { CustomDropdown } from '@/components/ui/CustomDropdown';
@@ -228,7 +229,7 @@ export const OrderDetailClient = memo(function OrderDetailClient({ id }: OrderDe
       setToastType('success');
       setShowToast(true);
     } catch (err) {
-      if (process.env.NODE_ENV !== 'production') console.error(err);
+      devLog(err);
     }
   };
 

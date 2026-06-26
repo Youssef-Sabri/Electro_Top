@@ -1,6 +1,6 @@
 import { supabase } from '@/lib/supabase';
 import { isAllowedImageType } from '@/lib/magic-bytes';
-import { readFileAsDataURL, clearStorageBucket, extractFileName } from '@/lib/file-utils';
+import { readFileAsDataURL, clearStorageBucket, deleteStorageFile } from '@/lib/file-utils';
 
 interface ImageProcessResult {
   dataUrl: string;
@@ -85,28 +85,8 @@ export async function uploadProductImage(file: File): Promise<{ imageUrl: string
   return { imageUrl, info };
 }
 
-async function deleteStorageImage(bucket: string, imageUrl: string): Promise<void> {
-  if (!imageUrl) return;
-
-  // Accept both full URLs and bare filenames
-  const fileName = imageUrl.includes('/') ? extractFileName(imageUrl) : imageUrl;
-  if (!fileName) return;
-
-  try {
-    const { error } = await supabase.storage
-      .from(bucket)
-      .remove([fileName]);
-
-    if (error) {
-      if (process.env.NODE_ENV !== 'production') console.error(`Failed to delete file from '${bucket}':`, error.message);
-    }
-  } catch (err) {
-    if (process.env.NODE_ENV !== 'production') console.error(`Error deleting file from '${bucket}':`, err);
-  }
-}
-
 export async function deleteProductImage(imageUrl: string): Promise<void> {
-  await deleteStorageImage('product-images', imageUrl);
+  await deleteStorageFile(supabase, 'product-images', imageUrl);
 }
 
 export async function clearAllProductImages(): Promise<void> {

@@ -1,15 +1,14 @@
 'use client';
 
 import { createContext, useState, useEffect, useMemo, useCallback, useRef, ReactNode } from 'react';
-import { z } from 'zod';
 import type { Product } from '@/types';
 import type { Session } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
 
 import { TABLES, PRODUCT_SELECT_FIELDS } from '@/lib/db-constants';
 import { clearAllProductImages } from '@/lib/image-utils';
-
-const categorySchema = z.string().min(1, 'اسم الفئة مطلوب').max(50, 'اسم الفئة يجب ألا يتجاوز 50 حرفاً');
+import { categorySchema } from '@/lib/validators';
+import { devLog } from '@/lib/dev-log';
 
 export interface ProductsContextType {
   products: Product[];
@@ -74,7 +73,7 @@ export function ProductsProvider({ children }: { children: ReactNode }) {
       hasFetchedRef.current = true;
       setRefreshVersion((v) => v + 1);
     } catch (error) {
-      if (process.env.NODE_ENV !== 'production') console.error('Failed to load products/categories from Supabase:', error);
+      devLog('Failed to load products/categories from Supabase:', error);
       setIsLoaded(true);
       hasFetchedRef.current = true;
     } finally {
@@ -227,7 +226,7 @@ export function ProductsProvider({ children }: { children: ReactNode }) {
       const product = resData.product;
       setProducts((prev) => [...prev, product]);
     } catch (e) {
-      if (process.env.NODE_ENV !== 'production') console.error('Failed to add product:', e);
+      devLog('Failed to add product:', e);
       throw e;
     }
   }, []);
@@ -291,7 +290,7 @@ export function ProductsProvider({ children }: { children: ReactNode }) {
   const addCategory = useCallback(async (newCat: string) => {
     const result = categorySchema.safeParse(newCat.trim());
     if (!result.success) {
-      if (process.env.NODE_ENV !== 'production') console.error('Invalid category name:', result.error.issues);
+      devLog('Invalid category name:', result.error.issues);
       return;
     }
     const trimmed = result.data;
@@ -371,7 +370,7 @@ export function ProductsProvider({ children }: { children: ReactNode }) {
     } catch (e) {
       setProducts(previousProducts);
       setCategories(previousCategories);
-      if (process.env.NODE_ENV !== 'production') console.error(e);
+      devLog(e);
       throw e;
     }
   }, []);
