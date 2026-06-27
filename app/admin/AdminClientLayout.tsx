@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
 
-const SESSION_TIMEOUT_MS = 55 * 60 * 1000;
+import { ADMIN_SESSION_TIMEOUT_MS as SESSION_TIMEOUT_MS } from '@/lib/constants';
 
 interface AdminClientLayoutProps {
   children: React.ReactNode;

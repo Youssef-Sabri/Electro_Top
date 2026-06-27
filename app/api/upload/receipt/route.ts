@@ -5,6 +5,7 @@ import { detectImageMimeType } from '@/lib/magic-bytes'
 import { checkAndIncrementRateLimit, setRateLimitHeaders } from '@/lib/rate-limit'
 import { getClientIp } from '@/lib/ip-utils'
 import { TABLES, STORAGE_BUCKETS } from '@/lib/db-constants'
+import { MAX_FILE_SIZE_BYTES } from '@/lib/constants'
 import { parseJsonBody } from '@/lib/parse-json'
 
 export async function POST(request: NextRequest) {
@@ -58,7 +59,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'بيانات الملف تالفة.' }, { status: 400 })
   }
 
-  if (fileBuffer.length > 5 * 1024 * 1024) {
+  if (fileBuffer.length > MAX_FILE_SIZE_BYTES) {
     return NextResponse.json({ error: 'حجم الملف كبير جداً. الحد الأقصى 5 ميجابايت.' }, { status: 400 })
   }
 
