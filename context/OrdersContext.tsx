@@ -145,15 +145,15 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
 
       const orderIds = (oData || []).map(o => o.id_unique_tracking);
 
-      const [oiResult, hResult, statusesResult] = await Promise.all([
-        orderIds.length > 0
-          ? supabase.from(TABLES.orderItems).select(ORDER_ITEM_SELECT_FIELDS).in('order_id', orderIds)
-          : { data: [] as OrderItem[], error: null },
-        orderIds.length > 0
-          ? supabase.from(TABLES.orderStatusHistory).select(STATUS_HISTORY_SELECT_FIELDS).in('order_id', orderIds)
-          : { data: [] as OrderStatusHistory[], error: null },
-        supabase.rpc('get_order_counts'),
-      ]);
+        const [oiResult, hResult, statusesResult] = await Promise.all([
+          orderIds.length > 0
+            ? supabase.from(TABLES.orderItems).select(ORDER_ITEM_SELECT_FIELDS).in('order_id', orderIds)
+            : { data: [] as OrderItem[], error: null },
+          orderIds.length > 0
+            ? supabase.from(TABLES.orderStatusHistory).select(STATUS_HISTORY_SELECT_FIELDS).in('order_id', orderIds)
+            : { data: [] as OrderStatusHistory[], error: null },
+          fetch('/api/admin/order-counts').then(async res => ({ data: await res.json(), error: res.ok ? null : 'Failed' })),
+        ]);
 
       setOrders(oData || []);
       setOrderItems(oiResult.data || []);
