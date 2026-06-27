@@ -14,6 +14,7 @@ import { STATUS_OPTIONS, translateStatus, translateHistoryStatus } from '@/lib/s
 import { getSafeUrl } from '@/lib/safe-url';
 import { devLog } from '@/lib/dev-log';
 import { getSupportEnv } from '@/lib/env-utils';
+import { SAFE_FILENAME_RE } from '@/lib/validators';
 
 import { Toast } from '@/components/ui/Toast';
 import { CustomDropdown } from '@/components/ui/CustomDropdown';
@@ -79,7 +80,7 @@ export const OrderDetailClient = memo(function OrderDetailClient({ id }: OrderDe
       return;
     }
 
-    const isValidFilename = /^receipt-[a-z0-9]+\.(jpg|jpeg|png|webp|heic|heif|gif)$/i.test(screenshot);
+    const isValidFilename = SAFE_FILENAME_RE.test(screenshot);
     if (!isValidFilename) {
       setSignedScreenshotUrl(null);
       return;
@@ -168,7 +169,7 @@ export const OrderDetailClient = memo(function OrderDetailClient({ id }: OrderDe
       return;
     }
 
-    const isValidFilename = /^receipt-[a-z0-9]+\.(jpg|jpeg|png|webp|heic|heif|gif)$/i.test(screenshot);
+    const isValidFilename = SAFE_FILENAME_RE.test(screenshot);
     if (!isValidFilename) return;
 
     try {

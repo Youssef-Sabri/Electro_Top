@@ -1,7 +1,6 @@
-﻿import { NextRequest, NextResponse } from 'next/server'
-import { getServerSupabase } from '@/lib/supabase-server-cookies'
+import { NextRequest, NextResponse } from 'next/server'
+import { requireAdminGuard } from '@/lib/admin-guard'
 import { createSupabaseAdminClient } from '@/lib/supabase-server'
-import { requireAdmin } from '@/lib/api-auth'
 import { TABLES, STORAGE_BUCKETS } from '@/lib/db-constants'
 import { SAFE_FILENAME_RE } from '@/lib/validators'
 import { normalizeTrackingId } from '@/lib/constants'
@@ -10,9 +9,8 @@ const SIGNED_URL_TTL = 300 // 5 minutes
 
 export async function GET(request: NextRequest) {
   // 1. Verify admin session
-  const supabase = await getServerSupabase()
-  const authResult = await requireAdmin(supabase)
-  if (authResult instanceof NextResponse) return authResult
+  const guard = await requireAdminGuard(request)
+  if (guard instanceof NextResponse) return guard
 
   const adminClient = createSupabaseAdminClient()
 

@@ -9,6 +9,7 @@ const nextConfig: NextConfig = {
   compress: true,
   reactStrictMode: true,
   poweredByHeader: false,
+  allowedDevOrigins: isDev ? ['192.168.1.13', 'localhost:3000'] : [],
   experimental: {
     optimizePackageImports: ['@supabase/supabase-js'],
   },

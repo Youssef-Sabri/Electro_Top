@@ -1,7 +1,5 @@
 import { NextResponse } from 'next/server'
-import { getServerSupabase } from '@/lib/supabase-server-cookies'
 import { createSupabaseAdminClient } from '@/lib/supabase-server'
-import { requireAdmin } from '@/lib/api-auth'
 import { requireAdminGuard } from '@/lib/admin-guard'
 import { now } from '@/lib/date-utils'
 import { TABLES, STORAGE_BUCKETS, VALID_ORDER_STATUSES, ADMIN_NOTES_MAX_LENGTH } from '@/lib/db-constants'
@@ -14,10 +12,8 @@ export async function GET(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const supabaseClient = await getServerSupabase()
-
-  const authResult = await requireAdmin(supabaseClient)
-  if (authResult instanceof NextResponse) return authResult
+  const guard = await requireAdminGuard(request)
+  if (guard instanceof NextResponse) return guard
 
   const { id } = await params
   const sanitizedId = normalizeTrackingId(id)

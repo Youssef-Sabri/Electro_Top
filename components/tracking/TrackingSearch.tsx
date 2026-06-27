@@ -2,6 +2,7 @@
 
 import React, { memo, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import { normalizeTrackingId } from '@/lib/constants';
 
 export const TrackingSearch = memo(function TrackingSearch() {
   const router = useRouter();
@@ -10,7 +11,7 @@ export const TrackingSearch = memo(function TrackingSearch() {
 
   const handleSubmit = useCallback((e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const cleanId = trackingId.trim().toUpperCase();
+    const cleanId = normalizeTrackingId(trackingId);
 
     if (!cleanId) {
       setError('الرجاء إدخال رقم التتبع الخاص بك.');

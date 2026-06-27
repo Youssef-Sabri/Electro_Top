@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import type { Order, OrderItem, OrderStatusHistory } from '@/types';
+import { normalizeTrackingId } from '@/lib/constants';
 
 export function useOrderTracking(id: string | null): {
   order: Order | null;
@@ -14,11 +15,12 @@ export function useOrderTracking(id: string | null): {
 
   useEffect(() => {
     if (!id) return;
+    const trackingId = id;
 
     async function fetchOrder() {
       setLoading(true);
       try {
-        const res = await fetch(`/api/track/${id}`);
+        const res = await fetch(`/api/track/${normalizeTrackingId(trackingId)}`);
         if (res.ok) {
           const data = await res.json();
           setOrder(data.order);

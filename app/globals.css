@@ -48,6 +48,7 @@
 
   /* Font Families */
   --font-tajawal: var(--font-tajawal);
+  --font-cairo: var(--font-cairo);
   --font-label-sm: var(--font-tajawal);
   --font-label-md: var(--font-tajawal);
   --font-headline-md: var(--font-cairo);

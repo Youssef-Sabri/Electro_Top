@@ -1,10 +1,8 @@
 import { NextResponse } from 'next/server'
-import { getServerSupabase } from '@/lib/supabase-server-cookies'
-import { requireAdmin } from '@/lib/api-auth'
+import { requireAdminGuard } from '@/lib/admin-guard'
 
-export async function GET() {
-  const supabase = await getServerSupabase()
-  const authResult = await requireAdmin(supabase)
-  if (authResult instanceof NextResponse) return authResult
+export async function GET(request: Request) {
+  const guard = await requireAdminGuard(request)
+  if (guard instanceof NextResponse) return guard
   return NextResponse.json({ verified: true })
 }

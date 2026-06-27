@@ -10,6 +10,7 @@ import { StatusTimeline } from '@/components/tracking/StatusTimeline';
 import { formatCurrency } from '@/lib/format-currency';
 import { formatOrderDate } from '@/lib/date-utils';
 import { getSafeUrl } from '@/lib/safe-url';
+import { normalizeTrackingId } from '@/lib/constants';
 
 import { translateStatus, publicStatus } from '@/lib/status-utils';
 
@@ -48,7 +49,7 @@ export function TrackingDetailClient({ id }: TrackingDetailClientProps) {
 
   const handleRetrySubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const cleanId = retryId.trim().toUpperCase();
+    const cleanId = normalizeTrackingId(retryId);
 
     if (!cleanId) {
       setRetryError('الرجاء إدخال رقم التتبع الخاص بك.');

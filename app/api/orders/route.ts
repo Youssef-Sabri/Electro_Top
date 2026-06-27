@@ -136,6 +136,12 @@ export async function POST(request: NextRequest) {
   const { error: oErr } = await adminClient.from(TABLES.orders).insert([newOrder])
   if (oErr) {
     devLog('Create order error:', oErr)
+    if (oErr.message.includes('Too many orders from this phone number')) {
+      return NextResponse.json(
+        { error: 'لقد قمت بإنشاء عدد كبير جداً من الطلبات من هذا الرقم مؤخراً. يرجى الانتظار 15 دقيقة والمحاولة مرة أخرى.' },
+        { status: 429 }
+      )
+    }
     return NextResponse.json({ error: 'فشل إنشاء الطلب. يرجى المحاولة مرة أخرى.' }, { status: 500 })
   }
 
