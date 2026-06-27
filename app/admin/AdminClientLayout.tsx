@@ -139,6 +139,23 @@ export default function AdminClientLayout({ children, initialAuthState }: AdminC
     };
   }, [isAuthenticated, resetActivityTimer]);
 
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        const elapsed = Date.now() - lastActivityRef.current;
+        if (elapsed >= SESSION_TIMEOUT_MS) {
+          supabase.auth.signOut();
+          window.location.href = '/admin';
+        }
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [isAuthenticated]);
+
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (loginCooldown > 0) return;
