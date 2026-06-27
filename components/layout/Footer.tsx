@@ -64,7 +64,7 @@ export const Footer = memo(function Footer() {
             {whatsappNumbers.map((number, index) => (
               <a
                 key={index}
-                href={`https://wa.me/${number}`}
+                href={`https://api.whatsapp.com/send?phone=${number}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center md:justify-end gap-2 text-surface-variant hover:text-secondary-fixed transition-colors font-medium text-sm"

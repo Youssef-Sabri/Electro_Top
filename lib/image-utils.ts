@@ -1,5 +1,6 @@
 import { supabase } from '@/lib/supabase';
 import { isAllowedImageType } from '@/lib/magic-bytes';
+import { STORAGE_BUCKETS } from '@/lib/db-constants';
 import { readFileAsDataURL, clearStorageBucket, deleteStorageFile } from '@/lib/file-utils';
 
 interface ImageProcessResult {
@@ -86,9 +87,9 @@ export async function uploadProductImage(file: File): Promise<{ imageUrl: string
 }
 
 export async function deleteProductImage(imageUrl: string): Promise<void> {
-  await deleteStorageFile(supabase, 'product-images', imageUrl);
+  await deleteStorageFile(supabase, STORAGE_BUCKETS.productImages, imageUrl);
 }
 
 export async function clearAllProductImages(): Promise<void> {
-  await clearStorageBucket(supabase, 'product-images');
+  await clearStorageBucket(supabase, STORAGE_BUCKETS.productImages);
 }
