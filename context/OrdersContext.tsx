@@ -8,6 +8,7 @@ import { supabase } from '@/lib/supabase';
 import { TABLES, ORDER_SELECT_FIELDS, ORDER_ITEM_SELECT_FIELDS, STATUS_HISTORY_SELECT_FIELDS, VALID_ORDER_STATUSES, ADMIN_NOTES_MAX_LENGTH } from '@/lib/db-constants';
 import { now } from '@/lib/date-utils';
 import { devLog } from '@/lib/dev-log';
+import { normalizeTrackingId } from '@/lib/constants';
 
 function isValidOrderStatus(value: string): value is OrderStatus {
   return (VALID_ORDER_STATUSES as readonly string[]).includes(value);
@@ -64,7 +65,7 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const oMap = new Map<string, Order>();
     for (const o of orders) {
-      oMap.set(o.id_unique_tracking.toUpperCase(), o);
+      oMap.set(normalizeTrackingId(o.id_unique_tracking), o);
     }
     ordersMapRef.current = oMap;
 
@@ -320,7 +321,7 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
   }, [loadData]);
 
   const getOrderById = useCallback((id: string) => {
-    return ordersMapRef.current.get(id.toUpperCase());
+    return ordersMapRef.current.get(normalizeTrackingId(id));
   }, []);
 
   const createOrder = useCallback(async (data: CheckoutFormData, cartItems: CartItem[]): Promise<Order> => {

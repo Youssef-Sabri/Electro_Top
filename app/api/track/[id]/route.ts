@@ -3,6 +3,7 @@ import { createSupabaseAdminClient } from '@/lib/supabase-server'
 import { getClientIp } from '@/lib/ip-utils'
 import { checkAndIncrementRateLimit, setRateLimitHeaders } from '@/lib/rate-limit'
 import { RATE_LIMIT_CONFIGS } from '@/lib/db-constants'
+import { normalizeTrackingId } from '@/lib/constants'
 
 const TRACKING_RATE_LIMIT = RATE_LIMIT_CONFIGS.tracking;
 const TRACKING_ID_REGEX = /^ET-[A-Z0-9]{10}$/i
@@ -41,9 +42,9 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params
-  const uppercaseId = id.toUpperCase()
+  const sanitizedId = normalizeTrackingId(id)
 
-  if (!TRACKING_ID_REGEX.test(uppercaseId)) {
+  if (!TRACKING_ID_REGEX.test(sanitizedId)) {
     return NextResponse.json({ error: 'Invalid tracking ID format' }, { status: 400 })
   }
 
@@ -60,7 +61,7 @@ export async function GET(
     return res
   }
 
-  const { data, error } = await adminClient.rpc('get_order_details_for_tracking', { tracking_id: uppercaseId })
+  const { data, error } = await adminClient.rpc('get_order_details_for_tracking', { tracking_id: sanitizedId })
 
   if (error) {
     if (process.env.NODE_ENV !== 'production') console.error('Tracking lookup error:', error);

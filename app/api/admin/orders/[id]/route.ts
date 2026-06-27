@@ -8,6 +8,7 @@ import { TABLES, STORAGE_BUCKETS, VALID_ORDER_STATUSES, ADMIN_NOTES_MAX_LENGTH }
 import { deleteStorageFile } from '@/lib/file-utils'
 import { parseJsonBody } from '@/lib/parse-json'
 import { devLog } from '@/lib/dev-log'
+import { normalizeTrackingId } from '@/lib/constants'
 
 export async function GET(
   request: Request,
@@ -19,12 +20,12 @@ export async function GET(
   if (authResult instanceof NextResponse) return authResult
 
   const { id } = await params
-  const uppercaseId = id.toUpperCase()
+  const sanitizedId = normalizeTrackingId(id)
 
   const adminClient = createSupabaseAdminClient()
 
   const { data: rpcResult, error: rpcError } = await adminClient
-    .rpc('get_order_detail_view', { order_id: uppercaseId })
+    .rpc('get_order_detail_view', { order_id: sanitizedId })
 
   if (rpcError || !rpcResult || rpcResult.length === 0) {
     if (rpcError) devLog('Failed to fetch order details via RPC:', rpcError)
@@ -48,13 +49,13 @@ export async function DELETE(
   const { supabaseClient } = guard
 
   const { id } = await params
-  const uppercaseId = id.toUpperCase()
+  const sanitizedId = normalizeTrackingId(id)
 
   // Fetch the order first to check for screenshot to delete
   const { data: orderData, error: fetchError } = await supabaseClient
     .from(TABLES.orders)
     .select('instapay_screenshot')
-    .eq('id_unique_tracking', uppercaseId)
+    .eq('id_unique_tracking', sanitizedId)
     .maybeSingle()
 
   if (fetchError) {
@@ -63,8 +64,8 @@ export async function DELETE(
   }
 
   const [{ error: itemsError }, { error: historyError }] = await Promise.all([
-    supabaseClient.from(TABLES.orderItems).delete().eq('order_id', uppercaseId),
-    supabaseClient    .from(TABLES.orderStatusHistory).delete().eq('order_id', uppercaseId),
+    supabaseClient.from(TABLES.orderItems).delete().eq('order_id', sanitizedId),
+    supabaseClient    .from(TABLES.orderStatusHistory).delete().eq('order_id', sanitizedId),
   ])
 
   if (itemsError || historyError) {
@@ -75,7 +76,7 @@ export async function DELETE(
   const { error } = await supabaseClient
     .from(TABLES.orders)
     .delete()
-    .eq('id_unique_tracking', uppercaseId)
+    .eq('id_unique_tracking', sanitizedId)
 
   if (error) {
     devLog('Delete order error:', error);
@@ -99,7 +100,7 @@ export async function PATCH(
   const { supabaseClient } = guard
 
   const { id } = await params
-  const uppercaseId = id.toUpperCase()
+  const sanitizedId = normalizeTrackingId(id)
 
   const body = await parseJsonBody<Record<string, unknown>>(request)
   if (body instanceof NextResponse) return body
@@ -120,9 +121,6 @@ export async function PATCH(
       return NextResponse.json({ error: `Admin notes must be a string up to ${ADMIN_NOTES_MAX_LENGTH} characters` }, { status: 400 })
     }
     let notes: string = rawNotes
-    // Strip HTML tags as a belt-and-suspenders measure.
-    // IMPORTANT: admin notes must always be rendered via JSX text interpolation {notes},
-    // never via dangerouslySetInnerHTML.
     notes = notes.replace(/<\/?[^>]+(>|$)/g, '')
     updates.admin_notes = notes
   }
@@ -131,11 +129,10 @@ export async function PATCH(
     return NextResponse.json({ error: 'No fields to update' }, { status: 400 })
   }
 
-  // Perform update
   const { error: updateError } = await supabaseClient
     .from(TABLES.orders)
     .update(updates)
-    .eq('id_unique_tracking', uppercaseId)
+    .eq('id_unique_tracking', sanitizedId)
 
   if (updateError) {
     devLog('Update order error:', updateError)
@@ -144,12 +141,12 @@ export async function PATCH(
 
   // If status was updated, insert into history table
   if ('status' in updates) {
-    const historyId = `h-${uppercaseId}-${Date.now()}`
+    const historyId = `h-${sanitizedId}-${Date.now()}`
     const { error: historyError } = await supabaseClient
       .from(TABLES.orderStatusHistory)
       .insert({
         id: historyId,
-        order_id: uppercaseId,
+        order_id: sanitizedId,
         status: updates.status,
         created_at: now()
       })

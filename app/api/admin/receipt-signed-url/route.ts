@@ -4,6 +4,7 @@ import { createSupabaseAdminClient } from '@/lib/supabase-server'
 import { requireAdmin } from '@/lib/api-auth'
 import { TABLES, STORAGE_BUCKETS } from '@/lib/db-constants'
 import { SAFE_FILENAME_RE } from '@/lib/validators'
+import { normalizeTrackingId } from '@/lib/constants'
 
 const SIGNED_URL_TTL = 300 // 5 minutes
 
@@ -27,12 +28,12 @@ export async function GET(request: NextRequest) {
 
   // 3. Ownership check — verify the receipt belongs to the claimed order
   if (orderId) {
-    const upperOrderId = orderId.toUpperCase()
+    const sanitizedOrderId = normalizeTrackingId(orderId)
     const { data: orderRow, error: fetchError } = await adminClient
 
       .from(TABLES.orders)
       .select('instapay_screenshot')
-      .eq('id_unique_tracking', upperOrderId)
+      .eq('id_unique_tracking', sanitizedOrderId)
       .maybeSingle()
 
     if (fetchError) {
