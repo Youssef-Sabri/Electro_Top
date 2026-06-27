@@ -1,4 +1,4 @@
-export const PRODUCT_SELECT_FIELDS = 'id, name, description, price, image_url, stock, is_active, category, created_at'
+export const PRODUCT_SELECT_FIELDS = 'id, name, description, price, image_url, image_url_2, image_url_3, stock, is_active, category, created_at'
 
 export const ORDER_SELECT_FIELDS = 'id_unique_tracking, status, customer_name, phone_number, shipping_address, total_amount, created_at, admin_notes, location_link, instapay_screenshot, instapay_phone_number, payment_method'
 

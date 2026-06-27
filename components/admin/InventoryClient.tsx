@@ -31,8 +31,14 @@ export const InventoryClient = memo(function InventoryClient() {
   const [deletingProduct, setDeletingProduct] = useState<Product | null>(null);
 
   const [isCompressing, setIsCompressing] = useState(false);
+  const [isCompressing2, setIsCompressing2] = useState(false);
+  const [isCompressing3, setIsCompressing3] = useState(false);
   const [compressionInfo, setCompressionInfo] = useState<string | null>(null);
+  const [compressionInfo2, setCompressionInfo2] = useState<string | null>(null);
+  const [compressionInfo3, setCompressionInfo3] = useState<string | null>(null);
   const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
+  const [selectedImageFile2, setSelectedImageFile2] = useState<File | null>(null);
+  const [selectedImageFile3, setSelectedImageFile3] = useState<File | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
   const [formData, setFormData] = useState<Omit<ProductFormData, 'price' | 'stock'> & { price: number | ''; stock: number | ''; }>({
@@ -41,6 +47,8 @@ export const InventoryClient = memo(function InventoryClient() {
     price: '',
     stock: '',
     image_url: '',
+    image_url_2: '',
+    image_url_3: '',
     is_active: true,
     category: '',
   });
@@ -203,22 +211,30 @@ export const InventoryClient = memo(function InventoryClient() {
 
   const handleOpenAddModal = () => {
     setSelectedImageFile(null);
+    setSelectedImageFile2(null);
+    setSelectedImageFile3(null);
     setFormData({
       name: '',
       description: '',
       price: '',
       stock: '',
       image_url: '',
+      image_url_2: '',
+      image_url_3: '',
       is_active: true,
       category: categories[0] || '',
     });
     setFormErrors({});
     setCompressionInfo(null);
+    setCompressionInfo2(null);
+    setCompressionInfo3(null);
     setIsAddModalOpen(true);
   };
 
   const handleOpenEditModal = (product: Product) => {
     setSelectedImageFile(null);
+    setSelectedImageFile2(null);
+    setSelectedImageFile3(null);
     setEditingProduct(product);
     setFormData({
       name: product.name,
@@ -226,11 +242,15 @@ export const InventoryClient = memo(function InventoryClient() {
       price: product.price,
       stock: product.stock,
       image_url: product.image_url,
+      image_url_2: product.image_url_2 || '',
+      image_url_3: product.image_url_3 || '',
       is_active: product.is_active,
       category: product.category || categories[0] || '',
     });
     setFormErrors({});
     setCompressionInfo(null);
+    setCompressionInfo2(null);
+    setCompressionInfo3(null);
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -254,6 +274,11 @@ export const InventoryClient = memo(function InventoryClient() {
 
   const handleCloseModal = () => {
     setSelectedImageFile(null);
+    setSelectedImageFile2(null);
+    setSelectedImageFile3(null);
+    setCompressionInfo(null);
+    setCompressionInfo2(null);
+    setCompressionInfo3(null);
     setIsAddModalOpen(false);
     setEditingProduct(null);
   };
@@ -287,6 +312,62 @@ export const InventoryClient = memo(function InventoryClient() {
     }
   };
 
+  const handleImageFileChange2 = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setFormErrors((prev) => ({ ...prev, image_url_2: undefined }));
+    setCompressionInfo2(null);
+    setIsCompressing2(true);
+
+    try {
+      const { dataUrl, info } = await processAndCompressImage(file);
+      setCompressionInfo2(info);
+      setSelectedImageFile2(file);
+      setFormData((prev) => ({
+        ...prev,
+        image_url_2: dataUrl,
+      }));
+    } catch (err: unknown) {
+      const errorMsg = err instanceof Error ? err.message : 'فشل معالجة الصورة. يرجى محاولة رفع ملف آخر.';
+      setFormErrors((prev) => ({
+        ...prev,
+        image_url_2: errorMsg,
+      }));
+      e.target.value = '';
+    } finally {
+      setIsCompressing2(false);
+    }
+  };
+
+  const handleImageFileChange3 = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setFormErrors((prev) => ({ ...prev, image_url_3: undefined }));
+    setCompressionInfo3(null);
+    setIsCompressing3(true);
+
+    try {
+      const { dataUrl, info } = await processAndCompressImage(file);
+      setCompressionInfo3(info);
+      setSelectedImageFile3(file);
+      setFormData((prev) => ({
+        ...prev,
+        image_url_3: dataUrl,
+      }));
+    } catch (err: unknown) {
+      const errorMsg = err instanceof Error ? err.message : 'فشل معالجة الصورة. يرجى محاولة رفع ملف آخر.';
+      setFormErrors((prev) => ({
+        ...prev,
+        image_url_3: errorMsg,
+      }));
+      e.target.value = '';
+    } finally {
+      setIsCompressing3(false);
+    }
+  };
+
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const validationData = {
@@ -316,31 +397,49 @@ export const InventoryClient = memo(function InventoryClient() {
         onConfirm: async () => {
           setConfirmModal((prev) => ({ ...prev, isOpen: false }));
           setIsSaving(true);
-          let uploadedImageUrl = '';
+          const uploadedUrls: string[] = [];
           try {
             let finalImageUrl = formData.image_url;
+            let finalImageUrl2 = formData.image_url_2;
+            let finalImageUrl3 = formData.image_url_3;
+
             if (selectedImageFile) {
               const { imageUrl } = await uploadProductImage(selectedImageFile);
               finalImageUrl = imageUrl;
-              uploadedImageUrl = imageUrl;
+              uploadedUrls.push(imageUrl);
             }
+            if (selectedImageFile2) {
+              const { imageUrl } = await uploadProductImage(selectedImageFile2);
+              finalImageUrl2 = imageUrl;
+              uploadedUrls.push(imageUrl);
+            }
+            if (selectedImageFile3) {
+              const { imageUrl } = await uploadProductImage(selectedImageFile3);
+              finalImageUrl3 = imageUrl;
+              uploadedUrls.push(imageUrl);
+            }
+
             await updateProduct({
               ...editingProduct,
               ...result.data,
               image_url: finalImageUrl,
+              image_url_2: finalImageUrl2 || null,
+              image_url_3: finalImageUrl3 || null,
               category: result.data.category ? result.data.category.trim() : null,
             });
             showToast(`تم تحديث المنتج "${result.data.name}" بنجاح!`);
             setEditingProduct(null);
           } catch (err: unknown) {
-            if (uploadedImageUrl) {
-              await deleteProductImage(uploadedImageUrl);
+            for (const url of uploadedUrls) {
+              await deleteProductImage(url).catch(() => {});
             }
             const msg = err instanceof Error ? err.message : 'حدث خطأ أثناء حفظ المنتج';
             showToast(msg);
           } finally {
             setIsSaving(false);
             setSelectedImageFile(null);
+            setSelectedImageFile2(null);
+            setSelectedImageFile3(null);
           }
         },
       });
@@ -354,30 +453,48 @@ export const InventoryClient = memo(function InventoryClient() {
         onConfirm: async () => {
           setConfirmModal((prev) => ({ ...prev, isOpen: false }));
           setIsSaving(true);
-          let uploadedImageUrl = '';
+          const uploadedUrls: string[] = [];
           try {
             let finalImageUrl = formData.image_url;
+            let finalImageUrl2 = formData.image_url_2;
+            let finalImageUrl3 = formData.image_url_3;
+
             if (selectedImageFile) {
               const { imageUrl } = await uploadProductImage(selectedImageFile);
               finalImageUrl = imageUrl;
-              uploadedImageUrl = imageUrl;
+              uploadedUrls.push(imageUrl);
             }
+            if (selectedImageFile2) {
+              const { imageUrl } = await uploadProductImage(selectedImageFile2);
+              finalImageUrl2 = imageUrl;
+              uploadedUrls.push(imageUrl);
+            }
+            if (selectedImageFile3) {
+              const { imageUrl } = await uploadProductImage(selectedImageFile3);
+              finalImageUrl3 = imageUrl;
+              uploadedUrls.push(imageUrl);
+            }
+
             await addProduct({
               ...result.data,
               image_url: finalImageUrl,
+              image_url_2: finalImageUrl2 || null,
+              image_url_3: finalImageUrl3 || null,
               category: result.data.category ? result.data.category.trim() : null,
             });
             showToast(`تم إضافة المنتج "${result.data.name}" بنجاح!`);
             setIsAddModalOpen(false);
           } catch (err: unknown) {
-            if (uploadedImageUrl) {
-              await deleteProductImage(uploadedImageUrl);
+            for (const url of uploadedUrls) {
+              await deleteProductImage(url).catch(() => {});
             }
             const msg = err instanceof Error ? err.message : 'حدث خطأ أثناء حفظ المنتج';
             showToast(msg);
           } finally {
             setIsSaving(false);
             setSelectedImageFile(null);
+            setSelectedImageFile2(null);
+            setSelectedImageFile3(null);
           }
         },
       });
@@ -388,10 +505,12 @@ export const InventoryClient = memo(function InventoryClient() {
     if (!deletingProduct) return;
     const productName = deletingProduct.name;
     const productId = deletingProduct.id;
-    const imageUrl = deletingProduct.image_url;
+    const urlsToDelete = [deletingProduct.image_url, deletingProduct.image_url_2, deletingProduct.image_url_3].filter(Boolean) as string[];
     setDeletingProduct(null);
     try {
-      await deleteProductImage(imageUrl);
+      for (const url of urlsToDelete) {
+        await deleteProductImage(url).catch(() => {});
+      }
       await deleteProduct(productId);
       showToast(`تم حذف المنتج "${productName}" بنجاح!`);
     } catch {
@@ -790,7 +909,7 @@ export const InventoryClient = memo(function InventoryClient() {
                 </div>
 
                 <div className="space-y-1">
-                  <label className="font-label-md text-on-surface block font-bold">صورة المنتج</label>
+                  <label className="font-label-md text-on-surface block font-bold">صورة المنتج الرئيسية</label>
                   <div className="flex items-center gap-4">
                     <input
                       type="file"
@@ -824,6 +943,82 @@ export const InventoryClient = memo(function InventoryClient() {
                   )}
                   {formErrors.image_url && (
                     <p className="text-xs text-error font-medium mt-1">{formErrors.image_url}</p>
+                  )}
+                </div>
+
+                <div className="space-y-1">
+                  <label className="font-label-md text-on-surface block font-bold">صورة إضافية 1 (اختياري)</label>
+                  <div className="flex items-center gap-4">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageFileChange2}
+                      disabled={isCompressing2}
+                      className="block w-full text-xs text-on-surface-variant file:me-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-surface-container-low file:text-primary hover:file:bg-surface-container-medium cursor-pointer disabled:opacity-60"
+                    />
+                    {isCompressing2 && (
+                      <span className="text-xs text-primary font-medium flex items-center gap-1 shrink-0 animate-pulse">
+                        <span className="material-symbols-outlined text-base select-none">architecture</span>
+                        جاري معالجة الصورة...
+                      </span>
+                    )}
+                    {!isCompressing2 && formData.image_url_2 && (
+                      <div className="relative w-12 h-12 rounded border border-outline-variant/30 overflow-hidden bg-surface-container-low shrink-0 flex items-center justify-center">
+                        {/* eslint-disable-next-line @next/next/no-img-element -- data-URI preview */}
+                        <img
+                          src={formData.image_url_2}
+                          alt="Preview 2"
+                          className="object-cover w-full h-full"
+                        />
+                      </div>
+                    )}
+                  </div>
+                  {compressionInfo2 && !formErrors.image_url_2 && (
+                    <p className="text-[11px] text-green-600 font-medium flex items-center gap-1 mt-1">
+                      <span className="material-symbols-outlined text-sm select-none">check_circle</span>
+                      {compressionInfo2}
+                    </p>
+                  )}
+                  {formErrors.image_url_2 && (
+                    <p className="text-xs text-error font-medium mt-1">{formErrors.image_url_2}</p>
+                  )}
+                </div>
+
+                <div className="space-y-1">
+                  <label className="font-label-md text-on-surface block font-bold">صورة إضافية 2 (اختياري)</label>
+                  <div className="flex items-center gap-4">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageFileChange3}
+                      disabled={isCompressing3}
+                      className="block w-full text-xs text-on-surface-variant file:me-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-surface-container-low file:text-primary hover:file:bg-surface-container-medium cursor-pointer disabled:opacity-60"
+                    />
+                    {isCompressing3 && (
+                      <span className="text-xs text-primary font-medium flex items-center gap-1 shrink-0 animate-pulse">
+                        <span className="material-symbols-outlined text-base select-none">architecture</span>
+                        جاري معالجة الصورة...
+                      </span>
+                    )}
+                    {!isCompressing3 && formData.image_url_3 && (
+                      <div className="relative w-12 h-12 rounded border border-outline-variant/30 overflow-hidden bg-surface-container-low shrink-0 flex items-center justify-center">
+                        {/* eslint-disable-next-line @next/next/no-img-element -- data-URI preview */}
+                        <img
+                          src={formData.image_url_3}
+                          alt="Preview 3"
+                          className="object-cover w-full h-full"
+                        />
+                      </div>
+                    )}
+                  </div>
+                  {compressionInfo3 && !formErrors.image_url_3 && (
+                    <p className="text-[11px] text-green-600 font-medium flex items-center gap-1 mt-1">
+                      <span className="material-symbols-outlined text-sm select-none">check_circle</span>
+                      {compressionInfo3}
+                    </p>
+                  )}
+                  {formErrors.image_url_3 && (
+                    <p className="text-xs text-error font-medium mt-1">{formErrors.image_url_3}</p>
                   )}
                 </div>
 

@@ -34,6 +34,8 @@ export const productFormSchema = z.object({
   price: z.number({ message: 'السعر مطلوب' }).min(0.01, 'يجب أن يكون السعر أكبر من 0'),
   stock: z.number({ message: 'الكمية مطلوبة' }).int().min(0, 'لا يمكن أن تكون الكمية سالبة'),
   image_url: z.string().url('الرجاء إدخال رابط صورة صحيح').min(1, 'تحميل صورة المنتج مطلوب'),
+  image_url_2: z.string().url('الرجاء إدخال رابط صورة صحيح').optional().nullable().or(z.literal('')),
+  image_url_3: z.string().url('الرجاء إدخال رابط صورة صحيح').optional().nullable().or(z.literal('')),
   is_active: z.boolean(),
   category: z.string().optional().nullable(),
 });

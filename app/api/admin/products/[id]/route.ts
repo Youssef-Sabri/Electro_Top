@@ -7,7 +7,7 @@ import { TABLES, STORAGE_BUCKETS } from '@/lib/db-constants'
 import { parseJsonBody } from '@/lib/parse-json'
 import { devLog } from '@/lib/dev-log'
 
-const ALLOWED_UPDATE_FIELDS = ['name', 'description', 'price', 'stock', 'image_url', 'is_active', 'category'] as const
+const ALLOWED_UPDATE_FIELDS = ['name', 'description', 'price', 'stock', 'image_url', 'image_url_2', 'image_url_3', 'is_active', 'category'] as const
 
 export async function PATCH(
   request: Request,
@@ -35,16 +35,21 @@ export async function PATCH(
     return NextResponse.json({ error: 'Validation failed', fieldErrors: validation.error.flatten().fieldErrors }, { status: 400 })
   }
 
-  // Fetch product data first to retrieve old image_url if image_url is in the update fields
-  let oldImageUrl: string | null = null
-  if ('image_url' in validation.data && validation.data.image_url) {
+  // Fetch product data first to retrieve old image URLs if any image fields are in the update
+  const imageKeysToCheck = ['image_url', 'image_url_2', 'image_url_3'] as const
+  const oldImageUrls: Record<string, string | null> = { image_url: null, image_url_2: null, image_url_3: null }
+  const hasImageFieldInBody = imageKeysToCheck.some((k) => k in validation.data)
+
+  if (hasImageFieldInBody) {
     const { data: oldProduct, error: fetchError } = await supabaseClient
       .from(TABLES.products)
-      .select('image_url')
+      .select('image_url, image_url_2, image_url_3')
       .eq('id', id)
       .maybeSingle()
     if (!fetchError && oldProduct) {
-      oldImageUrl = oldProduct.image_url
+      oldImageUrls.image_url = oldProduct.image_url
+      oldImageUrls.image_url_2 = oldProduct.image_url_2
+      oldImageUrls.image_url_3 = oldProduct.image_url_3
     }
   }
 
@@ -58,9 +63,15 @@ export async function PATCH(
     return NextResponse.json({ error: 'فشل تحديث المنتج. يرجى المحاولة مرة أخرى.' }, { status: 500 })
   }
 
-  if (oldImageUrl && oldImageUrl !== validation.data.image_url) {
+  if (hasImageFieldInBody) {
     const adminClient = createSupabaseAdminClient()
-    await deleteStorageFile(adminClient, STORAGE_BUCKETS.productImages, oldImageUrl)
+    for (const key of imageKeysToCheck) {
+      const oldVal = oldImageUrls[key]
+      const newVal = validation.data[key]
+      if (key in validation.data && oldVal && oldVal !== newVal) {
+        await deleteStorageFile(adminClient, STORAGE_BUCKETS.productImages, oldVal)
+      }
+    }
   }
 
   return NextResponse.json({ success: true })
@@ -76,10 +87,10 @@ export async function DELETE(
 
   const { id } = await params
 
-  // Fetch product data first to retrieve image_url
+  // Fetch product data first to retrieve image URLs
   const { data: productData, error: fetchError } = await supabaseClient
     .from(TABLES.products)
-    .select('image_url')
+    .select('image_url, image_url_2, image_url_3')
     .eq('id', id)
     .maybeSingle()
 
@@ -98,9 +109,12 @@ export async function DELETE(
     return NextResponse.json({ error: 'فشل حذف المنتج. يرجى المحاولة مرة أخرى.' }, { status: 500 })
   }
 
-  if (productData?.image_url) {
+  if (productData) {
     const adminClient = createSupabaseAdminClient()
-    await deleteStorageFile(adminClient, STORAGE_BUCKETS.productImages, productData.image_url)
+    const urlsToDelete = [productData.image_url, productData.image_url_2, productData.image_url_3].filter(Boolean) as string[]
+    for (const url of urlsToDelete) {
+      await deleteStorageFile(adminClient, STORAGE_BUCKETS.productImages, url)
+    }
   }
 
   return NextResponse.json({ success: true })

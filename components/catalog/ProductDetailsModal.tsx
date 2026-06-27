@@ -1,6 +1,6 @@
 'use client';
 
-import { memo, useState, useEffect, useRef, useCallback } from 'react';
+import { memo, useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import Image from 'next/image';
 import type { Product } from '@/types';
 import { useCart } from '@/hooks/useCart';
@@ -17,6 +17,22 @@ export const ProductDetailsModal = memo(function ProductDetailsModal({ product, 
   const [quantity, setQuantity] = useState(1);
   const [isAdded, setIsAdded] = useState(false);
   const isAddedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+  const images = useMemo(() => {
+    return [product.image_url, product.image_url_2, product.image_url_3].filter(Boolean) as string[];
+  }, [product.image_url, product.image_url_2, product.image_url_3]);
+
+  const handleNextImage = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    setCurrentImageIndex((prev) => (prev + 1) % images.length);
+  }, [images.length]);
+
+  const handlePrevImage = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    setCurrentImageIndex((prev) => (prev - 1 + images.length) % images.length);
+  }, [images.length]);
 
   useEffect(() => {
     return () => {
@@ -75,18 +91,81 @@ export const ProductDetailsModal = memo(function ProductDetailsModal({ product, 
         style={{ animation: 'modalAppear 0.2s ease-out forwards' }}
       >
         <div className="relative w-full md:w-5/12 h-[220px] md:h-full bg-white flex-shrink-0 border-e border-outline-variant/10">
-          <Image
-            src={product.image_url}
-            alt={product.name}
-            fill
-            className="object-contain p-4 pointer-events-none select-none"
-            sizes="(max-width: 768px) 100vw, 40vw"
-            quality={85}
-            priority
-            draggable={false}
-          />
+          {images.length > 1 ? (
+            <div className="relative w-full h-full group">
+              <div className="relative w-full h-full overflow-hidden">
+                {images.map((imgUrl, index) => (
+                  <div
+                    key={imgUrl}
+                    className={`absolute inset-0 transition-opacity duration-300 ease-in-out ${
+                      index === currentImageIndex ? 'opacity-100 z-10' : 'opacity-0 z-0 pointer-events-none'
+                    }`}
+                  >
+                    <Image
+                      src={imgUrl}
+                      alt={`${product.name} - ${index + 1}`}
+                      fill
+                      className="object-contain p-4 pointer-events-none select-none"
+                      sizes="(max-width: 768px) 100vw, 40vw"
+                      quality={85}
+                      priority={index === 0}
+                      draggable={false}
+                    />
+                  </div>
+                ))}
+              </div>
+
+              {/* Navigation Arrows */}
+              <button
+                onClick={handlePrevImage}
+                className="absolute left-2 top-1/2 -translate-y-1/2 z-20 bg-black/35 hover:bg-black/50 text-white rounded-full p-2 transition active:scale-95 shadow-md flex items-center justify-center opacity-0 group-hover:opacity-100"
+                aria-label="Previous image"
+              >
+                <svg className="w-5 h-5 rtl:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
+                </svg>
+              </button>
+              <button
+                onClick={handleNextImage}
+                className="absolute right-2 top-1/2 -translate-y-1/2 z-20 bg-black/35 hover:bg-black/50 text-white rounded-full p-2 transition active:scale-95 shadow-md flex items-center justify-center opacity-0 group-hover:opacity-100"
+                aria-label="Next image"
+              >
+                <svg className="w-5 h-5 rtl:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+
+              {/* Indicator Dots */}
+              <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-20 flex space-x-1.5 space-x-reverse">
+                {images.map((_, index) => (
+                  <button
+                    key={index}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setCurrentImageIndex(index);
+                    }}
+                    className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${
+                      index === currentImageIndex ? 'bg-primary w-5' : 'bg-outline-variant/60 hover:bg-outline-variant'
+                    }`}
+                    aria-label={`Go to slide ${index + 1}`}
+                  />
+                ))}
+              </div>
+            </div>
+          ) : (
+            <Image
+              src={product.image_url}
+              alt={product.name}
+              fill
+              className="object-contain p-4 pointer-events-none select-none"
+              sizes="(max-width: 768px) 100vw, 40vw"
+              quality={85}
+              priority
+              draggable={false}
+            />
+          )}
           {product.stock <= 0 && (
-            <div className="absolute inset-0 bg-black/40 flex items-center justify-center backdrop-blur-[1px] z-10">
+            <div className="absolute inset-0 bg-black/40 flex items-center justify-center backdrop-blur-[1px] z-30">
               <span className="bg-electro-red text-white font-tajawal font-bold px-6 py-2.5 rounded-md uppercase tracking-wider text-sm shadow-md">
                 نفذت الكمية
               </span>
