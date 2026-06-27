@@ -34,6 +34,24 @@ export const ProductDetailsModal = memo(function ProductDetailsModal({ product, 
     setCurrentImageIndex((prev) => (prev - 1 + images.length) % images.length);
   }, [images.length]);
 
+  const pointerStartX = useRef<number | null>(null);
+
+  const handlePointerDown = useCallback((e: React.PointerEvent) => {
+    pointerStartX.current = e.clientX;
+  }, []);
+
+  const handlePointerUp = useCallback((e: React.PointerEvent) => {
+    if (pointerStartX.current === null) return;
+    const diffX = pointerStartX.current - e.clientX;
+    const minDistance = 40;
+    if (diffX > minDistance) {
+      setCurrentImageIndex((prev) => (prev + 1) % images.length);
+    } else if (diffX < -minDistance) {
+      setCurrentImageIndex((prev) => (prev - 1 + images.length) % images.length);
+    }
+    pointerStartX.current = null;
+  }, [images.length]);
+
   useEffect(() => {
     return () => {
       if (isAddedTimerRef.current) clearTimeout(isAddedTimerRef.current);
@@ -87,12 +105,16 @@ export const ProductDetailsModal = memo(function ProductDetailsModal({ product, 
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm transition-opacity duration-300"
     >
       <div
-        className="relative w-full max-w-2xl bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col md:flex-row max-h-[90vh] md:h-[500px] border border-outline-variant/20"
+        className="relative w-full max-w-2xl bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col md:flex-row max-h-[82vh] md:h-[500px] border border-outline-variant/20"
         style={{ animation: 'modalAppear 0.2s ease-out forwards' }}
       >
-        <div className="relative w-full md:w-5/12 h-[220px] md:h-full bg-white flex-shrink-0 border-e border-outline-variant/10">
+        <div className="relative w-full md:w-5/12 h-[200px] md:h-full bg-white flex-shrink-0 border-e border-outline-variant/10">
           {images.length > 1 ? (
-            <div className="relative w-full h-full group">
+            <div
+              onPointerDown={handlePointerDown}
+              onPointerUp={handlePointerUp}
+              className="relative w-full h-full group touch-pan-y cursor-grab active:cursor-grabbing select-none"
+            >
               <div className="relative w-full h-full overflow-hidden">
                 {images.map((imgUrl, index) => (
                   <div
@@ -135,8 +157,8 @@ export const ProductDetailsModal = memo(function ProductDetailsModal({ product, 
                 </svg>
               </button>
 
-              {/* Indicator Dots */}
-              <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-20 flex space-x-1.5 space-x-reverse">
+              {/* Indicator Dots - Glass Pill Design */}
+              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 flex gap-2 items-center justify-center bg-black/10 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/10 shadow-sm">
                 {images.map((_, index) => (
                   <button
                     key={index}
@@ -144,8 +166,8 @@ export const ProductDetailsModal = memo(function ProductDetailsModal({ product, 
                       e.stopPropagation();
                       setCurrentImageIndex(index);
                     }}
-                    className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${
-                      index === currentImageIndex ? 'bg-primary w-5' : 'bg-outline-variant/60 hover:bg-outline-variant'
+                    className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${
+                      index === currentImageIndex ? 'bg-primary w-3.5' : 'bg-gray-400/60 hover:bg-gray-400'
                     }`}
                     aria-label={`Go to slide ${index + 1}`}
                   />
@@ -173,7 +195,7 @@ export const ProductDetailsModal = memo(function ProductDetailsModal({ product, 
           )}
         </div>
  
-        <div className="p-6 flex flex-col flex-grow overflow-y-auto h-[calc(90vh-220px)] md:h-full text-start font-tajawal">
+        <div className="p-6 flex flex-col flex-grow overflow-y-auto h-[calc(82vh-200px)] md:h-full text-start font-tajawal">
           <div className="flex justify-between items-start mb-4">
             <div>
               <h2 className="font-headline-md text-[20px] md:text-[22px] text-on-surface leading-tight font-bold">
