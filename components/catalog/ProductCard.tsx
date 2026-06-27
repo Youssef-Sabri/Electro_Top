@@ -60,7 +60,7 @@ export const ProductCard = React.memo(function ProductCard({ product, onOpenDeta
 
          {isOutOfStock && (
           <div className="absolute inset-0 bg-black/40 flex items-center justify-center backdrop-blur-[2px] z-10">
-            <span className="bg-electro-red text-white font-montserrat font-bold px-4 py-2 rounded-md uppercase tracking-wider text-xs shadow-md">
+            <span className="bg-electro-red text-white font-tajawal font-bold px-4 py-2 rounded-md uppercase tracking-wider text-xs shadow-md">
               نفذت الكمية
             </span>
           </div>

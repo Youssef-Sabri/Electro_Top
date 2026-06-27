@@ -84,7 +84,7 @@ export function TrackingDetailClient({ id }: TrackingDetailClientProps) {
           </div>
           
           <div className="space-y-2 text-center">
-            <h2 className="text-2xl font-montserrat font-extrabold text-on-surface">
+            <h2 className="text-2xl font-tajawal font-extrabold text-on-surface">
               لم يتم العثور على الطلب
             </h2>
             <p className="text-sm text-on-surface-variant">

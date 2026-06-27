@@ -10,7 +10,7 @@ const OrderDetailClient = dynamic(
   () => import('@/components/admin/OrderDetailClient').then((mod) => mod.OrderDetailClient),
   {
     loading: () => (
-      <div className="w-full py-20 text-center font-poppins text-on-surface-variant">
+      <div className="w-full py-20 text-center font-tajawal text-on-surface-variant">
         <p className="text-sm">جاري تحميل تفاصيل الطلب...</p>
       </div>
     ),

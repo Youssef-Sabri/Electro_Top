@@ -1,8 +1,6 @@
 import { NextResponse } from 'next/server'
-import { getServerSupabase } from '@/lib/supabase-server-cookies'
 import { createSupabaseAdminClient } from '@/lib/supabase-server'
-import { validateRequestOrigin } from '@/lib/csrf'
-import { requireAdmin } from '@/lib/api-auth'
+import { requireAdminGuard } from '@/lib/admin-guard'
 import { verifyAdminPassword } from '@/lib/verify-admin-server'
 import { clearStorageBucket } from '@/lib/file-utils'
 import { TABLES, STORAGE_BUCKETS } from '@/lib/db-constants'
@@ -10,14 +8,9 @@ import { parseJsonBody } from '@/lib/parse-json'
 import { devLog } from '@/lib/dev-log'
 
 export async function DELETE(request: Request) {
-  if (!validateRequestOrigin(request)) {
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
-  }
-
-  const supabaseClient = await getServerSupabase()
-
-  const authResult = await requireAdmin(supabaseClient)
-  if (authResult instanceof NextResponse) return authResult
+  const guard = await requireAdminGuard(request)
+  if (guard instanceof NextResponse) return guard
+  const { supabaseClient, user } = guard
 
   const body = await parseJsonBody<{ password?: string }>(request)
   if (body instanceof NextResponse) return body
@@ -27,7 +20,7 @@ export async function DELETE(request: Request) {
     return NextResponse.json({ error: 'كلمة المرور مطلوبة.' }, { status: 400 })
   }
 
-  const email = authResult.email
+  const email = user.email
   if (!email) return NextResponse.json({ error: 'User email not found' }, { status: 500 })
   const pwError = await verifyAdminPassword(supabaseClient, email, password)
   if (pwError) return pwError

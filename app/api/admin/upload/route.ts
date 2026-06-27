@@ -1,20 +1,13 @@
 import { NextResponse } from 'next/server'
-import { getServerSupabase } from '@/lib/supabase-server-cookies'
-import { validateRequestOrigin } from '@/lib/csrf'
-import { requireAdmin } from '@/lib/api-auth'
+import { requireAdminGuard } from '@/lib/admin-guard'
 import { detectImageMimeType, EXT_MAP } from '@/lib/magic-bytes'
 import { STORAGE_BUCKETS } from '@/lib/db-constants'
 import { MAX_FILE_SIZE_BYTES } from '@/lib/constants'
 
 export async function POST(request: Request) {
-  if (!validateRequestOrigin(request)) {
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
-  }
-
-  const supabaseClient = await getServerSupabase()
-
-  const authResult = await requireAdmin(supabaseClient)
-  if (authResult instanceof NextResponse) return authResult
+  const guard = await requireAdminGuard(request)
+  if (guard instanceof NextResponse) return guard
+  const { supabaseClient } = guard
 
   let formData: FormData
   try {

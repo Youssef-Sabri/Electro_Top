@@ -1,9 +1,7 @@
 import { NextResponse } from 'next/server'
-import { getServerSupabase } from '@/lib/supabase-server-cookies'
 import { createSupabaseAdminClient } from '@/lib/supabase-server'
-import { validateRequestOrigin } from '@/lib/csrf'
+import { requireAdminGuard } from '@/lib/admin-guard'
 import { productFormSchema } from '@/lib/validators'
-import { requireAdmin } from '@/lib/api-auth'
 import { deleteStorageFile } from '@/lib/file-utils'
 import { TABLES, STORAGE_BUCKETS } from '@/lib/db-constants'
 import { parseJsonBody } from '@/lib/parse-json'
@@ -15,9 +13,9 @@ export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  if (!validateRequestOrigin(request)) {
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
-  }
+  const guard = await requireAdminGuard(request)
+  if (guard instanceof NextResponse) return guard
+  const { supabaseClient } = guard
 
   const { id } = await params
 
@@ -36,10 +34,6 @@ export async function PATCH(
   if (!validation.success) {
     return NextResponse.json({ error: 'Validation failed', fieldErrors: validation.error.flatten().fieldErrors }, { status: 400 })
   }
-
-  const supabaseClient = await getServerSupabase()
-  const authResult = await requireAdmin(supabaseClient)
-  if (authResult instanceof NextResponse) return authResult
 
   // Fetch product data first to retrieve old image_url if image_url is in the update fields
   let oldImageUrl: string | null = null
@@ -76,15 +70,11 @@ export async function DELETE(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  if (!validateRequestOrigin(request)) {
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
-  }
+  const guard = await requireAdminGuard(request)
+  if (guard instanceof NextResponse) return guard
+  const { supabaseClient } = guard
 
   const { id } = await params
-
-  const supabaseClient = await getServerSupabase()
-  const authResult = await requireAdmin(supabaseClient)
-  if (authResult instanceof NextResponse) return authResult
 
   // Fetch product data first to retrieve image_url
   const { data: productData, error: fetchError } = await supabaseClient

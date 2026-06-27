@@ -55,7 +55,7 @@ export const StatusTimeline = memo(function StatusTimeline({ currentStatus, stat
           cancel
         </span>
         <div className="space-y-2">
-          <h3 className="text-xl font-montserrat font-extrabold text-error">
+          <h3 className="text-xl font-tajawal font-extrabold text-error">
             تم رفض الطلب
           </h3>
           <p className="text-sm text-on-surface-variant leading-relaxed">

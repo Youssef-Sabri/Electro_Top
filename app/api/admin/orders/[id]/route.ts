@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server'
 import { getServerSupabase } from '@/lib/supabase-server-cookies'
 import { createSupabaseAdminClient } from '@/lib/supabase-server'
-import { validateRequestOrigin } from '@/lib/csrf'
 import { requireAdmin } from '@/lib/api-auth'
+import { requireAdminGuard } from '@/lib/admin-guard'
 import { now } from '@/lib/date-utils'
 import { TABLES, STORAGE_BUCKETS, VALID_ORDER_STATUSES, ADMIN_NOTES_MAX_LENGTH } from '@/lib/db-constants'
 import { deleteStorageFile } from '@/lib/file-utils'
@@ -43,17 +43,12 @@ export async function DELETE(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  if (!validateRequestOrigin(request)) {
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
-  }
+  const guard = await requireAdminGuard(request)
+  if (guard instanceof NextResponse) return guard
+  const { supabaseClient } = guard
 
   const { id } = await params
   const uppercaseId = id.toUpperCase()
-
-  const supabaseClient = await getServerSupabase()
-
-  const authResult = await requireAdmin(supabaseClient)
-  if (authResult instanceof NextResponse) return authResult
 
   // Fetch the order first to check for screenshot to delete
   const { data: orderData, error: fetchError } = await supabaseClient
@@ -99,17 +94,12 @@ export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  if (!validateRequestOrigin(request)) {
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
-  }
+  const guard = await requireAdminGuard(request)
+  if (guard instanceof NextResponse) return guard
+  const { supabaseClient } = guard
 
   const { id } = await params
   const uppercaseId = id.toUpperCase()
-
-  const supabaseClient = await getServerSupabase()
-
-  const authResult = await requireAdmin(supabaseClient)
-  if (authResult instanceof NextResponse) return authResult
 
   const body = await parseJsonBody<Record<string, unknown>>(request)
   if (body instanceof NextResponse) return body

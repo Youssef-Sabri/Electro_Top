@@ -1,21 +1,14 @@
 import { NextResponse } from 'next/server'
-import { getServerSupabase } from '@/lib/supabase-server-cookies'
-import { validateRequestOrigin } from '@/lib/csrf'
-import { requireAdmin } from '@/lib/api-auth'
+import { requireAdminGuard } from '@/lib/admin-guard'
 import { TABLES } from '@/lib/db-constants'
 import { categorySchema } from '@/lib/validators'
 import { parseJsonBody } from '@/lib/parse-json'
 import { devLog } from '@/lib/dev-log'
 
 export async function POST(request: Request) {
-  if (!validateRequestOrigin(request)) {
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
-  }
-
-  const supabaseClient = await getServerSupabase()
-
-  const authResult = await requireAdmin(supabaseClient)
-  if (authResult instanceof NextResponse) return authResult
+  const guard = await requireAdminGuard(request)
+  if (guard instanceof NextResponse) return guard
+  const { supabaseClient } = guard
 
   const body = await parseJsonBody<{ name?: string }>(request)
   if (body instanceof NextResponse) return body
@@ -40,14 +33,9 @@ export async function POST(request: Request) {
 }
 
 export async function DELETE(request: Request) {
-  if (!validateRequestOrigin(request)) {
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
-  }
-
-  const supabaseClient = await getServerSupabase()
-
-  const authResult = await requireAdmin(supabaseClient)
-  if (authResult instanceof NextResponse) return authResult
+  const guard = await requireAdminGuard(request)
+  if (guard instanceof NextResponse) return guard
+  const { supabaseClient } = guard
 
   const { searchParams } = new URL(request.url)
   const name = searchParams.get('name')

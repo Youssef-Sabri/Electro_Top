@@ -255,7 +255,7 @@ export const OrderDetailClient = memo(function OrderDetailClient({ id }: OrderDe
             </div>
           </div>
           <div className="space-y-2 text-center">
-            <h2 className="text-2xl font-montserrat font-extrabold text-on-surface">لم يتم العثور على الطلب</h2>
+            <h2 className="text-2xl font-tajawal font-extrabold text-on-surface">لم يتم العثور على الطلب</h2>
             <p className="text-sm text-on-surface-variant">
               رقم تتبع الطلب <span className="font-semibold text-on-surface">&quot;{id}&quot;</span> غير موجود في قاعدة بيانات الطلبات.
             </p>
@@ -403,7 +403,7 @@ export const OrderDetailClient = memo(function OrderDetailClient({ id }: OrderDe
               
               <div className="flex justify-between pt-4 font-headline-md text-headline-md border-t border-outline-variant/10 items-end">
                 <span className="text-on-surface font-bold text-base">الإجمالي</span>
-                <span className="text-secondary-fixed-dim font-montserrat font-bold text-xl">
+                <span className="text-secondary-fixed-dim font-tajawal font-bold text-xl">
                   {formatCurrency(order.total_amount)}
                 </span>
               </div>

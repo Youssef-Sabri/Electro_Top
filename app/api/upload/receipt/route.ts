@@ -4,7 +4,7 @@ import { validateRequestOrigin } from '@/lib/csrf'
 import { detectImageMimeType } from '@/lib/magic-bytes'
 import { checkAndIncrementRateLimit, setRateLimitHeaders } from '@/lib/rate-limit'
 import { getClientIp } from '@/lib/ip-utils'
-import { TABLES, STORAGE_BUCKETS } from '@/lib/db-constants'
+import { STORAGE_BUCKETS, RATE_LIMIT_CONFIGS } from '@/lib/db-constants'
 import { MAX_FILE_SIZE_BYTES } from '@/lib/constants'
 import { parseJsonBody } from '@/lib/parse-json'
 
@@ -15,14 +15,7 @@ export async function POST(request: NextRequest) {
 
   const ip = getClientIp(request)
   const adminClient = createSupabaseAdminClient()
-  const rateCheck = await checkAndIncrementRateLimit(adminClient, ip, {
-    table: TABLES.receiptUploadLimits,
-    countColumn: 'request_count',
-    lastColumn: 'last_request_at',
-    firstColumn: 'first_request_at',
-    maxAttempts: 3,
-    windowMs: 60000,
-  })
+  const rateCheck = await checkAndIncrementRateLimit(adminClient, ip, RATE_LIMIT_CONFIGS.receiptUpload)
   if (rateCheck.blocked) {
     const res = NextResponse.json({ error: `محاولات كثيرة جداً. يرجى الانتظار ${rateCheck.cooldown} ثانية.` }, { status: 429 })
     setRateLimitHeaders(res, rateCheck)

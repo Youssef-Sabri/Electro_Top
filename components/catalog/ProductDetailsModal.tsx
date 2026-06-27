@@ -87,7 +87,7 @@ export const ProductDetailsModal = memo(function ProductDetailsModal({ product, 
           />
           {product.stock <= 0 && (
             <div className="absolute inset-0 bg-black/40 flex items-center justify-center backdrop-blur-[1px] z-10">
-              <span className="bg-electro-red text-white font-montserrat font-bold px-6 py-2.5 rounded-md uppercase tracking-wider text-sm shadow-md">
+              <span className="bg-electro-red text-white font-tajawal font-bold px-6 py-2.5 rounded-md uppercase tracking-wider text-sm shadow-md">
                 نفذت الكمية
               </span>
             </div>
@@ -111,7 +111,7 @@ export const ProductDetailsModal = memo(function ProductDetailsModal({ product, 
           </div>
  
           <div className="flex items-center gap-4 mb-5">
-            <span className="text-electro-gold font-bold text-[22px] md:text-[24px] font-montserrat">
+            <span className="text-electro-gold font-bold text-[22px] md:text-[24px] font-tajawal">
               {formatCurrency(product.price)}
             </span>
             {product.stock > 0 ? (
@@ -126,7 +126,7 @@ export const ProductDetailsModal = memo(function ProductDetailsModal({ product, 
           </div>
 
           <div className="mb-6">
-            <h3 className="font-semibold text-on-surface text-[12px] uppercase tracking-wider mb-2 font-montserrat">
+            <h3 className="font-semibold text-on-surface text-[12px] uppercase tracking-wider mb-2 font-tajawal">
               نظرة عامة
             </h3>
             <p className="text-on-surface-variant text-label-md leading-relaxed">
