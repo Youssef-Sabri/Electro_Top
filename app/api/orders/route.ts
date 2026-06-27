@@ -126,41 +126,26 @@ export async function POST(request: NextRequest) {
     instapay_phone_number: validation.data.instapay_phone_number || '',
   }
 
-  const initialHistory = {
-    id: `h-${trackingId}-init`,
-    order_id: trackingId,
-    status: 'Pending Review',
-    created_at: timestamp,
-  }
+  const { data: createdTrackingId, error: txErr } = await adminClient.rpc('create_order_transaction', {
+    p_order: newOrder,
+    p_items: newItems,
+  })
 
-  const { error: oErr } = await adminClient.from(TABLES.orders).insert([newOrder])
-  if (oErr) {
-    devLog('Create order error:', oErr)
-    if (oErr.message.includes('Too many orders from this phone number')) {
+  if (txErr) {
+    devLog('Create order transaction error:', txErr)
+    const errorMsg = txErr.message || ''
+    
+    if (errorMsg.includes('Too many orders from this phone number')) {
       return NextResponse.json(
         { error: 'لقد قمت بإنشاء عدد كبير جداً من الطلبات من هذا الرقم مؤخراً. يرجى الانتظار 15 دقيقة والمحاولة مرة أخرى.' },
         { status: 429 }
       )
     }
-    return NextResponse.json({ error: 'فشل إنشاء الطلب. يرجى المحاولة مرة أخرى.' }, { status: 500 })
-  }
-
-  const [{ error: oiErr }, { error: hErr }] = await Promise.all([
-    adminClient.from(TABLES.orderItems).insert(newItems),
-    adminClient.from(TABLES.orderStatusHistory).insert([initialHistory]),
-  ])
-  
-  if (oiErr || hErr) {
-    const errorMsg = (oiErr || hErr)?.message || '';
-    await adminClient.from(TABLES.orders).delete().eq('id_unique_tracking', trackingId).maybeSingle()
-    devLog('Create order rollback:', errorMsg)
-    
     if (errorMsg.includes('Insufficient stock')) {
       return NextResponse.json({ error: 'عذراً، بعض المنتجات لم تعد متوفرة بالكمية المطلوبة.' }, { status: 400 })
     }
-    return NextResponse.json({ error: 'فشل حفظ بيانات الطلب. يرجى المحاولة مرة أخرى.' }, { status: 500 })
+    return NextResponse.json({ error: 'فشل إنشاء الطلب. يرجى المحاولة مرة أخرى.' }, { status: 500 })
   }
 
-
-  return NextResponse.json({ success: true, trackingId })
+  return NextResponse.json({ success: true, trackingId: createdTrackingId || trackingId })
 }

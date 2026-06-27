@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useCart } from '@/hooks/useCart';
-import { useOrders } from '@/hooks/useOrders';
 import { checkoutSchema } from '@/lib/validators';
 import type { CheckoutFormData } from '@/lib/validators';
 import { formatCurrency } from '@/lib/format-currency';
@@ -16,7 +15,6 @@ import { Toast } from '@/components/ui/Toast';
 export function CheckoutForm() {
   const router = useRouter();
   const { items, total, clearCart } = useCart();
-  const { createOrder } = useOrders();
 
   const instapayAccountName = process.env.NEXT_PUBLIC_INSTAPAY_ACCOUNT_NAME || '';
   const instapayPhone = process.env.NEXT_PUBLIC_INSTAPAY_PHONE || '';
@@ -173,7 +171,7 @@ export function CheckoutForm() {
         }
       }
 
-      // 2. Create order in context (includes bot-detection fields for server re-validation)
+      // 2. Create order via direct API fetch (replaces context createOrder call)
       const orderData = {
         ...validationResult.data,
         instapay_screenshot: finalScreenshotUrl,
@@ -181,13 +179,29 @@ export function CheckoutForm() {
         submission_time: pageLoadTimeRef.current,
       };
 
-      const newOrder = await createOrder(orderData, items);
+      const response = await fetch('/api/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...orderData, cartItems: items }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        if (result.fieldErrors) {
+          const firstError = Object.values(result.fieldErrors)[0];
+          throw new Error(typeof firstError === 'string' ? firstError : 'بيانات غير صالحة.');
+        }
+        throw new Error(result.error || 'فشل إنشاء الطلب.');
+      }
+
+      const trackingId = result.trackingId;
       
       // 3. Clear the cart
       clearCart();
       
       // 4. Redirect to order confirmation page
-      router.push(`/checkout/confirmation?id=${newOrder.id_unique_tracking}`);
+      router.push(`/checkout/confirmation?id=${trackingId}`);
     } catch (err) {
       if (process.env.NODE_ENV !== 'production') console.error('Failed to place order:', err);
       setToastMessage(err instanceof Error ? err.message : 'حدث خطأ أثناء إرسال طلبك. يرجى المحاولة مرة أخرى.');

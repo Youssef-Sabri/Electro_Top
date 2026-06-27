@@ -10,7 +10,7 @@ import { StatusTimeline } from '@/components/tracking/StatusTimeline';
 import { formatCurrency } from '@/lib/format-currency';
 import { formatOrderDate } from '@/lib/date-utils';
 import { getSafeUrl } from '@/lib/safe-url';
-import { normalizeTrackingId } from '@/lib/constants';
+import { normalizeTrackingId, isValidTrackingId } from '@/lib/constants';
 
 import { translateStatus, publicStatus } from '@/lib/status-utils';
 
@@ -56,7 +56,7 @@ export function TrackingDetailClient({ id }: TrackingDetailClientProps) {
       return;
     }
 
-    if (!cleanId.startsWith('ET-') || cleanId.length !== 13) {
+    if (!isValidTrackingId(cleanId)) {
       setRetryError('رقم تتبع غير صحيح. يجب أن يبدأ رقم التتبع بـ "ET-" متبوعاً بـ 10 رموز (مثال: ET-A1B2C3D4E5).');
       return;
     }
@@ -185,8 +185,8 @@ export function TrackingDetailClient({ id }: TrackingDetailClientProps) {
             <div className="space-y-4 max-h-[300px] overflow-y-auto pe-1">
               {orderItems.map((item) => {
                 const product = productsById.get(item.product_id);
-                const name = product ? product.name : 'عنصر غير معروف';
-                const imageUrl = product ? product.image_url : null;
+                const name = product ? product.name : (item.product_name || 'عنصر غير معروف');
+                const imageUrl = product ? product.image_url : (item.product_image || null);
 
                 return (
                   <div key={item.id} className="flex items-center gap-4 text-white">

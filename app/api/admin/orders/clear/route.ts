@@ -29,18 +29,6 @@ export async function DELETE(request: Request) {
   const clearClient = createSupabaseAdminClient()
   await clearStorageBucket(clearClient, STORAGE_BUCKETS.receipts)
 
-  const { error: itemsError } = await supabaseClient.from(TABLES.orderItems).delete().neq('id', '')
-  if (itemsError) {
-    devLog('Clear order_items error:', itemsError);
-    return NextResponse.json({ error: 'فشل مسح الطلبات. يرجى المحاولة مرة أخرى.' }, { status: 500 })
-  }
-
-  const { error: historyError } = await supabaseClient.from(TABLES.orderStatusHistory).delete().neq('id', '')
-  if (historyError) {
-    devLog('Clear order_status_history error:', historyError);
-    return NextResponse.json({ error: 'فشل مسح الطلبات. يرجى المحاولة مرة أخرى.' }, { status: 500 })
-  }
-
   const { error: ordersError } = await supabaseClient.from(TABLES.orders).delete().neq('id_unique_tracking', '')
   if (ordersError) {
     devLog('Clear orders error:', ordersError);

@@ -64,6 +64,7 @@ export const EXT_MAP: Record<string, string> = {
   'image/webp': 'webp',
   'image/gif': 'gif',
   'image/heic': 'heic',
+  'image/heif': 'heic',
 }
 
 export function isAllowedImageType(mime: string): mime is ImageMimeType {

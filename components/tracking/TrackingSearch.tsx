@@ -2,7 +2,7 @@
 
 import React, { memo, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { normalizeTrackingId } from '@/lib/constants';
+import { normalizeTrackingId, isValidTrackingId } from '@/lib/constants';
 
 export const TrackingSearch = memo(function TrackingSearch() {
   const router = useRouter();
@@ -18,7 +18,7 @@ export const TrackingSearch = memo(function TrackingSearch() {
       return;
     }
 
-    if (!cleanId.startsWith('ET-') || cleanId.length !== 13) {
+    if (!isValidTrackingId(cleanId)) {
       setError('رقم تتبع غير صحيح. يجب أن يبدأ رقم التتبع بـ "ET-" متبوعاً بـ 10 رموز (مثال: ET-A1B2C3D4E5).');
       return;
     }

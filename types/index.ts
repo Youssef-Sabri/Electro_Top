@@ -29,8 +29,8 @@ export interface Order {
   shipping_address: string;
   total_amount: number;
   created_at: string;
-  payment_method?: 'instapay' | 'cod';
-  admin_notes?: string;
+  payment_method: 'instapay' | 'cod';
+  admin_notes?: string | null;
   location_link?: string;
   instapay_screenshot?: string;
   instapay_phone_number?: string;

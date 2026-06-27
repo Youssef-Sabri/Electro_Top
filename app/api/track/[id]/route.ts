@@ -3,10 +3,9 @@ import { createSupabaseAdminClient } from '@/lib/supabase-server'
 import { getClientIp } from '@/lib/ip-utils'
 import { checkAndIncrementRateLimit, setRateLimitHeaders } from '@/lib/rate-limit'
 import { RATE_LIMIT_CONFIGS } from '@/lib/db-constants'
-import { normalizeTrackingId } from '@/lib/constants'
+import { normalizeTrackingId, TRACKING_ID_REGEX } from '@/lib/constants'
 
 const TRACKING_RATE_LIMIT = RATE_LIMIT_CONFIGS.tracking;
-const TRACKING_ID_REGEX = /^ET-[A-Z0-9]{10}$/i
 
 function maskName(name: string): string {
   if (!name) return ''

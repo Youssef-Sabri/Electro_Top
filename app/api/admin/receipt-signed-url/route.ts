@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireAdminGuard } from '@/lib/admin-guard'
+import { devLog } from '@/lib/dev-log'
 import { createSupabaseAdminClient } from '@/lib/supabase-server'
 import { TABLES, STORAGE_BUCKETS } from '@/lib/db-constants'
 import { SAFE_FILENAME_RE } from '@/lib/validators'
@@ -35,9 +36,7 @@ export async function GET(request: NextRequest) {
       .maybeSingle()
 
     if (fetchError) {
-      if (process.env.NODE_ENV !== 'production') {
-        console.error('receipt-signed-url: ownership check failed:', fetchError.message)
-      }
+      devLog('receipt-signed-url: ownership check failed:', fetchError.message)
       return NextResponse.json({ error: 'Failed to verify receipt ownership.' }, { status: 500 })
     }
 
@@ -59,9 +58,7 @@ export async function GET(request: NextRequest) {
     .createSignedUrl(filename, SIGNED_URL_TTL)
 
   if (error || !data?.signedUrl) {
-    if (process.env.NODE_ENV !== 'production') {
-      console.error('receipt-signed-url: createSignedUrl failed:', error?.message)
-    }
+    devLog('receipt-signed-url: createSignedUrl failed:', error?.message)
     return NextResponse.json({ error: 'Failed to generate signed URL.' }, { status: 500 })
   }
 

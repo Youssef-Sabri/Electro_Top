@@ -6,7 +6,6 @@ import type { Session } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
 
 import { TABLES, PRODUCT_SELECT_FIELDS } from '@/lib/db-constants';
-import { clearAllProductImages } from '@/lib/image-utils';
 import { categorySchema } from '@/lib/validators';
 import { devLog } from '@/lib/dev-log';
 
@@ -82,6 +81,11 @@ export function ProductsProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
+    // Only run loadData automatically on mount if we are not on pages that initialize data on their own.
+    // Landing page (/) and Shop page (/shop) fetch and initialize data from their props, so they do not need client-side mount fetch.
+    const isSSRPage = typeof window !== 'undefined' && (window.location.pathname === '/' || window.location.pathname.startsWith('/shop'));
+    if (isSSRPage) return;
+
     if (hasFetchedRef.current) return;
     loadData();
   }, [loadData]);
@@ -156,10 +160,11 @@ export function ProductsProvider({ children }: { children: ReactNode }) {
 
     const handleVisibility = async () => {
       if (document.visibilityState === 'visible') {
-        hasFetchedRef.current = false;
-        loadData(true);
         const { data: { session } } = await supabase.auth.getSession();
+        // Only trigger visibility-based refresh for administrators with active sessions
         if (session) {
+          hasFetchedRef.current = false;
+          loadData(true);
           await subscribe(session);
         }
       } else {
@@ -348,7 +353,6 @@ export function ProductsProvider({ children }: { children: ReactNode }) {
         const data = await response.json();
         throw new Error(data.error || 'Failed to clear products');
       }
-      await clearAllProductImages();
     } catch (e) {
       setProducts(previousProducts);
       setCategories(previousCategories);

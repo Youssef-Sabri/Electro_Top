@@ -15,6 +15,7 @@ import { getSafeUrl } from '@/lib/safe-url';
 import { devLog } from '@/lib/dev-log';
 import { getSupportEnv } from '@/lib/env-utils';
 import { SAFE_FILENAME_RE } from '@/lib/validators';
+import { isValidTrackingId } from '@/lib/constants';
 
 import { Toast } from '@/components/ui/Toast';
 import { CustomDropdown } from '@/components/ui/CustomDropdown';
@@ -104,7 +105,7 @@ export const OrderDetailClient = memo(function OrderDetailClient({ id }: OrderDe
       return;
     }
 
-    const isValidId = /^ET-[A-Z0-9]{10}$/i.test(id);
+    const isValidId = isValidTrackingId(id);
 
     async function loadFromDB() {
       try {

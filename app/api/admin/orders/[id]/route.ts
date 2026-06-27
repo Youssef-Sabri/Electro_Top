@@ -23,14 +23,14 @@ export async function GET(
   const { data: rpcResult, error: rpcError } = await adminClient
     .rpc('get_order_detail_view', { order_id: sanitizedId })
 
-  if (rpcError || !rpcResult || rpcResult.length === 0) {
+  if (rpcError || !rpcResult || rpcResult.length === 0 || !rpcResult[0]?.order_data) {
     if (rpcError) devLog('Failed to fetch order details via RPC:', rpcError)
     return NextResponse.json({ error: 'Order not found' }, { status: 404 })
   }
 
   const result = rpcResult[0]
   return NextResponse.json({
-    order: result.order_data?.[0] || null,
+    order: result.order_data[0],
     items: result.items_data || [],
     history: result.history_data || [],
   })
@@ -57,16 +57,6 @@ export async function DELETE(
   if (fetchError) {
     devLog('Fetch order before delete error:', fetchError);
     return NextResponse.json({ error: 'فشل استرداد بيانات الطلب قبل الحذف.' }, { status: 500 })
-  }
-
-  const [{ error: itemsError }, { error: historyError }] = await Promise.all([
-    supabaseClient.from(TABLES.orderItems).delete().eq('order_id', sanitizedId),
-    supabaseClient    .from(TABLES.orderStatusHistory).delete().eq('order_id', sanitizedId),
-  ])
-
-  if (itemsError || historyError) {
-    devLog('Delete order records error:', itemsError || historyError);
-    return NextResponse.json({ error: 'فشل حذف سجلات الطلب. يرجى المحاولة مرة أخرى.' }, { status: 500 })
   }
 
   const { error } = await supabaseClient

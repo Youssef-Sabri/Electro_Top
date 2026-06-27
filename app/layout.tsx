@@ -6,7 +6,6 @@ import { z } from 'zod';
 import './globals.css';
 import { CartProvider } from '@/context/CartContext';
 import { ProductsProvider } from '@/context/ProductsContext';
-import { OrdersProvider } from '@/context/OrdersContext';
 import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
 
 
@@ -105,9 +104,7 @@ export default async function RootLayout({
         <ErrorBoundary>
           <ProductsProvider>
             <CartProvider>
-              <OrdersProvider>
-                {children}
-              </OrdersProvider>
+              {children}
             </CartProvider>
           </ProductsProvider>
         </ErrorBoundary>

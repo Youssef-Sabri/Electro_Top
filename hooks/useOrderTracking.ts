@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import type { Order, OrderItem, OrderStatusHistory } from '@/types';
 import { normalizeTrackingId } from '@/lib/constants';
+import { devLog } from '@/lib/dev-log';
 
 export function useOrderTracking(id: string | null): {
   order: Order | null;
@@ -28,7 +29,7 @@ export function useOrderTracking(id: string | null): {
           setHistory(data.history);
         }
       } catch (error) {
-        if (process.env.NODE_ENV !== 'production') console.error('Failed to fetch order:', error);
+        devLog('Failed to fetch order:', error);
       } finally {
         setLoading(false);
       }

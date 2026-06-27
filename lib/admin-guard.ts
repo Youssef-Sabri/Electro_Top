@@ -7,8 +7,10 @@ import type { User } from '@supabase/supabase-js'
 export async function requireAdminGuard(
   request: Request
 ): Promise<{ supabaseClient: Awaited<ReturnType<typeof getServerSupabase>>; user: User } | NextResponse> {
-  if (!validateRequestOrigin(request)) {
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  if (request.method !== 'GET' && request.method !== 'HEAD') {
+    if (!validateRequestOrigin(request)) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
   }
 
   const supabaseClient = await getServerSupabase()
