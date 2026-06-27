@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createSupabaseAdminClient } from '@/lib/supabase-server'
 import { validateRequestOrigin } from '@/lib/csrf'
 import { detectImageMimeType } from '@/lib/magic-bytes'
-import { checkAndIncrementRateLimit } from '@/lib/rate-limit'
+import { checkAndIncrementRateLimit, setRateLimitHeaders } from '@/lib/rate-limit'
 import { getClientIp } from '@/lib/ip-utils'
 import { TABLES, STORAGE_BUCKETS } from '@/lib/db-constants'
 import { parseJsonBody } from '@/lib/parse-json'
@@ -23,7 +23,9 @@ export async function POST(request: NextRequest) {
     windowMs: 60000,
   })
   if (rateCheck.blocked) {
-    return NextResponse.json({ error: `محاولات كثيرة جداً. يرجى الانتظار ${rateCheck.cooldown} ثانية.` }, { status: 429 })
+    const res = NextResponse.json({ error: `محاولات كثيرة جداً. يرجى الانتظار ${rateCheck.cooldown} ثانية.` }, { status: 429 })
+    setRateLimitHeaders(res, rateCheck)
+    return res
   }
 
   const body = await parseJsonBody<{ file?: string; filename?: string }>(request)

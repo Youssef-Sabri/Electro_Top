@@ -13,6 +13,11 @@ function isValidOrderStatus(value: string): value is OrderStatus {
   return (VALID_ORDER_STATUSES as readonly string[]).includes(value);
 }
 
+export interface OrderFilters {
+  searchQuery: string;
+  status: string;
+}
+
 const PAGE_SIZE = 50;
 
 export interface OrdersContextType {
@@ -21,6 +26,8 @@ export interface OrdersContextType {
   statusHistory: OrderStatusHistory[];
   page: number;
   totalPages: number;
+  filters: OrderFilters;
+  setFilters: (filters: OrderFilters) => void;
   getOrderById: (id: string) => Order | undefined;
   createOrder: (data: CheckoutFormData, cartItems: CartItem[]) => Promise<Order>;
   updateOrderStatus: (orderId: string, status: OrderStatus) => void;
@@ -43,6 +50,7 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
   const [statusHistory, setStatusHistory] = useState<OrderStatusHistory[]>([]);
   const [page, setPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
+  const [filters, setFilters] = useState<OrderFilters>({ searchQuery: '', status: 'All' });
 
   const ordersMapRef = useRef<Map<string, Order>>(new Map());
   const orderItemsMapRef = useRef<Map<string, OrderItem[]>>(new Map());
@@ -51,6 +59,7 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
   const orderItemsRef = useRef<OrderItem[]>([]);
   const statusHistoryRef = useRef<OrderStatusHistory[]>([]);
   const pageRef = useRef(0);
+  const filtersRef = useRef(filters);
 
   useEffect(() => {
     const oMap = new Map<string, Order>();
@@ -81,6 +90,10 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
     pageRef.current = page;
   }, [page]);
 
+  useEffect(() => {
+    filtersRef.current = filters;
+  }, [filters]);
+
   const getOrderItems = useCallback((orderId: string) => {
     return orderItemsMapRef.current.get(orderId) || [];
   }, []);
@@ -89,14 +102,32 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
     return statusHistoryMapRef.current.get(orderId) || [];
   }, []);
 
-  const loadData = useCallback(async (pageNum = 0) => {
+  const loadData = useCallback(async (pageNum = 0, overrideFilters?: OrderFilters) => {
     try {
       const from = pageNum * PAGE_SIZE;
       const to = from + PAGE_SIZE - 1;
+      const activeFilters = overrideFilters ?? filtersRef.current;
 
-      const { data: oData, error: oError, count: oCount } = await supabase
+      let query = supabase
         .from(TABLES.orders)
-        .select(ORDER_SELECT_FIELDS, { count: 'exact', head: false })
+        .select(ORDER_SELECT_FIELDS, { count: 'exact', head: false });
+
+      const searchTerm = activeFilters.searchQuery.trim().toLowerCase();
+      if (searchTerm) {
+        query = query.or(
+          `id_unique_tracking.ilike.%${searchTerm}%,` +
+          `customer_name.ilike.%${searchTerm}%,` +
+          `phone_number.ilike.%${searchTerm}%,` +
+          `instapay_phone_number.ilike.%${searchTerm}%`
+        );
+      }
+
+      if (activeFilters.status !== 'All') {
+        const statusValue = activeFilters.status === 'Pending' ? 'Pending Review' : activeFilters.status;
+        query = query.eq('status', statusValue);
+      }
+
+      const { data: oData, error: oError, count: oCount } = await query
         .order('created_at', { ascending: false })
         .range(from, to);
 
@@ -127,8 +158,8 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const refreshOrders = useCallback(async () => {
-    await loadData(page);
-  }, [loadData, page]);
+    await loadData(pageRef.current, filtersRef.current);
+  }, [loadData]);
 
   const nextPage = useCallback(() => {
     if (page < totalPages - 1) {
@@ -256,7 +287,7 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       if (session) {
-        await loadData(0);
+        await loadData(0, filtersRef.current);
         await subscribe(session);
       } else {
         unsubscribe();
@@ -273,7 +304,7 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
         const { data: { session } } = await supabase.auth.getSession();
         if (session) {
           await subscribe(session);
-          loadData(pageRef.current);
+          loadData(pageRef.current, filtersRef.current);
         }
       } else {
         unsubscribe();
@@ -485,6 +516,8 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
       statusHistory,
       page,
       totalPages,
+      filters,
+      setFilters,
       getOrderById,
       createOrder,
       updateOrderStatus,
@@ -504,6 +537,7 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
       statusHistory,
       page,
       totalPages,
+      filters,
       getOrderById,
       createOrder,
       updateOrderStatus,

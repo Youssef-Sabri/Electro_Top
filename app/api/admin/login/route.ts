@@ -3,7 +3,7 @@ import { createSupabaseAdminClient } from '@/lib/supabase-server'
 import { getServerSupabase } from '@/lib/supabase-server-cookies'
 import { validateRequestOrigin } from '@/lib/csrf'
 import { getClientIp } from '@/lib/ip-utils'
-import { checkAndIncrementRateLimit } from '@/lib/rate-limit'
+import { checkAndIncrementRateLimit, setRateLimitHeaders } from '@/lib/rate-limit'
 import { RATE_LIMIT_CONFIGS } from '@/lib/db-constants'
 import { parseJsonBody } from '@/lib/parse-json'
 
@@ -40,10 +40,12 @@ export async function POST(request: NextRequest) {
   // Atomic check-and-increment — prevents TOCTOU race under concurrent serverless invocations
   const rateLimit = await checkAndIncrementRateLimit(supabaseClient, ip, RATE_LIMIT_CONFIGS.login);
   if (rateLimit.blocked) {
-    return NextResponse.json({
+    const res = NextResponse.json({
       blocked: true,
       cooldown: rateLimit.cooldown,
     }, { status: 429 });
+    setRateLimitHeaders(res, rateLimit)
+    return res
   }
 
   const body = await parseJsonBody<Record<string, unknown>>(request)

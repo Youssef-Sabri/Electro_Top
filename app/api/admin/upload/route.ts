@@ -4,8 +4,7 @@ import { validateRequestOrigin } from '@/lib/csrf'
 import { requireAdmin } from '@/lib/api-auth'
 import { detectImageMimeType, EXT_MAP } from '@/lib/magic-bytes'
 import { STORAGE_BUCKETS } from '@/lib/db-constants'
-
-const MAX_FILE_SIZE = 5 * 1024 * 1024
+import { MAX_FILE_SIZE_BYTES } from '@/lib/constants'
 
 export async function POST(request: Request) {
   if (!validateRequestOrigin(request)) {
@@ -29,7 +28,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'No file provided' }, { status: 400 })
   }
 
-  if (file.size > MAX_FILE_SIZE) {
+  if (file.size > MAX_FILE_SIZE_BYTES) {
     return NextResponse.json(
       { error: `حجم الملف كبير جداً (${(file.size / (1024 * 1024)).toFixed(1)} ميجابايت). الحد الأقصى 5 ميجابايت.` },
       { status: 400 }

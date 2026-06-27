@@ -2,14 +2,13 @@ import { supabase } from '@/lib/supabase';
 import { isAllowedImageType } from '@/lib/magic-bytes';
 import { STORAGE_BUCKETS } from '@/lib/db-constants';
 import { readFileAsDataURL, clearStorageBucket, deleteStorageFile } from '@/lib/file-utils';
+import { MAX_FILE_SIZE_MB } from '@/lib/constants';
 
 interface ImageProcessResult {
   dataUrl: string;
   info: string;
   compressedFile: File;
 }
-
-const MAX_FILE_SIZE_MB = 5;
 
 async function compressFile(file: File): Promise<{ compressedFile: File; info: string }> {
   if (!isAllowedImageType(file.type)) {

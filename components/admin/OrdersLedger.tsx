@@ -1,10 +1,9 @@
 'use client';
 
-import { memo, useState, useMemo, useEffect, useCallback } from 'react';
+import { memo, useState, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useOrders } from '@/hooks/useOrders';
 import { useProducts } from '@/hooks/useProducts';
-import { usePagination } from '@/hooks/usePagination';
 import { formatCurrency } from '@/lib/format-currency';
 import { formatOrderDate, todayStamp } from '@/lib/date-utils';
 import { STATUS_OPTIONS } from '@/lib/status-utils';
@@ -19,12 +18,10 @@ import { PasswordConfirmModal } from '@/components/ui/PasswordConfirmModal';
 import { Toast } from '@/components/ui/Toast';
 
 export const OrdersLedger = memo(function OrdersLedger() {
-  const { orders, getOrderItems, clearAllOrders, deleteOrder } = useOrders();
+  const { orders, getOrderItems, clearAllOrders, deleteOrder, page, totalPages, filters, setFilters, goToPage } = useOrders();
   const { getProductsMap } = useProducts();
   const router = useRouter();
 
-  const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState('All');
   const [isClearConfirmOpen, setIsClearConfirmOpen] = useState(false);
   const [isClearPasswordOpen, setIsClearPasswordOpen] = useState(false);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
@@ -76,33 +73,15 @@ export const OrdersLedger = memo(function OrdersLedger() {
     });
   }, [orders, getProductsMap, getOrderItems]);
 
-  const filteredOrders = useMemo(() => {
-    return orders.filter((order) => {
-      const query = searchQuery.toLowerCase().trim();
-      const matchesSearch =
-        order.id_unique_tracking.toLowerCase().includes(query) ||
-        order.customer_name.toLowerCase().includes(query) ||
-        order.phone_number.toLowerCase().includes(query) ||
-        (order.instapay_phone_number && order.instapay_phone_number.toLowerCase().includes(query));
+  const handleSearchChange = useCallback((value: string) => {
+    setFilters({ searchQuery: value, status: filters.status });
+  }, [filters.status, setFilters]);
 
-      const matchesStatus =
-        statusFilter === 'All' ||
-        order.status === statusFilter ||
-        (statusFilter === 'Pending' && order.status === 'Pending Review');
-
-      return matchesSearch && matchesStatus;
-    });
-  }, [orders, searchQuery, statusFilter]);
-
-  const itemsPerPage = 10;
-  const { currentPage, setCurrentPage, totalPages, paginatedItems: paginatedOrders, resetPage } = usePagination(filteredOrders, itemsPerPage);
-
-  useEffect(() => {
-    resetPage();
-  }, [searchQuery, statusFilter, resetPage]);
+  const handleStatusChange = useCallback((value: string) => {
+    setFilters({ searchQuery: filters.searchQuery, status: value });
+  }, [filters.searchQuery, setFilters]);
 
   const metrics = useMemo(() => calculateOrderMetrics(orders), [orders]);
-
 
   const handleRowClick = useCallback((trackingId: string) => {
     router.push(`/admin/orders/${trackingId}`);
@@ -115,7 +94,7 @@ export const OrdersLedger = memo(function OrdersLedger() {
           <div>
             <h2 className="font-headline-lg text-headline-lg text-on-surface">جميع الطلبات</h2>
             <p className="text-on-surface-variant font-body-md text-body-md">
-              إجمالي الطلبات في النظام: {filteredOrders.length} طلب.
+              إجمالي الطلبات في النظام: {orders.length} طلب.
             </p>
           </div>
           <button
@@ -136,7 +115,7 @@ export const OrdersLedger = memo(function OrdersLedger() {
           </button>
         </div>
         
-        <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
+          <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
           <div className="relative">
             <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant select-none">
               search
@@ -145,16 +124,16 @@ export const OrdersLedger = memo(function OrdersLedger() {
               className="pr-10 pl-4 py-2 bg-surface-container-lowest border border-outline-variant rounded-lg font-body-md text-body-md focus:outline-none focus:ring-2 focus:ring-primary/10 focus:border-primary w-full sm:w-64 text-on-surface text-right"
               placeholder="البحث برقم الطلب، اسم العميل..."
               type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              value={filters.searchQuery}
+              onChange={(e) => handleSearchChange(e.target.value)}
             />
           </div>
 
           <CustomDropdown
             labelPrefix="الحالة:"
             options={STATUS_OPTIONS}
-            value={statusFilter}
-            onChange={(val) => setStatusFilter(val)}
+            value={filters.status}
+            onChange={handleStatusChange}
           />
         </div>
       </div>
@@ -241,8 +220,8 @@ export const OrdersLedger = memo(function OrdersLedger() {
               </tr>
             </thead>
             <tbody className="divide-y divide-outline-variant/10">
-              {paginatedOrders.length > 0 ? (
-                paginatedOrders.map((order) => {
+              {orders.length > 0 ? (
+                orders.map((order) => {
                   const dateStr = formatOrderDate(order.created_at);
 
                   const orderTotal = order.total_amount;
@@ -327,9 +306,9 @@ export const OrdersLedger = memo(function OrdersLedger() {
         </div>
 
         <PaginationControls
-          currentPage={currentPage}
+          currentPage={page + 1}
           totalPages={totalPages}
-          onPageChange={setCurrentPage}
+          onPageChange={(n) => goToPage(n - 1)}
         />
       </div>
 

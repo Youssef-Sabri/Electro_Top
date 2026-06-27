@@ -65,6 +65,7 @@ export const Footer = memo(function Footer() {
               <a
                 key={index}
                 href={`https://wa.me/${number}`}
+                target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center md:justify-end gap-2 text-surface-variant hover:text-secondary-fixed transition-colors font-medium text-sm"
               >

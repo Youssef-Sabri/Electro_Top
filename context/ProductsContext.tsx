@@ -171,10 +171,11 @@ export function ProductsProvider({ children }: { children: ReactNode }) {
       if (document.visibilityState === 'visible') {
         hasFetchedRef.current = false;
         loadData(true);
-        startPolling();
         const { data: { session } } = await supabase.auth.getSession();
         if (session) {
           await subscribe(session);
+        } else {
+          startPolling();
         }
       } else {
         stopPolling();
@@ -182,9 +183,11 @@ export function ProductsProvider({ children }: { children: ReactNode }) {
       }
     };
 
-    // Start polling immediately if tab is visible
+    // Start polling immediately if tab is visible and user is not authenticated
     if (document.visibilityState === 'visible') {
-      startPolling();
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        if (!session) startPolling();
+      });
     }
 
     document.addEventListener('visibilitychange', handleVisibility);

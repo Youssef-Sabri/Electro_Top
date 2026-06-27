@@ -46,6 +46,7 @@ export default function SupportPage() {
                 <a
                   key={index}
                   href={`https://wa.me/${number}`}
+                  target="_blank"
                   rel="noopener noreferrer"
                   className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white py-3.5 px-4 rounded-xl font-label-md flex items-center justify-center gap-2 transition-colors cursor-pointer text-sm"
                 >

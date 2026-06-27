@@ -103,7 +103,26 @@ types/                       # Shared TypeScript interfaces (Product, Order, etc
 
 ### Database Setup
 
-Follow the project setup documentation to initialize all required tables, triggers, RPCs, storage buckets, and RLS policies.
+The database schema (`supabase_setup_script_organizer.html`) contains all required tables, triggers, RPCs, storage buckets, and RLS policies. Apply it once via Supabase SQL Editor.
+
+**Migration workflow (for schema changes):**
+
+1. Install Supabase CLI: `npm install -g supabase`
+2. Initialize: `supabase init`
+3. Pull current schema: `supabase db pull`
+4. Copy `supabase_setup_script_organizer.html` to `supabase/migrations/` as a baseline
+5. For future changes: edit the DB, run `supabase db diff --linked` to generate a new migration
+6. Commit all migration files to git
+
+**Key DB objects maintained in code:**
+
+| Object | Location | Synced? |
+|---|---|---|
+| Tables + RLS | DB setup file / Supabase dashboard | Manual |
+| `atomic_rate_limit_check` RPC | Step 5 in setup file | Must match `lib/rate-limit.ts` call signature |
+| `get_order_details_for_tracking` RPC | Step 6 in setup file | Must match `app/api/track/[id]/route.ts` call |
+| `get_order_detail_view` RPC | Step 7 in setup file | Must match admin API route usage |
+| Price override trigger | Step 4 in setup file | Defense-in-depth — mirrors app-level price check |
 
 ### Installation
 

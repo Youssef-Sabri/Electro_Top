@@ -4,7 +4,7 @@ import { validateRequestOrigin } from '@/lib/csrf'
 import { checkoutSchema, SAFE_FILENAME_RE } from '@/lib/validators'
 import { generateOrderId } from '@/lib/id-generator'
 import { getClientIp } from '@/lib/ip-utils'
-import { checkAndIncrementRateLimit } from '@/lib/rate-limit'
+import { checkAndIncrementRateLimit, setRateLimitHeaders } from '@/lib/rate-limit'
 import { TABLES, RATE_LIMIT_CONFIGS } from '@/lib/db-constants'
 import { now } from '@/lib/date-utils'
 import { parseJsonBody } from '@/lib/parse-json'
@@ -21,10 +21,12 @@ export async function POST(request: NextRequest) {
   const adminClient = createSupabaseAdminClient()
   const rateLimit = await checkAndIncrementRateLimit(adminClient, ip, ORDER_RATE_LIMIT)
   if (rateLimit.blocked) {
-    return NextResponse.json({
+    const res = NextResponse.json({
       error: 'محاولات كثيرة جداً. يرجى الانتظار والمحاولة مرة أخرى.',
       cooldown: rateLimit.cooldown,
     }, { status: 429 })
+    setRateLimitHeaders(res, rateLimit)
+    return res
   }
 
   const body = await parseJsonBody<Record<string, unknown>>(request)
