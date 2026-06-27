@@ -1,18 +1,14 @@
 <div align="center">
 
-# ⚡ Electro Top — إلكترو توب
+# Electro Top
 
-**A production-grade Arabic-first e-commerce platform for electrical supplies**
+**A production-grade e-commerce platform for electrical supplies**
 
 [![Next.js](https://img.shields.io/badge/Next.js-16.2.9-black?logo=next.js)](https://nextjs.org/)
- [![TypeScript](https://img.shields.io/badge/TypeScript-5.8-blue?logo=typescript)](https://www.typescriptlang.org/)
-
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.8-blue?logo=typescript)](https://www.typescriptlang.org/)
 [![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL-3ECF8E?logo=supabase)](https://supabase.com/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind%20CSS-v4-06B6D4?logo=tailwindcss)](https://tailwindcss.com/)
 [![React](https://img.shields.io/badge/React-19-61DAFB?logo=react)](https://react.dev/)
-
-> الموزع المعتمد لمنتجات السويدي، شنايدر، سيمنز، هيميل، جيويس، وشينت
-> *Authorized distributor for El-Sewedy, Schneider, Siemens, Hager, Gewiss & Chint*
 
 </div>
 
@@ -20,18 +16,16 @@
 
 ## Overview
 
-Electro Top is a full-featured e-commerce platform purpose-built for the electrical supplies market in Egypt. It enables **zero-friction guest shopping** — customers browse a catalog, add items to cart, pay via InstaPay, and track orders with a unique ID — all without creating an account.
-
-The platform includes a comprehensive **admin dashboard** for inventory management, order fulfillment, sales analytics, and CSV reporting.
+A full-featured e-commerce platform purpose-built for the electrical supplies market. It enables zero-friction guest shopping — customers browse a catalog, add items to cart, pay via InstaPay, and track orders with a unique ID — all without creating an account. The platform includes a comprehensive admin dashboard for inventory management, order fulfillment, sales analytics, and CSV reporting.
 
 ---
 
 ## Features
 
 ### Storefront
-- **Guest checkout** — No registration. Orders tracked via unique `ET-XXXXXXXXXX` alphanumeric ID
-- **Shopping cart** — `localStorage`-persisted with real-time stock-aware quantity limits and price reconciliation
-- **InstaPay payments** — Upload receipt screenshot with client-side Canvas API compression
+- **Guest checkout** — No registration. Orders tracked via unique alphanumeric tracking ID
+- **Shopping cart** — localStorage-persisted with real-time stock-aware quantity limits and price reconciliation
+- **InstaPay payments** — Upload receipt screenshot with client-side image compression
 - **Order tracking** — Real-time status timeline with itemized invoice
 - **Product catalog** — Server-rendered, filterable by category, with search/sort, and real-time stock updates via Supabase Realtime subscriptions
 - **Arabic RTL** — Full right-to-left layout with Cairo & Tajawal typography
@@ -40,7 +34,7 @@ The platform includes a comprehensive **admin dashboard** for inventory manageme
 - **Sales insights** — Revenue metrics, order status breakdown, inventory health, category sales
 - **Order management** — Searchable ledger, status updates, admin notes, status history, invoice printing
 - **Inventory CRUD** — Full product management with image upload, category management, CSV export
-- **Security** — Supabase Auth gate, 55-minute inactivity timeout, rate-limited login
+- **Security** — Supabase Auth gate, inactivity timeout, rate-limited login
 
 ### Security
 - **CSP with nonces** — Per-request content security policy via middleware
@@ -53,7 +47,7 @@ The platform includes a comprehensive **admin dashboard** for inventory manageme
 ---
 
 ## Tech Stack
- 
+
 | Layer | Technology |
 |---|---|
 | Framework | Next.js 16 (App Router, Turbopack) |
@@ -64,7 +58,7 @@ The platform includes a comprehensive **admin dashboard** for inventory manageme
 | Validation | Zod ^3.23.8 |
 | State Management | React Context (Products, Orders, Cart) |
 | Storage | Supabase Storage (private + public buckets) |
-| Middleware | `proxy.ts` — CSP, CSRF, admin route guard |
+| Middleware | Custom middleware for CSP, CSRF, admin route guard |
 | Deployment | Vercel |
 
 ---
@@ -98,31 +92,21 @@ types/                       # Shared TypeScript interfaces (Product, Order, etc
 ### Prerequisites
 
 - Node.js 18+
-- A [Supabase](https://supabase.com) project with configured database, storage, and auth
+- A Supabase project with configured database, storage, and auth
 - InstaPay merchant account (for payment processing)
 
 ### Database Setup
 
-The database schema (`supabase_setup_script_organizer.html`) contains all required tables, triggers, RPCs, storage buckets, and RLS policies. Apply it once via Supabase SQL Editor.
+The database schema contains all required tables, triggers, RPCs, storage buckets, and RLS policies. Apply it once via Supabase SQL Editor.
 
 **Migration workflow (for schema changes):**
 
 1. Install Supabase CLI: `npm install -g supabase`
 2. Initialize: `supabase init`
 3. Pull current schema: `supabase db pull`
-4. Copy `supabase_setup_script_organizer.html` to `supabase/migrations/` as a baseline
+4. Copy the setup script to `supabase/migrations/` as a baseline
 5. For future changes: edit the DB, run `supabase db diff --linked` to generate a new migration
 6. Commit all migration files to git
-
-**Key DB objects maintained in code:**
-
-| Object | Location | Synced? |
-|---|---|---|
-| Tables + RLS | DB setup file / Supabase dashboard | Manual |
-| `atomic_rate_limit_check` RPC | Step 5 in setup file | Must match `lib/rate-limit.ts` call signature |
-| `get_order_details_for_tracking` RPC | Step 6 in setup file | Must match `app/api/track/[id]/route.ts` call |
-| `get_order_detail_view` RPC | Step 7 in setup file | Must match admin API route usage |
-| Price override trigger | Step 4 in setup file | Defense-in-depth — mirrors app-level price check |
 
 ### Installation
 
@@ -130,10 +114,9 @@ The database schema (`supabase_setup_script_organizer.html`) contains all requir
 git clone https://github.com/your-username/electro-top.git
 cd electro-top
 npm install
-# Copy .env.local.example to .env.local and fill in your values
 ```
 
-Edit `.env.local` (based on `.env.local.example`) with your Supabase credentials and store configuration, then:
+Edit `.env.local` with your Supabase credentials and store configuration, then:
 
 ```bash
 npm run dev
@@ -156,7 +139,7 @@ All configuration is managed through environment variables:
 | `NEXT_PUBLIC_INSTAPAY_ACCOUNT_NAME` | Yes | Merchant name displayed during checkout |
 | `NEXT_PUBLIC_INSTAPAY_PHONE` | Yes | InstaPay phone number |
 | `NEXT_PUBLIC_SUPPORT_WHATSAPP_1` | No | Primary WhatsApp number for customer support |
-| `NEXT_PUBLIC_SUPPORT_WHATSAPP_2` | No | Secondary WhatsApp number for customer support |
+| `NEXT_PUBLIC_SUPPORT_WHATSAPP_2` | No | Secondary WhatsApp number |
 | `NEXT_PUBLIC_SUPPORT_PHONE_1` | No | Primary support hotline |
 | `NEXT_PUBLIC_SUPPORT_PHONE_2` | No | Secondary support hotline |
 | `NEXT_PUBLIC_SUPPORT_FACEBOOK` | No | Facebook page URL |
@@ -177,19 +160,16 @@ All configuration is managed through environment variables:
 
 ## Admin Panel
 
-Accessible at `/admin`. Authentication is handled by Supabase Auth (email/password). Only users with `app_metadata.role === "admin"` are granted access. The session is verified on every request via the admin route guards. Inactivity beyond 55 minutes triggers automatic logout.
+Accessible at `/admin`. Authentication is handled by Supabase Auth (email/password). Only users with `app_metadata.role === "admin"` are granted access. The session is verified on every request via admin route guards. Inactivity beyond 55 minutes triggers automatic logout.
 
 ---
 
 ## Deployment
 
-The platform is designed for deployment on **Vercel**. Add all environment variables from the [Configuration](#configuration) section to your Vercel project settings and deploy.
+Designed for deployment on **Vercel**. Add all environment variables from the [Configuration](#configuration) section to your Vercel project settings and deploy.
 
 ---
 
-<div align="center">
+## License
 
-**Built with ❤️ for Electro Top**  
-*Next.js · Supabase · TypeScript · Tailwind CSS*
-
-</div>
+All rights reserved.

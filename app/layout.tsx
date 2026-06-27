@@ -2,11 +2,29 @@ import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
 import { Cairo, Tajawal } from 'next/font/google';
 import { headers } from 'next/headers';
+import { z } from 'zod';
 import './globals.css';
 import { CartProvider } from '@/context/CartContext';
 import { ProductsProvider } from '@/context/ProductsContext';
 import { OrdersProvider } from '@/context/OrdersContext';
 import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
+
+
+const jsonLdEnvSchema = z.object({
+  siteUrl: z.string().url().default(''),
+  supportPhone1: z.string().min(1).optional().default(''),
+  supportPhone2: z.string().min(1).optional().default(''),
+});
+
+type JsonLdEnv = z.infer<typeof jsonLdEnvSchema>;
+
+function getJsonLdEnv(): JsonLdEnv {
+  return jsonLdEnvSchema.parse({
+    siteUrl: process.env.NEXT_PUBLIC_SITE_URL || '',
+    supportPhone1: process.env.NEXT_PUBLIC_SUPPORT_PHONE_1 || '',
+    supportPhone2: process.env.NEXT_PUBLIC_SUPPORT_PHONE_2 || '',
+  });
+}
 
 
 const materialSymbolsUrl = 'https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=block';
@@ -57,26 +75,31 @@ export default async function RootLayout({
           href={materialSymbolsUrl}
           rel="stylesheet"
         />
-         <script
-           nonce={nonce}
-           suppressHydrationWarning
-           type="application/ld+json"
-           dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
-              '@context': 'https://schema.org',
-              '@type': 'Store',
-              name: 'إلكترو توب',
-              description: 'الموزع المعتمد لمنتجات السويدي، شنايدر، سيمنز، هيميل، جيويس، وشينت. مستلزمات كهربائية ممتازة مع إمكانية الدفع كزائر وتتبع الطلبات.',
-               url: process.env.NEXT_PUBLIC_SITE_URL || '',
-               telephone: [process.env.NEXT_PUBLIC_SUPPORT_PHONE_1, process.env.NEXT_PUBLIC_SUPPORT_PHONE_2].filter(Boolean),
-              areaServed: 'EG',
-              hasOfferCatalog: {
-                '@type': 'OfferCatalog',
-                name: 'المستلزمات الكهربائية',
-              },
-            }).replace(/</g, '\\u003c'),
-          }}
-        />
+         {(() => {
+            const env = getJsonLdEnv();
+            return (
+              <script
+                nonce={nonce}
+                suppressHydrationWarning
+                type="application/ld+json"
+                dangerouslySetInnerHTML={{
+                  __html: JSON.stringify({
+                    '@context': 'https://schema.org',
+                    '@type': 'Store',
+                    name: 'إلكترو توب',
+                    description: 'الموزع المعتمد لمنتجات السويدي، شنايدر، سيمنز، هيميل، جيويس، وشينت. مستلزمات كهربائية ممتازة مع إمكانية الدفع كزائر وتتبع الطلبات.',
+                    url: env.siteUrl,
+                    telephone: [env.supportPhone1, env.supportPhone2].filter(Boolean),
+                    areaServed: 'EG',
+                    hasOfferCatalog: {
+                      '@type': 'OfferCatalog',
+                      name: 'المستلزمات الكهربائية',
+                    },
+                  }).replace(/</g, '\\u003c'),
+                }}
+              />
+            );
+          })()}
       </head>
       <body className="min-h-full bg-background text-on-surface font-body-md flex flex-col">
         <ErrorBoundary>

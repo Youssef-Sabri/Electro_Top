@@ -86,11 +86,10 @@ export function ProductsProvider({ children }: { children: ReactNode }) {
     loadData();
   }, [loadData]);
 
-  // Polling is handled inside the subscription useEffect below — merged visibilitychange
+  // Real-time subscriptions + visibility-based refresh (no polling)
 
   useEffect(() => {
     let channel: ReturnType<typeof supabase.channel> | null = null;
-    let pollTimer: ReturnType<typeof setInterval> | null = null;
 
     async function subscribe(session: Session) {
       if (channel || !session) return;
@@ -136,20 +135,8 @@ export function ProductsProvider({ children }: { children: ReactNode }) {
       }
     }
 
-    function startPolling() {
-      if (pollTimer) return;
-      pollTimer = setInterval(() => loadData(true), 30000);
-    }
-
-    function stopPolling() {
-      if (pollTimer) {
-        clearInterval(pollTimer);
-        pollTimer = null;
-      }
-    }
-
     // Products WebSocket is admin-only (gated by session) to avoid one WebSocket per visitor.
-    // For customers, the polling fallback refreshes products on tab focus.
+    // For customers, products refresh on tab focus (visibility change) — no polling.
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       if (session) {
         await subscribe(session);
@@ -174,27 +161,16 @@ export function ProductsProvider({ children }: { children: ReactNode }) {
         const { data: { session } } = await supabase.auth.getSession();
         if (session) {
           await subscribe(session);
-        } else {
-          startPolling();
         }
       } else {
-        stopPolling();
         unsubscribe();
       }
     };
-
-    // Start polling immediately if tab is visible and user is not authenticated
-    if (document.visibilityState === 'visible') {
-      supabase.auth.getSession().then(({ data: { session } }) => {
-        if (!session) startPolling();
-      });
-    }
 
     document.addEventListener('visibilitychange', handleVisibility);
 
     return () => {
       document.removeEventListener('visibilitychange', handleVisibility);
-      stopPolling();
       unsubscribe();
       subscription.unsubscribe();
     };
