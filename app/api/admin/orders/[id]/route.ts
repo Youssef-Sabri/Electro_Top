@@ -21,9 +21,7 @@ export async function GET(
   const { id } = await params
   const uppercaseId = id.toUpperCase()
 
-  const adminClient = createSupabaseAdminClient()
-
-  const { data: rpcResult, error: rpcError } = await adminClient
+  const { data: rpcResult, error: rpcError } = await supabaseClient
     .rpc('get_order_detail_view', { order_id: uppercaseId })
 
   if (rpcError || !rpcResult || rpcResult.length === 0) {
