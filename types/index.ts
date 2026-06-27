@@ -48,7 +48,7 @@ export interface OrderStatusHistory {
   id: string;
   order_id: string;
   status: OrderStatus;
-  timestamp: string;
+  created_at: string;
 }
 
 export interface CartItem {

@@ -4,7 +4,7 @@ export const ORDER_SELECT_FIELDS = 'id_unique_tracking, status, customer_name, p
 
 export const ORDER_ITEM_SELECT_FIELDS = 'id, order_id, product_id, quantity, unit_price'
 
-export const STATUS_HISTORY_SELECT_FIELDS = 'id, order_id, status, timestamp'
+export const STATUS_HISTORY_SELECT_FIELDS = 'id, order_id, status, created_at'
 
 export const VALID_ORDER_STATUSES = [
   'Pending Review', 'Accepted', 'Processing', 'Delivered', 'Declined', 'Check Internal Note',

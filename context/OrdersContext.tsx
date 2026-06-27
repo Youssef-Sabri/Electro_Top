@@ -343,7 +343,7 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
       id: `h-${trackingId}-init`,
       order_id: trackingId,
       status: 'Pending Review',
-      timestamp,
+      created_at: timestamp,
     }
 
     setOrders((prev) => [newOrder, ...prev])
@@ -366,7 +366,7 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
       id: historyId,
       order_id: orderId,
       status,
-      timestamp,
+      created_at: timestamp,
     };
 
     const previousOrders = ordersRef.current;

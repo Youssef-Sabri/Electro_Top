@@ -1,4 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
+import { devLog } from '@/lib/dev-log'
 
 export interface RateLimitConfig {
   table: string;
@@ -28,10 +29,7 @@ export async function checkAndIncrementRateLimit(
   });
 
   if (error) {
-    if (process.env.NODE_ENV !== 'production') {
-      console.error('atomic_rate_limit_check RPC failed:', error.message);
-    }
-    // Fail open on RPC error to avoid blocking legitimate requests
+    devLog('atomic_rate_limit_check RPC failed:', error.message);
     return { blocked: false };
   }
 

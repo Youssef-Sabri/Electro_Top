@@ -128,7 +128,7 @@ export async function POST(request: NextRequest) {
     id: `h-${trackingId}-init`,
     order_id: trackingId,
     status: 'Pending Review',
-    timestamp,
+    created_at: timestamp,
   }
 
   const { error: oErr } = await adminClient.from(TABLES.orders).insert([newOrder])

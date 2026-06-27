@@ -148,7 +148,7 @@ export const OrderDetailClient = memo(function OrderDetailClient({ id }: OrderDe
 
   const sortedHistory = useMemo(() => {
     return [...statusHistory].sort(
-      (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+      (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
     );
   }, [statusHistory]);
 
@@ -198,7 +198,7 @@ export const OrderDetailClient = memo(function OrderDetailClient({ id }: OrderDe
         id: `h-${order.id_unique_tracking}-${Date.now()}`,
         order_id: order.id_unique_tracking,
         status: selectedStatus,
-        timestamp,
+        created_at: timestamp,
       };
       setStatusHistory((prev) => [...prev, newHistoryEntry]);
 
@@ -536,8 +536,8 @@ export const OrderDetailClient = memo(function OrderDetailClient({ id }: OrderDe
             {sortedHistory.length > 0 ? (
               <div className="space-y-6 relative before:content-[''] before:absolute before:right-[7px] before:top-2 before:bottom-2 before:w-[2px] before:bg-outline-variant/30 pr-1 text-start max-h-[260px] overflow-y-auto pl-2 scrollbar-thin scrollbar-thumb-outline-variant">
                 {sortedHistory.map((h, idx) => {
-                  const logDate = formatOrderDate(h.timestamp);
-                  const logTime = new Date(h.timestamp).toLocaleTimeString('ar-EG', {
+                  const logDate = formatOrderDate(h.created_at);
+                  const logTime = new Date(h.created_at).toLocaleTimeString('ar-EG', {
                     hour: '2-digit',
                     minute: '2-digit',
                   });

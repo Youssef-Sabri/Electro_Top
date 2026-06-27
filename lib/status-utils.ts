@@ -19,11 +19,13 @@ const HISTORY_LABELS: Record<OrderStatus, string> = {
   'Check Internal Note': 'قيد الفحص الداخلي',
 }
 
-export const STATUS_OPTIONS = [
+export type StatusFilterValue = 'All' | OrderStatus;
+
+export const STATUS_OPTIONS: { value: StatusFilterValue; label: string }[] = [
   { value: 'All', label: 'الكل' },
   ...VALID_ORDER_STATUSES.map(status => ({
-    value: status,
-    label: STATUS_LABELS[status as OrderStatus]
+    value: status as StatusFilterValue,
+    label: STATUS_LABELS[status]
   }))
 ]
 

@@ -161,7 +161,7 @@ export async function PATCH(
         id: historyId,
         order_id: uppercaseId,
         status: updates.status,
-        timestamp: now()
+        created_at: now()
       })
 
     if (historyError) {

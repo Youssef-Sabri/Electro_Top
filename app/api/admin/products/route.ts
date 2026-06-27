@@ -66,9 +66,7 @@ export async function DELETE(request: Request) {
   const pwError = await verifyAdminPassword(supabaseClient, email, password)
   if (pwError) return pwError
 
-  // Delete ALL receipts files from storage before clearing DB records (including orphaned files)
   const clearClient = createSupabaseAdminClient()
-  await clearStorageBucket(clearClient, STORAGE_BUCKETS.receipts)
 
   const { error: prodError } = await supabaseClient.from(TABLES.products).delete().neq('id', '')
   if (prodError) {

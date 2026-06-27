@@ -40,7 +40,7 @@ export const StatusTimeline = memo(function StatusTimeline({ currentStatus, stat
   if (currentStatus === 'Declined') {
     const declinedEntry = statusHistory.find((h) => h.status === 'Declined');
     const declinedTime = declinedEntry
-      ? new Date(declinedEntry.timestamp).toLocaleDateString('ar-EG', {
+      ? new Date(declinedEntry.created_at).toLocaleDateString('ar-EG', {
           year: 'numeric',
           month: 'long',
           day: 'numeric',
@@ -94,7 +94,7 @@ export const StatusTimeline = memo(function StatusTimeline({ currentStatus, stat
             (step.status === 'Pending Review' && h.status === 'Check Internal Note')
           );
           const formattedTime = historyEntry
-            ? formatOrderTimestamp(historyEntry.timestamp)
+            ? formatOrderTimestamp(historyEntry.created_at)
             : null;
 
           const isCompleted = index <= currentStatusIndex;

@@ -26,7 +26,7 @@ export function isSafeUrl(url: string | null | undefined): url is string {
     if (isPrivateIp(hostname)) return false;
     
     // Limit to Google Maps domains for safety
-    const allowedDomains = ['google.com', 'maps.google.com', 'google.co.uk', 'maps.app.goo.gl', 'goo.gl'];
+    const allowedDomains = ['google.com', 'maps.google.com', 'google.co.uk', 'maps.google.com.eg', 'google.com.eg', 'maps.app.goo.gl', 'goo.gl'];
     return allowedDomains.some(domain => hostname === domain || hostname.endsWith('.' + domain));
   } catch {
     return false;
