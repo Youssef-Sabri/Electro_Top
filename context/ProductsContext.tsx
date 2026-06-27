@@ -203,7 +203,10 @@ export function ProductsProvider({ children }: { children: ReactNode }) {
 
       const resData = await response.json();
       const product = resData.product;
-      setProducts((prev) => [...prev, product]);
+      setProducts((prev) => {
+        if (prev.some((p) => p.id === product.id)) return prev;
+        return [...prev, product];
+      });
     } catch (e) {
       devLog('Failed to add product:', e);
       throw e;
