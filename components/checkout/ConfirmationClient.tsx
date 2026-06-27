@@ -161,9 +161,8 @@ export function ConfirmationClient() {
            {whatsappNumbers.map((number, index) => (
              <a
                key={index}
-                href={`https://api.whatsapp.com/send?phone=${number}`}
-               target="_blank"
-               rel="noopener noreferrer"
+                 href={`https://wa.me/${number}`}
+                rel="noopener noreferrer"
                className="inline-flex items-center gap-2 bg-[var(--color-brand-whatsapp)] text-white px-6 py-3 rounded-full font-label-md text-xs hover:brightness-105 active:scale-95 transition-all shadow-md tracking-wider font-bold uppercase"
              >
                <span className="material-symbols-outlined text-[18px]">chat</span>
