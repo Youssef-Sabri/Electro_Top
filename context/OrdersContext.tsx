@@ -324,6 +324,7 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
       shipping_address: data.shipping_address,
       total_amount: totalAmount,
       created_at: timestamp,
+      payment_method: data.payment_method,
       admin_notes: '',
       location_link: data.location_link,
       instapay_screenshot: data.instapay_screenshot,

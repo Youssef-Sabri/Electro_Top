@@ -118,6 +118,7 @@ export async function POST(request: NextRequest) {
     total_amount: totalAmount,
     created_at: timestamp,
     admin_notes: '',
+    payment_method: validation.data.payment_method,
     location_link: validation.data.location_link || '',
     instapay_screenshot: screenshotValue,
     instapay_phone_number: validation.data.instapay_phone_number || '',

@@ -7,7 +7,7 @@ const supabaseHost = getSupabaseHostname();
 
 const nextConfig: NextConfig = {
   ...(isDev && {
-    allowedDevOrigins: ['192.168.1.17', '192.168.1.29', '192.168.1.30'],
+    allowedDevOrigins: ['192.168.1.17', '192.168.1.29', '192.168.1.30', '192.168.1.13'],
   }),
   compress: true,
   reactStrictMode: true,

@@ -235,7 +235,7 @@ export default function AdminClientLayout({ children, initialAuthState }: AdminC
                   type="email"
                   className="w-full bg-white/5 border border-white/20 rounded-lg pl-10 pr-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition-all text-white font-sans disabled:opacity-50 text-left"
                   dir="ltr"
-                  placeholder="admin@example.com"
+                   placeholder="email@example.com"
                   value={email}
                   onChange={(e) => {
                     setEmail(e.target.value);

@@ -13,6 +13,7 @@ import { getInitials } from '@/lib/string-utils';
 import { STATUS_OPTIONS, translateStatus, translateHistoryStatus } from '@/lib/status-utils';
 import { getSafeUrl } from '@/lib/safe-url';
 import { devLog } from '@/lib/dev-log';
+import { getSupportEnv } from '@/lib/env-utils';
 
 import { Toast } from '@/components/ui/Toast';
 import { CustomDropdown } from '@/components/ui/CustomDropdown';
@@ -56,6 +57,9 @@ export const OrderDetailClient = memo(function OrderDetailClient({ id }: OrderDe
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [signedScreenshotUrl, setSignedScreenshotUrl] = useState<string | null>(null);
   const printTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const { phone: phoneNumbers } = getSupportEnv();
+  const primaryPhone = phoneNumbers[0] || '';
+  const secondaryPhone = phoneNumbers[1] || '';
 
   useEffect(() => {
     return () => {
@@ -461,12 +465,20 @@ export const OrderDetailClient = memo(function OrderDetailClient({ id }: OrderDe
                   {order.shipping_address}
                 </p>
               </div>
-              <div>
-                <p className="font-label-sm text-label-sm text-on-surface-variant uppercase font-bold tracking-wider mb-1">
-                  الهاتف
-                </p>
-                <p className="font-body-md text-body-md text-on-surface">{order.phone_number}</p>
-              </div>
+               <div>
+                 <p className="font-label-sm text-label-sm text-on-surface-variant uppercase font-bold tracking-wider mb-1">
+                   طريقة الدفع
+                 </p>
+                 <p className="font-body-md text-body-md text-on-surface font-semibold">
+                   {order.payment_method === 'cod' ? 'الدفع عند الاستلام' : order.payment_method === 'instapay' ? 'إنستاباي (InstaPay)' : 'غير محدد'}
+                 </p>
+               </div>
+               <div>
+                 <p className="font-label-sm text-label-sm text-on-surface-variant uppercase font-bold tracking-wider mb-1">
+                   الهاتف
+                 </p>
+                 <p className="font-body-md text-body-md text-on-surface">{order.phone_number}</p>
+               </div>
 
               {order.instapay_phone_number && (
                 <div>
@@ -607,7 +619,8 @@ export const OrderDetailClient = memo(function OrderDetailClient({ id }: OrderDe
               </div>
               <div style={{ fontSize: '11pt', color: '#666', marginTop: '1mm', lineHeight: 1.6 }}>
                 توريدات كهربائية — 21 شارع السبع بنات، المنشية، الإسكندرية<br/>
-                <span dir="ltr">+20 103 344 3324</span>
+                <span dir="ltr">{primaryPhone}</span>
+                {secondaryPhone && <><br/><span dir="ltr">{secondaryPhone}</span></>}
               </div>
             </div>
             <div style={{ textAlign: 'left' }}>
@@ -696,12 +709,14 @@ export const OrderDetailClient = memo(function OrderDetailClient({ id }: OrderDe
               <span>الإجمالي المدفوع</span>
               <span>{formatCurrency(order.total_amount)}</span>
             </div>
-            <div style={{ textAlign: 'center', fontSize: '13pt', color: '#666', marginTop: '5mm' }}>
-              تم الدفع عن طريق إنستاباي (InstaPay)
-            </div>
+             <div style={{ textAlign: 'center', fontSize: '13pt', color: '#666', marginTop: '5mm' }}>
+               {order.payment_method === 'cod' 
+                 ? 'طريقة الدفع: الدفع عند الاستلام' 
+                 : 'تم الدفع عن طريق إنستاباي (InstaPay)'}
+             </div>
             <div style={{ textAlign: 'center', fontSize: '11pt', color: '#888', borderTop: '1.5px solid #ddd', marginTop: '3mm', paddingTop: '3mm' }}>
               <div style={{ fontWeight: 600 }}>شكراً لاختياركم إلكترو توب!</div>
-              <div>للاستفسارات والدعم: <span dir="ltr">+20 103 344 3324</span></div>
+              <div>للاستفسارات والدعم: <span dir="ltr">{primaryPhone}</span>{secondaryPhone && <span> / <span dir="ltr">{secondaryPhone}</span></span>}</div>
             </div>
           </div>
         </div>

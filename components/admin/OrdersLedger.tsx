@@ -39,7 +39,8 @@ export const OrdersLedger = memo(function OrdersLedger() {
       'المنتجات المشتراة',
       'الإجمالي المدفوع (جنيه)',
       'تاريخ الإنشاء',
-      'الحالة'
+      'الحالة',
+      'طريقة الدفع'
     ];
 
     const productsById = getProductsMap();
@@ -62,7 +63,8 @@ export const OrdersLedger = memo(function OrdersLedger() {
         itemsStr,
         order.total_amount,
         dateStr,
-        order.status
+        order.status,
+        order.payment_method === 'cod' ? 'الدفع عند الاستلام' : order.payment_method === 'instapay' ? 'إنستاباي' : '-'
       ];
     });
 
@@ -228,6 +230,9 @@ export const OrdersLedger = memo(function OrdersLedger() {
                   التاريخ
                 </th>
                 <th className="px-6 py-4 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider text-end">
+                  الدفع
+                </th>
+                <th className="px-6 py-4 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider text-end">
                   الإجمالي
                 </th>
                 <th className="px-6 py-4 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider text-end">
@@ -275,6 +280,21 @@ export const OrdersLedger = memo(function OrdersLedger() {
                         {dateStr}
                       </td>
 
+                      <td className="px-6 py-4 font-body-md text-body-md text-on-surface text-start">
+                        <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold ${
+                          order.payment_method === 'cod'
+                            ? 'bg-green-50 text-green-700 border border-green-200'
+                            : order.payment_method === 'instapay'
+                              ? 'bg-blue-50 text-blue-700 border border-blue-200'
+                              : 'bg-gray-50 text-gray-500 border border-gray-200'
+                        }`}>
+                          <span className="material-symbols-outlined text-[14px] select-none">
+                            {order.payment_method === 'cod' ? 'payments' : order.payment_method === 'instapay' ? 'account_balance_wallet' : 'help'}
+                          </span>
+                          {order.payment_method === 'cod' ? 'COD' : order.payment_method === 'instapay' ? 'InstaPay' : '-'}
+                        </span>
+                      </td>
+
                       <td className="px-6 py-4 font-headline-md text-label-md text-on-surface text-end font-bold">
                         {formatCurrency(orderTotal)}
                       </td>
@@ -297,7 +317,7 @@ export const OrdersLedger = memo(function OrdersLedger() {
                 })
               ) : (
                 <tr>
-                  <td colSpan={7} className="text-center py-20 text-on-surface-variant italic">
+                  <td colSpan={8} className="text-center py-20 text-on-surface-variant italic">
                     لا توجد أي طلبات تطابق معايير البحث بالتصفية.
                   </td>
                 </tr>

@@ -13,8 +13,17 @@ export const checkoutSchema = z.object({
     z.string().refine((val) => isSafeUrl(val), { message: 'يُقبل فقط روابط جوجل ماب الآمنة' }),
     z.literal('')
   ]).optional(),
-  instapay_screenshot: z.string().min(1, 'الرجاء تحميل لقطة شاشة لإيصال تحويل إنستاباي'),
+  payment_method: z.enum(['instapay', 'cod']),
+  instapay_screenshot: z.string().optional(),
   instapay_phone_number: z.string().regex(egyptPhoneRegex, 'الرجاء إدخال رقم هاتف مصري صحيح').optional().or(z.literal('')),
+}).refine((data) => {
+  if (data.payment_method === 'instapay' && !data.instapay_screenshot) {
+    return false;
+  }
+  return true;
+}, {
+  message: 'الرجاء تحميل لقطة شاشة لإيصال تحويل إنستاباي',
+  path: ['instapay_screenshot'],
 });
 
 export type CheckoutFormData = z.infer<typeof checkoutSchema>;

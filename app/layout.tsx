@@ -67,8 +67,8 @@ export default async function RootLayout({
               '@type': 'Store',
               name: 'إلكترو توب',
               description: 'الموزع المعتمد لمنتجات السويدي، شنايدر، سيمنز، هيميل، جيويس، وشينت. مستلزمات كهربائية ممتازة مع إمكانية الدفع كزائر وتتبع الطلبات.',
-              url: process.env.NEXT_PUBLIC_SITE_URL || 'https://electrotop-eg.com',
-              telephone: process.env.NEXT_PUBLIC_SUPPORT_PHONE || '+20 103 344 3324',
+               url: process.env.NEXT_PUBLIC_SITE_URL || '',
+               telephone: [process.env.NEXT_PUBLIC_SUPPORT_PHONE_1, process.env.NEXT_PUBLIC_SUPPORT_PHONE_2].filter(Boolean),
               areaServed: 'EG',
               hasOfferCatalog: {
                 '@type': 'OfferCatalog',

@@ -238,7 +238,13 @@ export function TrackingDetailClient({ id }: TrackingDetailClientProps) {
 
             <div className="pt-3 border-t border-surface/10 flex items-center gap-2 text-surface-variant text-xs">
               <span className="material-symbols-outlined text-[14px] select-none">payments</span>
-              <span>تم الدفع عبر إنستاباي (InstaPay)</span>
+              <span>
+                {order.payment_method === 'cod'
+                  ? 'الدفع عند الاستلام (Cash on Delivery)'
+                  : order.payment_method === 'instapay'
+                    ? 'تم الدفع عبر إنستاباي (InstaPay)'
+                    : 'طريقة الدفع غير محددة'}
+              </span>
             </div>
           </div>
 

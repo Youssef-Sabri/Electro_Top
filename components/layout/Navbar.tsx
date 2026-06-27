@@ -70,9 +70,9 @@ export const Navbar = memo(function Navbar() {
              alt="شعار إلكترو توب"
              className="h-8 w-auto mix-blend-multiply"
              src="/logo.png"
-             width={32}
-             height={32}
-             style={{ width: 'auto' }}
+             width={0}
+             height={0}
+             sizes="100vw"
              fetchPriority="high"
              priority
            />

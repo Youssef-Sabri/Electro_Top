@@ -41,14 +41,14 @@ export default function SupportPage() {
                 الدعم الأسرع! راسلنا مباشرة عبر واتساب للطلبات، الاستفسارات، أو لتأكيد التحويل المالي.
               </p>
             </div>
-            <div className="flex flex-wrap justify-center gap-3">
+            <div className="flex w-full gap-3">
               {whatsappNumbers.map((number, index) => (
                 <a
                   key={index}
                   href={`https://wa.me/${number}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="bg-emerald-600 hover:bg-emerald-700 text-white py-2 px-4 rounded-lg font-label-md flex items-center justify-center gap-2 transition-colors cursor-pointer text-sm"
+                  className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white py-3.5 px-4 rounded-xl font-label-md flex items-center justify-center gap-2 transition-colors cursor-pointer text-sm"
                 >
                   <span className="material-symbols-outlined text-[18px] select-none">chat</span>
                   <span>واتساب {whatsappNumbers.length > 1 && `(${index + 1})`}</span>
@@ -94,12 +94,12 @@ export default function SupportPage() {
                 هل تفضل التحدث عبر الهاتف؟ اتصل بنا مباشرة للتحدث مع ممثلي متجرنا.
               </p>
             </div>
-            <div className="flex flex-wrap justify-center gap-3">
+            <div className="flex w-full gap-3">
               {phoneNumbers.map((number, index) => (
                 <a
                   key={index}
                   href={`tel:${number}`}
-                  className="bg-primary hover:bg-primary/90 text-white py-2 px-4 rounded-lg font-label-md flex items-center justify-center gap-2 transition-colors cursor-pointer text-sm"
+                  className="flex-1 bg-primary hover:bg-primary/90 text-white py-3.5 px-4 rounded-xl font-label-md flex items-center justify-center gap-2 transition-colors cursor-pointer text-sm"
                 >
                   <span className="material-symbols-outlined text-[18px] select-none">phone</span>
                   <span>اتصل بنا {phoneNumbers.length > 1 && `(${index + 1})`}</span>

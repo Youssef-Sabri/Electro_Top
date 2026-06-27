@@ -49,6 +49,7 @@ export function CheckoutForm() {
     phone_number: '',
     shipping_address: '',
     location_link: '',
+    payment_method: 'instapay',
     instapay_screenshot: '',
     instapay_phone_number: '',
   });
@@ -150,26 +151,26 @@ export function CheckoutForm() {
     try {
       let finalScreenshotUrl = formData.instapay_screenshot;
 
-      // 1. Upload receipt file to server-side validation endpoint
-      const uploadFile = imageState.compressedUploadFile || imageState.selectedFile;
-      if (uploadFile) {
-        const dataUrl = await readFileAsDataURL(uploadFile);
+      // 1. Upload receipt file only if InstaPay is chosen
+      if (formData.payment_method === 'instapay') {
+        const uploadFile = imageState.compressedUploadFile || imageState.selectedFile;
+        if (uploadFile) {
+          const dataUrl = await readFileAsDataURL(uploadFile);
 
-        const uploadRes = await fetch('/api/upload/receipt', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ file: dataUrl }),
-        });
+          const uploadRes = await fetch('/api/upload/receipt', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ file: dataUrl }),
+          });
 
-        const uploadData = await uploadRes.json();
+          const uploadData = await uploadRes.json();
 
-        if (!uploadRes.ok) {
-          throw new Error(uploadData.error || 'فشل رفع إيصال التحويل. يرجى المحاولة مرة أخرى.');
+          if (!uploadRes.ok) {
+            throw new Error(uploadData.error || 'فشل رفع إيصال التحويل. يرجى المحاولة مرة أخرى.');
+          }
+
+          finalScreenshotUrl = uploadData.fileName;
         }
-
-        // Store filename only — URL is never exposed publicly. Admin pages
-        // generate time-limited signed URLs via createSignedUrl() at render time.
-        finalScreenshotUrl = uploadData.fileName;
       }
 
       // 2. Create order in context (includes bot-detection fields for server re-validation)
@@ -227,31 +228,78 @@ export function CheckoutForm() {
         الدفع الآمن
       </h1>
 
-      <div className="bg-primary/5 border border-primary/20 rounded-xl p-6 mb-8 text-start">
-        <div className="flex items-start gap-4">
-          <div className="w-12 h-12 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0">
-            <span className="material-symbols-outlined text-[28px] select-none">account_balance_wallet</span>
-          </div>
-          <div>
-            <h2 className="text-body-lg font-bold text-on-surface mb-2">تعليمات الدفع عبر إنستاباي (InstaPay)</h2>
-            <p className="text-sm text-on-surface-variant mb-4 leading-relaxed">
-              إكمال طلبك، يرجى تحويل المبلغ الإجمالي إلى حساب إنستاباي التالي وتحميل صورة إيصال التحويل أدناه:
-            </p>
-            <div className="flex flex-wrap gap-x-8 gap-y-3 bg-white p-4 rounded-lg border border-outline-variant/40 max-w-2xl text-start">
-              <div>
-                <span className="text-xs text-on-surface-variant block uppercase font-bold tracking-wider">اسم الحساب في إنستاباي</span>
-                <span className="text-body-md font-bold text-on-surface">{instapayAccountName}</span>
-              </div>
-              <div>
-                <span className="text-xs text-on-surface-variant block uppercase font-bold tracking-wider">رقم هاتف إنستاباي</span>
-                <span className="text-body-md font-bold text-primary flex items-center gap-1.5">
-                  {instapayPhone}
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+       <div className="bg-primary/5 border border-primary/20 rounded-xl p-6 mb-8 text-start">
+         <div className="space-y-6">
+           <div>
+             <h2 className="text-body-lg font-bold text-on-surface mb-4">اختر طريقة الدفع</h2>
+             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+               <label className={`relative flex items-center gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all ${formData.payment_method === 'instapay' ? 'border-primary bg-primary/10 ring-1 ring-primary/20' : 'border-gray-200 bg-white hover:border-primary/30'}`}>
+                 <input
+                   type="radio"
+                   name="payment_method"
+                   value="instapay"
+                   checked={formData.payment_method === 'instapay'}
+                   onChange={handleChange}
+                   className="sr-only"
+                 />
+                 <div className="w-5 h-5 rounded-full border-2 border-primary flex items-center justify-center">
+                   {formData.payment_method === 'instapay' && <div className="w-2.5 h-2.5 rounded-full bg-primary" />}
+                 </div>
+                 <div className="flex flex-col">
+                   <span className="font-bold text-on-surface">إنستاباي (InstaPay)</span>
+                   <span className="text-xs text-on-surface-variant">تحويل بنكي فوري</span>
+                 </div>
+               </label>
+
+               <label className={`relative flex items-center gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all ${formData.payment_method === 'cod' ? 'border-primary bg-primary/10 ring-1 ring-primary/20' : 'border-gray-200 bg-white hover:border-primary/30'}`}>
+                 <input
+                   type="radio"
+                   name="payment_method"
+                   value="cod"
+                   checked={formData.payment_method === 'cod'}
+                   onChange={handleChange}
+                   className="sr-only"
+                 />
+                 <div className="w-5 h-5 rounded-full border-2 border-primary flex items-center justify-center">
+                   {formData.payment_method === 'cod' && <div className="w-2.5 h-2.5 rounded-full bg-primary" />}
+                 </div>
+                 <div className="flex flex-col">
+                   <span className="font-bold text-on-surface">الدفع عند الاستلام</span>
+                   <span className="text-xs text-on-surface-variant">الدفع نقداً عند الاستلام</span>
+                 </div>
+               </label>
+             </div>
+           </div>
+
+           {formData.payment_method === 'instapay' && (
+             <div className="pt-6 border-t border-primary/10 animate-in fade-in slide-in-from-top-2 duration-300">
+               <div className="flex items-start gap-4">
+                 <div className="w-12 h-12 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                   <span className="material-symbols-outlined text-[28px] select-none">account_balance_wallet</span>
+                 </div>
+                 <div>
+                   <h2 className="text-body-lg font-bold text-on-surface mb-2">تعليمات الدفع عبر إنستاباي (InstaPay)</h2>
+                   <p className="text-sm text-on-surface-variant mb-4 leading-relaxed">
+                     إكمال طلبك، يرجى تحويل المبلغ الإجمالي إلى حساب إنستاباي التالي وتحميل صورة إيصال التحويل أدناه:
+                   </p>
+                   <div className="flex flex-wrap gap-x-8 gap-y-3 bg-white p-4 rounded-lg border border-outline-variant/40 max-w-2xl text-start">
+                     <div>
+                       <span className="text-xs text-on-surface-variant block uppercase font-bold tracking-wider">اسم الحساب في إنستاباي</span>
+                       <span className="text-body-md font-bold text-on-surface">{instapayAccountName}</span>
+                     </div>
+                     <div>
+                       <span className="text-xs text-on-surface-variant block uppercase font-bold tracking-wider">رقم هاتف إنستاباي</span>
+                       <span className="text-body-md font-bold text-primary flex items-center gap-1.5">
+                         {instapayPhone}
+                       </span>
+                     </div>
+                   </div>
+                 </div>
+               </div>
+             </div>
+           )}
+         </div>
+       </div>
 
       <div className="flex flex-col lg:flex-row gap-gutter">
         <div className="lg:w-2/3 bg-white border border-gray-100 rounded-xl p-8 shadow-sm text-start space-y-6">
@@ -316,7 +364,7 @@ export function CheckoutForm() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-2">
+            <div className={`space-y-2 ${formData.payment_method === 'cod' ? 'md:col-span-2' : ''}`}>
               <label className="font-label-md text-on-surface block font-bold">
                 رابط الموقع الجغرافي <span className="text-on-surface-variant font-normal text-xs">(اختياري - رابط جوجل ماب)</span>
               </label>
@@ -332,66 +380,70 @@ export function CheckoutForm() {
               />
             </div>
 
-            <div className="space-y-2">
-              <label className="font-label-md text-on-surface block font-bold">
-                رقم الهاتف المحول منه إنستاباي <span className="text-on-surface-variant font-normal text-xs">(اختياري)</span>
-              </label>
-              <input
-                className="w-full border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/10 focus:border-primary transition-all bg-white text-on-background font-body-md border-gray-300 text-left"
-                name="instapay_phone_number"
-                placeholder="010 1122 3344"
-                type="tel"
-                dir="ltr"
-                value={formData.instapay_phone_number || ''}
-                onChange={handleChange}
-                disabled={uiState.isSubmitting}
-              />
-              <p className="text-[11px] text-on-surface-variant font-medium mt-1 leading-relaxed">
-                ⓘ املأ هذا الحقل فقط إذا كان رقم الهاتف الذي قمت بالتحويل منه مختلفاً عن رقم الاتصال الأساسي.
-              </p>
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <label className="font-label-md text-on-surface block font-bold">
-              لقطة شاشة تحويل إنستاباي <span className="text-red-500 font-bold">*</span>{' '}
-              <span className="text-on-surface-variant font-normal text-xs">(إيصال التحويل - الحد الأقصى 5 ميجابايت، ويتم ضغطه تلقائياً)</span>
-            </label>
-            <div className="flex items-center gap-3">
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleFileChange}
-                disabled={uiState.isSubmitting || imageState.isCompressing}
-                className="block w-full text-xs text-on-surface-variant file:me-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-surface-container-low file:text-primary hover:file:bg-surface-container-medium cursor-pointer disabled:opacity-60"
-              />
-              {imageState.isCompressing && (
-                <span className="text-xs text-primary font-medium flex items-center gap-1 shrink-0 animate-pulse">
-                  <span className="material-symbols-outlined text-base select-none">compress</span>
-                  جاري الضغط...
-                </span>
-              )}
-               {!imageState.isCompressing && formData.instapay_screenshot && (
-                 <div className="relative w-12 h-12 rounded border border-outline-variant/30 overflow-hidden bg-surface-container-low shrink-0">
-                   {/* eslint-disable-next-line @next/next/no-img-element -- data-URI preview */}
-                   <img
-                     src={formData.instapay_screenshot}
-                     alt="معاينة إيصال إنستاباي"
-                     className="object-cover w-full h-full"
-                   />
-                 </div>
-               )}
-             </div>
-             {imageState.compressionInfo && !errors.instapay_screenshot && (
-               <p className="text-[11px] text-green-600 font-medium flex items-center gap-1">
-                 <span className="material-symbols-outlined text-sm select-none">check_circle</span>
-                 {imageState.compressionInfo}
-               </p>
-             )}
-            {errors.instapay_screenshot && (
-              <p className="text-xs text-error font-medium">{errors.instapay_screenshot}</p>
+            {formData.payment_method === 'instapay' && (
+              <div className="space-y-2">
+                <label className="font-label-md text-on-surface block font-bold">
+                  رقم الهاتف المحول منه إنستاباي <span className="text-on-surface-variant font-normal text-xs">(اختياري)</span>
+                </label>
+                <input
+                  className="w-full border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/10 focus:border-primary transition-all bg-white text-on-background font-body-md border-gray-300 text-left"
+                  name="instapay_phone_number"
+                  placeholder="010 1122 3344"
+                  type="tel"
+                  dir="ltr"
+                  value={formData.instapay_phone_number || ''}
+                  onChange={handleChange}
+                  disabled={uiState.isSubmitting}
+                />
+                <p className="text-[11px] text-on-surface-variant font-medium mt-1 leading-relaxed">
+                  ⓘ املأ هذا الحقل فقط إذا كان رقم الهاتف الذي قمت بالتحويل منه مختلفاً عن رقم الاتصال الأساسي.
+                </p>
+              </div>
             )}
           </div>
+
+           {formData.payment_method === 'instapay' && (
+             <div className="space-y-2">
+               <label className="font-label-md text-on-surface block font-bold">
+                 لقطة شاشة تحويل إنستاباي <span className="text-red-500 font-bold">*</span>{' '}
+                 <span className="text-on-surface-variant font-normal text-xs">(إيصال التحويل - الحد الأقصى 5 ميجابايت، ويتم ضغطه تلقائياً)</span>
+               </label>
+               <div className="flex items-center gap-3">
+                 <input
+                   type="file"
+                   accept="image/*"
+                   onChange={handleFileChange}
+                   disabled={uiState.isSubmitting || imageState.isCompressing}
+                   className="block w-full text-xs text-on-surface-variant file:me-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-surface-container-low file:text-primary hover:file:bg-surface-container-medium cursor-pointer disabled:opacity-60"
+                 />
+                 {imageState.isCompressing && (
+                   <span className="text-xs text-primary font-medium flex items-center gap-1 shrink-0 animate-pulse">
+                     <span className="material-symbols-outlined text-base select-none">compress</span>
+                     جاري الضغط...
+                   </span>
+                 )}
+                  {!imageState.isCompressing && formData.instapay_screenshot && (
+                    <div className="relative w-12 h-12 rounded border border-outline-variant/30 overflow-hidden bg-surface-container-low shrink-0">
+                      {/* eslint-disable-next-line @next/next/no-img-element -- data-URI preview */}
+                      <img
+                        src={formData.instapay_screenshot}
+                        alt="معاينة إيصال إنستاباي"
+                        className="object-cover w-full h-full"
+                      />
+                    </div>
+                  )}
+               </div>
+               {imageState.compressionInfo && !errors.instapay_screenshot && (
+                 <p className="text-[11px] text-green-600 font-medium flex items-center gap-1">
+                   <span className="material-symbols-outlined text-sm select-none">check_circle</span>
+                   {imageState.compressionInfo}
+                 </p>
+               )}
+               {errors.instapay_screenshot && (
+                 <p className="text-xs text-error font-medium">{errors.instapay_screenshot}</p>
+               )}
+             </div>
+           )}
         </div>{/* end lg:w-2/3 left panel */}
 
         <div className="lg:w-1/3">

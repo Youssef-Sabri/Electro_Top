@@ -8,6 +8,7 @@ import { useProducts } from '@/hooks/useProducts';
 import { formatCurrency } from '@/lib/format-currency';
 import { getSafeUrl } from '@/lib/safe-url';
 import { formatOrderDate, formatOrderTimestamp } from '@/lib/date-utils';
+import { getSupportEnv } from '@/lib/env-utils';
 
 
 export function ConfirmationClient() {
@@ -16,6 +17,7 @@ export function ConfirmationClient() {
 
   const { order, items, loading } = useOrderTracking(orderId);
   const { getProductsMap } = useProducts();
+  const { whatsapp: whatsappNumbers } = getSupportEnv();
 
   const productsById = getProductsMap();
   
@@ -152,20 +154,23 @@ export function ConfirmationClient() {
         <p className="text-sm font-semibold text-on-surface leading-relaxed">
           🚨 <span className="font-bold">يرجى نسخ رقم التتبع الخاص بك أو التقاط لقطة شاشة</span> لهذه الصفحة لتتبع طلبك والتحقق من حالة الشحن.
         </p>
-        <p className="text-xs text-on-surface-variant leading-relaxed">
-          إذا كان لديك أي استفسار أو واجهت أي مشكلة، يمكنك التواصل معنا مباشرة عبر واتساب للحصول على مساعدة فورية:
-        </p>
-        {process.env.NEXT_PUBLIC_SUPPORT_WHATSAPP && (
-          <a
-            href={`https://wa.me/${process.env.NEXT_PUBLIC_SUPPORT_WHATSAPP}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 bg-[var(--color-brand-whatsapp)] text-white px-6 py-3 rounded-full font-label-md text-xs hover:brightness-105 active:scale-95 transition-all shadow-md tracking-wider font-bold uppercase"
-          >
-            <span className="material-symbols-outlined text-[18px]">chat</span>
-            تواصل معنا عبر واتساب
-          </a>
-        )}
+         <p className="text-xs text-on-surface-variant leading-relaxed">
+           إذا كان لديك أي استفسار أو واجهت أي مشكلة، يمكنك التواصل معنا مباشرة عبر واتساب للحصول على مساعدة فورية:
+         </p>
+         <div className="flex flex-wrap justify-center gap-3">
+           {whatsappNumbers.map((number, index) => (
+             <a
+               key={index}
+               href={`https://wa.me/${number}`}
+               target="_blank"
+               rel="noopener noreferrer"
+               className="inline-flex items-center gap-2 bg-[var(--color-brand-whatsapp)] text-white px-6 py-3 rounded-full font-label-md text-xs hover:brightness-105 active:scale-95 transition-all shadow-md tracking-wider font-bold uppercase"
+             >
+               <span className="material-symbols-outlined text-[18px]">chat</span>
+               تواصل معنا عبر واتساب {whatsappNumbers.length > 1 && `(${index + 1})`}
+             </a>
+           ))}
+         </div>
       </div>
 
       <div className="bg-surface-container-lowest border border-outline-variant/30 rounded-xl p-8 mb-12 text-start shadow-sm">
@@ -253,10 +258,16 @@ export function ConfirmationClient() {
             </div>
           </div>
 
-          <div className="pt-3 border-t border-outline-variant/10 flex items-center gap-2 text-on-surface-variant text-xs">
-            <span className="material-symbols-outlined text-[14px] text-primary select-none">payments</span>
-            <span>تم الدفع عبر إنستاباي (InstaPay)</span>
-          </div>
+           <div className="pt-3 border-t border-outline-variant/10 flex items-center gap-2 text-on-surface-variant text-xs">
+             <span className="material-symbols-outlined text-[14px] text-primary select-none">payments</span>
+              <span>
+                {order.payment_method === 'cod' 
+                  ? 'الدفع عند الاستلام (Cash on Delivery)' 
+                  : order.payment_method === 'instapay'
+                    ? 'تم الدفع عبر إنستاباي (InstaPay)'
+                    : 'طريقة الدفع غير محددة'}
+              </span>
+           </div>
         </div>
       </div>
 
