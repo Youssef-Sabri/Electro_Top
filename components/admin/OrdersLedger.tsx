@@ -18,7 +18,7 @@ import { PasswordConfirmModal } from '@/components/ui/PasswordConfirmModal';
 import { Toast } from '@/components/ui/Toast';
 
 export const OrdersLedger = memo(function OrdersLedger() {
-  const { orders, getOrderItems, clearAllOrders, deleteOrder, page, totalPages, filters, setFilters, goToPage } = useOrders();
+  const { orders, getOrderItems, clearAllOrders, deleteOrder, page, totalPages, filters, setFilters, goToPage, globalCounts } = useOrders();
   const { getProductsMap } = useProducts();
   const router = useRouter();
 
@@ -81,7 +81,7 @@ export const OrdersLedger = memo(function OrdersLedger() {
     setFilters({ searchQuery: filters.searchQuery, status: value });
   }, [filters.searchQuery, setFilters]);
 
-  const metrics = useMemo(() => calculateOrderMetrics(orders), [orders]);
+  const metrics = globalCounts;
 
   const handleRowClick = useCallback((trackingId: string) => {
     router.push(`/admin/orders/${trackingId}`);
@@ -208,7 +208,7 @@ export const OrdersLedger = memo(function OrdersLedger() {
                 <th className="px-6 py-4 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider text-start">
                   التاريخ
                 </th>
-                <th className="px-6 py-4 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider text-end">
+                <th className="px-6 py-4 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider text-start">
                   الدفع
                 </th>
                 <th className="px-6 py-4 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider text-end">

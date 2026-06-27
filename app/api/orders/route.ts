@@ -60,32 +60,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'السلة فارغة.' }, { status: 400 })
   }
 
-  // Fetch current product prices from DB — never trust client prices
-  const productIds = [...new Set(cartItems.map((item: { product: { id: string } }) => item.product.id))]
-  const { data: dbProducts, error: priceErr } = await adminClient
-    .from(TABLES.products)
-    .select('id, name, price, stock, is_active')
-    .in('id', productIds)
-
-  if (priceErr || !dbProducts) {
-    return NextResponse.json({ error: 'فشل التحقق من المنتجات.' }, { status: 500 })
-  }
-
-  const productPriceMap = new Map(dbProducts.map((p: { id: string; name: string; price: number; stock: number; is_active: boolean }) => [p.id, p]))
-
   for (const item of cartItems) {
     if (!item.product?.id || typeof item.quantity !== 'number' || item.quantity < 1) {
       return NextResponse.json({ error: 'بيانات المنتج غير صالحة.' }, { status: 400 })
-    }
-    const dbProduct = productPriceMap.get(item.product.id)
-    if (!dbProduct) {
-      return NextResponse.json({ error: `المنتج ${item.product.id} غير موجود.` }, { status: 400 })
-    }
-    if (!dbProduct.is_active) {
-      return NextResponse.json({ error: `المنتج ${dbProduct.name || item.product.id} غير متاح حالياً.` }, { status: 400 })
-    }
-    if (dbProduct.stock < item.quantity) {
-      return NextResponse.json({ error: `المنتج ${dbProduct.name || item.product.id} غير متوفر بالكمية المطلوبة.` }, { status: 400 })
     }
   }
 
@@ -99,13 +76,12 @@ export async function POST(request: NextRequest) {
   }
 
   const newItems = cartItems.map((item: { product: { id: string }; quantity: number }, index: number) => {
-    const dbProduct = productPriceMap.get(item.product.id)!
     return {
       id: `oi-${trackingId}-${index}`,
       order_id: trackingId,
       product_id: item.product.id,
       quantity: item.quantity,
-      unit_price: dbProduct.price,
+      unit_price: 0, // overridden by before_order_item_insert database trigger
     }
   })
 
@@ -141,6 +117,9 @@ export async function POST(request: NextRequest) {
     }
     if (errorMsg.includes('Insufficient stock')) {
       return NextResponse.json({ error: 'عذراً، بعض المنتجات لم تعد متوفرة بالكمية المطلوبة.' }, { status: 400 })
+    }
+    if (errorMsg.includes('Product not found')) {
+      return NextResponse.json({ error: 'بعض المنتجات المحددة غير موجودة.' }, { status: 400 })
     }
     return NextResponse.json({ error: 'فشل إنشاء الطلب. يرجى المحاولة مرة أخرى.' }, { status: 500 })
   }

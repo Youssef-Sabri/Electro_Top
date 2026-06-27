@@ -30,7 +30,6 @@ export interface OrdersContextType {
   filters: OrderFilters;
   setFilters: (filters: OrderFilters) => void;
   getOrderById: (id: string) => Order | undefined;
-  createOrder: (data: CheckoutFormData, cartItems: CartItem[]) => Promise<Order>;
   updateOrderStatus: (orderId: string, status: OrderStatus) => void;
   updateAdminNotes: (orderId: string, notes: string) => void;
   getOrderItems: (orderId: string) => OrderItem[];
@@ -41,6 +40,12 @@ export interface OrdersContextType {
   nextPage: () => void;
   prevPage: () => void;
   goToPage: (n: number) => void;
+  globalCounts: {
+    totalCount: number;
+    pendingCount: number;
+    activeFulfillmentCount: number;
+    completedCount: number;
+  };
 }
 
 export const OrdersContext = createContext<OrdersContextType | undefined>(undefined);
@@ -52,6 +57,12 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
   const [page, setPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   const [filters, setFilters] = useState<OrderFilters>({ searchQuery: '', status: 'All' });
+  const [globalCounts, setGlobalCounts] = useState({
+    totalCount: 0,
+    pendingCount: 0,
+    activeFulfillmentCount: 0,
+    completedCount: 0,
+  });
 
   const ordersMapRef = useRef<Map<string, Order>>(new Map());
   const orderItemsMapRef = useRef<Map<string, OrderItem[]>>(new Map());
@@ -136,13 +147,17 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
 
       const orderIds = (oData || []).map(o => o.id_unique_tracking);
 
-      const [oiResult, hResult] = await Promise.all([
+      const [oiResult, hResult, countAll, countPending, countActive, countCompleted] = await Promise.all([
         orderIds.length > 0
           ? supabase.from(TABLES.orderItems).select(ORDER_ITEM_SELECT_FIELDS).in('order_id', orderIds)
           : { data: [] as OrderItem[], error: null },
         orderIds.length > 0
           ? supabase.from(TABLES.orderStatusHistory).select(STATUS_HISTORY_SELECT_FIELDS).in('order_id', orderIds)
           : { data: [] as OrderStatusHistory[], error: null },
+        supabase.from(TABLES.orders).select('*', { count: 'exact', head: true }),
+        supabase.from(TABLES.orders).select('*', { count: 'exact', head: true }).eq('status', 'Pending Review'),
+        supabase.from(TABLES.orders).select('*', { count: 'exact', head: true }).in('status', ['Processing', 'Accepted']),
+        supabase.from(TABLES.orders).select('*', { count: 'exact', head: true }).eq('status', 'Delivered'),
       ]);
 
       setOrders(oData || []);
@@ -150,6 +165,13 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
       setStatusHistory(hResult.data || []);
       setTotalPages(oCount ? Math.ceil(oCount / PAGE_SIZE) : 0);
       setPage(pageNum);
+
+      setGlobalCounts({
+        totalCount: countAll.count || 0,
+        pendingCount: countPending.count || 0,
+        activeFulfillmentCount: countActive.count || 0,
+        completedCount: countCompleted.count || 0,
+      });
     } catch (error) {
       devLog('Failed to load orders/items/logs from Supabase:', error);
       setOrders([]);
@@ -324,66 +346,6 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
     return ordersMapRef.current.get(normalizeTrackingId(id));
   }, []);
 
-  const createOrder = useCallback(async (data: CheckoutFormData, cartItems: CartItem[]): Promise<Order> => {
-    const response = await fetch('/api/orders', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ...data, cartItems }),
-    })
-
-    const result = await response.json()
-
-    if (!response.ok) {
-      if (result.fieldErrors) {
-        const firstError = Object.values(result.fieldErrors)[0]
-        throw new Error(typeof firstError === 'string' ? firstError : 'بيانات غير صالحة.')
-      }
-      throw new Error(result.error || 'فشل إنشاء الطلب.')
-    }
-
-    const trackingId = result.trackingId
-    const timestamp = now()
-    const totalAmount = cartItems.reduce(
-      (acc, item) => acc + item.product.price * item.quantity,
-      0
-    )
-
-    const newOrder: Order = {
-      id_unique_tracking: trackingId,
-      status: 'Pending Review',
-      customer_name: data.customer_name,
-      phone_number: data.phone_number,
-      shipping_address: data.shipping_address,
-      total_amount: totalAmount,
-      created_at: timestamp,
-      payment_method: data.payment_method,
-      admin_notes: '',
-      location_link: data.location_link,
-      instapay_screenshot: data.instapay_screenshot,
-      instapay_phone_number: data.instapay_phone_number,
-    }
-
-    const newItems: OrderItem[] = cartItems.map((item, index) => ({
-      id: `oi-${trackingId}-${index}`,
-      order_id: trackingId,
-      product_id: item.product.id,
-      quantity: item.quantity,
-      unit_price: item.product.price,
-    }))
-
-    const initialHistory: OrderStatusHistory = {
-      id: `h-${trackingId}-init`,
-      order_id: trackingId,
-      status: 'Pending Review',
-      created_at: timestamp,
-    }
-
-    setOrders((prev) => [newOrder, ...prev])
-    setOrderItems((prev) => [...prev, ...newItems])
-    setStatusHistory((prev) => [...prev, initialHistory])
-
-    return newOrder
-  }, []);
 
   const updateOrderStatus = useCallback(async (orderId: string, status: OrderStatus) => {
     if (!isValidOrderStatus(status)) {
@@ -520,7 +482,6 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
       filters,
       setFilters,
       getOrderById,
-      createOrder,
       updateOrderStatus,
       updateAdminNotes,
       getOrderItems,
@@ -531,6 +492,7 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
       nextPage,
       prevPage,
       goToPage,
+      globalCounts,
     }),
     [
       orders,
@@ -540,7 +502,6 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
       totalPages,
       filters,
       getOrderById,
-      createOrder,
       updateOrderStatus,
       updateAdminNotes,
       getOrderItems,
@@ -551,6 +512,7 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
       nextPage,
       prevPage,
       goToPage,
+      globalCounts,
     ]
   );
 

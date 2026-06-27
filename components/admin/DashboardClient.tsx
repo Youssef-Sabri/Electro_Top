@@ -1,24 +1,58 @@
 'use client';
 
-import { memo, useMemo, useEffect } from 'react';
+import { memo, useMemo, useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { useOrders } from '@/hooks/useOrders';
 import { useProducts } from '@/hooks/useProducts';
 import { formatCurrency } from '@/lib/format-currency';
-import { calculateOrderMetrics } from '@/lib/order-utils';
 import { StatusBadge } from '@/components/ui/StatusBadge';
+import { Spinner } from '@/components/ui/Spinner';
 
 export const DashboardClient = memo(function DashboardClient() {
-  const { orders, orderItems, refreshOrders } = useOrders();
-  const { products, refreshProducts } = useProducts();
+  const { orders } = useOrders();
+  const { products } = useProducts();
 
-  // Refresh for new orders and product changes when dashboard becomes visible again
-  // Realtime subscriptions handle live updates; tab focus refetch is a safety net.
+  const [stats, setStats] = useState<any>({
+    totalRevenue: 0,
+    pendingRevenue: 0,
+    totalOrders: 0,
+    pendingCount: 0,
+    processingCount: 0,
+    deliveredCount: 0,
+    declinedCount: 0,
+    totalProductsCount: 0,
+    outOfStockCount: 0,
+    lowStockCount: 0,
+    salesByCategory: {},
+    unitsByCategory: {},
+    recentOrders: [],
+  });
+  const [isLoading, setIsLoading] = useState(true);
+
+  const fetchStats = useCallback(async () => {
+    try {
+      const res = await fetch('/api/admin/dashboard-stats');
+      if (res.ok) {
+        const data = await res.json();
+        setStats(data);
+      }
+    } catch (err) {
+      if (process.env.NODE_ENV !== 'production') console.error('Failed to fetch dashboard stats:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  // Fetch stats on mount and reactively when context updates from real-time events
+  useEffect(() => {
+    fetchStats();
+  }, [orders, products, fetchStats]);
+
+  // Tab focus refetch as a safety net
   useEffect(() => {
     const handleVisibility = () => {
       if (document.visibilityState === 'visible') {
-        refreshOrders();
-        refreshProducts();
+        fetchStats();
       }
     };
     document.addEventListener('visibilitychange', handleVisibility);
@@ -26,59 +60,17 @@ export const DashboardClient = memo(function DashboardClient() {
     return () => {
       document.removeEventListener('visibilitychange', handleVisibility);
     };
-  }, [refreshOrders, refreshProducts]);
+  }, [fetchStats]);
 
-  const stats = useMemo(() => {
-    const orderMetrics = calculateOrderMetrics(orders);
-    
-    const completedOrders = orders.filter(o => o.status === 'Delivered');
-    const activeOrders = orders.filter(o => o.status !== 'Delivered' && o.status !== 'Declined');
-    
-    const totalRevenue = completedOrders.reduce((sum, o) => sum + o.total_amount, 0);
-    const pendingRevenue = activeOrders.reduce((sum, o) => sum + o.total_amount, 0);
+  if (isLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 font-tajawal">
+        <Spinner className="h-10 w-10 mb-4" />
+        <p className="text-gray-500 text-sm">جاري تحميل إحصاءات لوحة التحكم...</p>
+      </div>
+    );
+  }
 
-    const totalProductsCount = products.length;
-    const outOfStockCount = products.filter(p => p.stock === 0).length;
-    const lowStockCount = products.filter(p => p.stock > 0 && p.stock <= 5).length;
-
-    const ordersMap = new Map(orders.map(o => [o.id_unique_tracking, o]));
-    const productsMap = new Map(products.map(p => [p.id, p]));
-
-    const salesByCategory: Record<string, number> = {};
-    const unitsByCategory: Record<string, number> = {};
-
-    orderItems.forEach(item => {
-      const parentOrder = ordersMap.get(item.order_id);
-      if (parentOrder && parentOrder.status === 'Delivered') {
-        const prod = productsMap.get(item.product_id);
-        const cat = (prod && prod.category) ? prod.category : 'أخرى';
-        const cost = item.unit_price * item.quantity;
-        
-        salesByCategory[cat] = (salesByCategory[cat] || 0) + cost;
-        unitsByCategory[cat] = (unitsByCategory[cat] || 0) + item.quantity;
-      }
-    });
-
-    const recentOrders = [...orders]
-      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-      .slice(0, 5);
-
-    return {
-      totalRevenue,
-      pendingRevenue,
-      totalOrders: orderMetrics.totalCount,
-      pendingCount: orderMetrics.pendingCount,
-      processingCount: orderMetrics.activeFulfillmentCount,
-      deliveredCount: orderMetrics.completedCount,
-      declinedCount: orderMetrics.declinedCount,
-      totalProductsCount,
-      outOfStockCount,
-      lowStockCount,
-      salesByCategory,
-      unitsByCategory,
-      recentOrders,
-    };
-  }, [orders, orderItems, products]);
 
 
   return (
@@ -206,13 +198,13 @@ export const DashboardClient = memo(function DashboardClient() {
                 <div key={cat} className="space-y-1">
                   <div className="flex justify-between text-body-md text-sm font-medium">
                     <span className="text-on-surface">{cat}</span>
-                    <span className="text-on-surface-variant">{formatCurrency(val)} ({stats.unitsByCategory[cat]} وحدة)</span>
+                    <span className="text-on-surface-variant">{formatCurrency(val as number)} ({stats.unitsByCategory[cat]} وحدة)</span>
                   </div>
                   <div className="w-full bg-surface-container-low h-2 rounded-full overflow-hidden">
                     <div 
                       className="bg-primary h-full rounded-full"
                       style={{ 
-                        width: `${Math.max(5, Math.min(100, (val / (stats.totalRevenue + stats.pendingRevenue || 1)) * 100))}%` 
+                        width: `${Math.max(5, Math.min(100, ((val as number) / (stats.totalRevenue + stats.pendingRevenue || 1)) * 100))}%` 
                       }}
                     ></div>
                   </div>
@@ -238,7 +230,7 @@ export const DashboardClient = memo(function DashboardClient() {
               </thead>
               <tbody className="divide-y divide-outline-variant/5">
                 {stats.recentOrders.length > 0 ? (
-                  stats.recentOrders.map(o => (
+                  stats.recentOrders.map((o: any) => (
                     <tr key={o.id_unique_tracking} className="hover:bg-surface/50 transition-colors">
                       <td className="py-3.5 font-mono text-sm font-semibold text-primary text-start">
                         <Link href={`/admin/orders/${o.id_unique_tracking}`} className="hover:underline">
