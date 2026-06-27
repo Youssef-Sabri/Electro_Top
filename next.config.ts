@@ -63,7 +63,7 @@ const nextConfig: NextConfig = {
           },
            {
              key: 'Strict-Transport-Security',
-             value: isDev ? 'max-age=31536000; includeSubDomains' : 'max-age=31536000; includeSubDomains; preload',
+              value: isDev ? 'max-age=31536000; includeSubDomains' : 'max-age=63072000; includeSubDomains; preload',
             },
             // Note: Content-Security-Policy is set dynamically in proxy.ts
             // with per-request nonces. The static config cannot support nonces.

@@ -146,6 +146,8 @@ export function CheckoutForm() {
       return;
     }
 
+    let uploadedFileName: string | undefined
+
     try {
       let finalScreenshotUrl = formData.instapay_screenshot;
 
@@ -167,7 +169,8 @@ export function CheckoutForm() {
             throw new Error(uploadData.error || 'فشل رفع إيصال التحويل. يرجى المحاولة مرة أخرى.');
           }
 
-          finalScreenshotUrl = uploadData.fileName;
+          uploadedFileName = uploadData.fileName;
+          finalScreenshotUrl = uploadedFileName;
         }
       }
 
@@ -203,6 +206,11 @@ export function CheckoutForm() {
       // 4. Redirect to order confirmation page
       router.push(`/checkout/confirmation?id=${trackingId}`);
     } catch (err) {
+      // Clean up orphaned upload if order creation failed
+      if (uploadedFileName) {
+        fetch(`/api/upload/receipt?filename=${encodeURIComponent(uploadedFileName)}`, { method: 'DELETE' })
+          .catch(() => { /* best-effort cleanup */ });
+      }
       if (process.env.NODE_ENV !== 'production') console.error('Failed to place order:', err);
       setToastMessage(err instanceof Error ? err.message : 'حدث خطأ أثناء إرسال طلبك. يرجى المحاولة مرة أخرى.');
       setUiState((prev) => ({ ...prev, isSubmitting: false }));

@@ -7,6 +7,7 @@ import { getClientIp } from '@/lib/ip-utils'
 import { STORAGE_BUCKETS, RATE_LIMIT_CONFIGS } from '@/lib/db-constants'
 import { MAX_FILE_SIZE_BYTES } from '@/lib/constants'
 import { parseJsonBody } from '@/lib/parse-json'
+import { SAFE_FILENAME_RE } from '@/lib/validators'
 
 export async function POST(request: NextRequest) {
   if (!validateRequestOrigin(request)) {
@@ -41,6 +42,12 @@ export async function POST(request: NextRequest) {
     rawBase64 = match[2]
   }
 
+  // Reject oversized payload before allocating memory — estimate from base64 length
+  const estimatedBytes = Math.ceil(rawBase64.length * 3 / 4)
+  if (estimatedBytes > MAX_FILE_SIZE_BYTES) {
+    return NextResponse.json({ error: 'حجم الملف كبير جداً. الحد الأقصى 5 ميجابايت.' }, { status: 400 })
+  }
+
   let fileBuffer: Uint8Array
   try {
     const binary = atob(rawBase64)
@@ -50,10 +57,6 @@ export async function POST(request: NextRequest) {
     }
   } catch {
     return NextResponse.json({ error: 'بيانات الملف تالفة.' }, { status: 400 })
-  }
-
-  if (fileBuffer.length > MAX_FILE_SIZE_BYTES) {
-    return NextResponse.json({ error: 'حجم الملف كبير جداً. الحد الأقصى 5 ميجابايت.' }, { status: 400 })
   }
 
   const detectedType = detectImageMimeType(fileBuffer)
@@ -67,8 +70,7 @@ export async function POST(request: NextRequest) {
   }
 
   const [, ext] = detectedType.split('/')
-  const random = Array.from(crypto.getRandomValues(new Uint8Array(16)), (b) => b.toString(36).charAt(0)).join('')
-  const fileName = `receipt-${random}.${ext}`
+  const fileName = `receipt-${crypto.randomUUID().replaceAll('-', '')}.${ext}`
 
   const supabaseClient = adminClient
 
@@ -85,4 +87,29 @@ const { error: uploadError } = await supabaseClient.storage
   }
 
   return NextResponse.json({ fileName })
+}
+
+// Allows the client to delete an orphaned upload if the subsequent order-creation transaction fails.
+export async function DELETE(request: NextRequest) {
+  if (!validateRequestOrigin(request)) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  }
+
+  const { searchParams } = new URL(request.url)
+  const filename = searchParams.get('filename') ?? ''
+
+  if (!filename || !SAFE_FILENAME_RE.test(filename)) {
+    return NextResponse.json({ error: 'Invalid filename' }, { status: 400 })
+  }
+
+  const adminClient = createSupabaseAdminClient()
+  const { error: removeError } = await adminClient.storage
+    .from(STORAGE_BUCKETS.receipts)
+    .remove([filename])
+
+  if (removeError) {
+    return NextResponse.json({ error: 'Failed to delete file.' }, { status: 500 })
+  }
+
+  return NextResponse.json({ deleted: true })
 }

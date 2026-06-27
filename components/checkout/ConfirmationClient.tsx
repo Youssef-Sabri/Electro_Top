@@ -74,7 +74,7 @@ export function ConfirmationClient() {
     }
   };
 
-  if (loading) {
+  if (loading || !orderId) {
     return (
       <div className="max-w-3xl mx-auto text-center py-20 font-tajawal">
         <div className="flex justify-center mb-4">

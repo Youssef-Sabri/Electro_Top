@@ -90,7 +90,6 @@ export async function POST(request: NextRequest) {
   }
 
   const trackingId = generateOrderId()
-  let totalAmount = 0
   const timestamp = now()
 
   // Validate instapay_screenshot: must be a storage filename or empty string — never a data-URI
@@ -101,7 +100,6 @@ export async function POST(request: NextRequest) {
 
   const newItems = cartItems.map((item: { product: { id: string }; quantity: number }, index: number) => {
     const dbProduct = productPriceMap.get(item.product.id)!
-    totalAmount += dbProduct.price * item.quantity
     return {
       id: `oi-${trackingId}-${index}`,
       order_id: trackingId,
@@ -117,7 +115,7 @@ export async function POST(request: NextRequest) {
     customer_name: validation.data.customer_name,
     phone_number: validation.data.phone_number,
     shipping_address: validation.data.shipping_address,
-    total_amount: totalAmount,
+    total_amount: 0,
     created_at: timestamp,
     admin_notes: '',
     payment_method: validation.data.payment_method,

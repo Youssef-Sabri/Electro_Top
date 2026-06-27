@@ -18,6 +18,13 @@ export interface RateLimitResult {
   remaining: number;
 }
 
+// Matches the return shape of the atomic_rate_limit_check Postgres RPC.
+interface RpcRateLimitRow {
+  blocked: boolean;
+  cooldown_secs: number;
+  current_count: number;
+}
+
 // Atomic check-and-increment via a single Postgres RPC (INSERT ... ON CONFLICT ... DO UPDATE).
 // Replaces the previous two-step SELECT + UPDATE pattern which had a TOCTOU race under concurrent
 // serverless invocations. The RPC (atomic_rate_limit_check) must exist in the database — see setup.html Step 5.
@@ -38,10 +45,10 @@ export async function checkAndIncrementRateLimit(
 
   if (error) {
     devLog('atomic_rate_limit_check RPC failed:', error.message);
-    return { blocked: false, limit: config.maxAttempts, remaining: config.maxAttempts };
+    return { blocked: true, cooldown: 60, limit: config.maxAttempts, remaining: 0 };
   }
 
-  const row = Array.isArray(data) ? data[0] : data;
+  const row = (Array.isArray(data) ? data[0] : data) as RpcRateLimitRow | undefined;
   if (!row) return { blocked: false, limit: config.maxAttempts, remaining: config.maxAttempts };
 
   return row.blocked

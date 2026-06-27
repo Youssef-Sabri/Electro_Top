@@ -43,6 +43,8 @@ function buildCsp(nonce: string, supabaseHost: string): string {
   ].join('; ')
 }
 
+const MAX_REQUEST_BODY_BYTES = 10 * 1024 * 1024 // 10 MB
+
 export async function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname
   const supabaseHost = getSupabaseHostname()
@@ -63,6 +65,15 @@ export async function proxy(request: NextRequest) {
   if (request.method !== 'GET' && request.method !== 'HEAD') {
     if (!validateRequestOrigin(request)) {
       return new NextResponse('Forbidden', { status: 403 });
+    }
+
+    // Reject oversized request bodies before they reach API handlers
+    const contentLength = request.headers.get('content-length')
+    if (contentLength) {
+      const bytes = parseInt(contentLength, 10)
+      if (!isNaN(bytes) && bytes > MAX_REQUEST_BODY_BYTES) {
+        return new NextResponse('Request too large', { status: 413 })
+      }
     }
   }
 

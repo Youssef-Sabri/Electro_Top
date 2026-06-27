@@ -25,30 +25,32 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'Invalid or missing filename' }, { status: 400 })
   }
 
+  if (!orderId) {
+    return NextResponse.json({ error: 'Missing orderId.' }, { status: 400 })
+  }
+
   // 3. Ownership check — verify the receipt belongs to the claimed order
-  if (orderId) {
-    const sanitizedOrderId = normalizeTrackingId(orderId)
-    const { data: orderRow, error: fetchError } = await adminClient
+  const sanitizedOrderId = normalizeTrackingId(orderId)
+  const { data: orderRow, error: fetchError } = await adminClient
 
-      .from(TABLES.orders)
-      .select('instapay_screenshot')
-      .eq('id_unique_tracking', sanitizedOrderId)
-      .maybeSingle()
+    .from(TABLES.orders)
+    .select('instapay_screenshot')
+    .eq('id_unique_tracking', sanitizedOrderId)
+    .maybeSingle()
 
-    if (fetchError) {
-      devLog('receipt-signed-url: ownership check failed:', fetchError.message)
-      return NextResponse.json({ error: 'Failed to verify receipt ownership.' }, { status: 500 })
-    }
+  if (fetchError) {
+    devLog('receipt-signed-url: ownership check failed:', fetchError.message)
+    return NextResponse.json({ error: 'Failed to verify receipt ownership.' }, { status: 500 })
+  }
 
-    if (!orderRow) {
-      return NextResponse.json({ error: 'Order not found.' }, { status: 404 })
-    }
+  if (!orderRow) {
+    return NextResponse.json({ error: 'Order not found.' }, { status: 404 })
+  }
 
-    // Normalise stored value — could be a bare filename or a full storage path
-    const storedFilename = orderRow.instapay_screenshot?.split('/').pop() ?? ''
-    if (storedFilename !== filename) {
-      return NextResponse.json({ error: 'Receipt does not belong to this order.' }, { status: 403 })
-    }
+  // Normalise stored value — could be a bare filename or a full storage path
+  const storedFilename = orderRow.instapay_screenshot?.split('/').pop() ?? ''
+  if (storedFilename !== filename) {
+    return NextResponse.json({ error: 'Receipt does not belong to this order.' }, { status: 403 })
   }
 
   // 4. Generate signed URL server-side using the service-role key (never the anon key)
