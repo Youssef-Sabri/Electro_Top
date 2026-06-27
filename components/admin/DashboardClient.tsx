@@ -1,18 +1,35 @@
 'use client';
 
-import { memo, useMemo, useEffect, useState, useCallback } from 'react';
+import { memo, useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { useOrders } from '@/hooks/useOrders';
 import { useProducts } from '@/hooks/useProducts';
 import { formatCurrency } from '@/lib/format-currency';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { Spinner } from '@/components/ui/Spinner';
+import type { Order } from '@/types';
+
+interface DashboardStats {
+  totalRevenue: number;
+  pendingRevenue: number;
+  totalOrders: number;
+  pendingCount: number;
+  processingCount: number;
+  deliveredCount: number;
+  declinedCount: number;
+  totalProductsCount: number;
+  outOfStockCount: number;
+  lowStockCount: number;
+  salesByCategory: Record<string, number>;
+  unitsByCategory: Record<string, number>;
+  recentOrders: Order[];
+}
 
 export const DashboardClient = memo(function DashboardClient() {
   const { orders } = useOrders();
   const { products } = useProducts();
 
-  const [stats, setStats] = useState<any>({
+  const [stats, setStats] = useState<DashboardStats>({
     totalRevenue: 0,
     pendingRevenue: 0,
     totalOrders: 0,
@@ -230,7 +247,7 @@ export const DashboardClient = memo(function DashboardClient() {
               </thead>
               <tbody className="divide-y divide-outline-variant/5">
                 {stats.recentOrders.length > 0 ? (
-                  stats.recentOrders.map((o: any) => (
+                  stats.recentOrders.map((o: Order) => (
                     <tr key={o.id_unique_tracking} className="hover:bg-surface/50 transition-colors">
                       <td className="py-3.5 font-mono text-sm font-semibold text-primary text-start">
                         <Link href={`/admin/orders/${o.id_unique_tracking}`} className="hover:underline">

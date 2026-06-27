@@ -1,8 +1,7 @@
 'use client';
 
 import { createContext, useState, useEffect, useMemo, useCallback, useRef, ReactNode } from 'react';
-import type { Order, OrderItem, OrderStatusHistory, OrderStatus, CartItem } from '@/types';
-import type { CheckoutFormData } from '@/lib/validators';
+import type { Order, OrderItem, OrderStatusHistory, OrderStatus } from '@/types';
 import type { Session } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
 import { TABLES, ORDER_SELECT_FIELDS, ORDER_ITEM_SELECT_FIELDS, STATUS_HISTORY_SELECT_FIELDS, VALID_ORDER_STATUSES, ADMIN_NOTES_MAX_LENGTH } from '@/lib/db-constants';

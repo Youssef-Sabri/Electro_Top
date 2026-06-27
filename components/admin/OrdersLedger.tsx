@@ -1,6 +1,6 @@
 'use client';
 
-import { memo, useState, useMemo, useCallback } from 'react';
+import { memo, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useOrders } from '@/hooks/useOrders';
 import { useProducts } from '@/hooks/useProducts';
@@ -9,7 +9,6 @@ import { formatOrderDate, todayStamp } from '@/lib/date-utils';
 import { STATUS_OPTIONS } from '@/lib/status-utils';
 import { getInitials } from '@/lib/string-utils';
 import { exportToCSV } from '@/lib/csv-export';
-import { calculateOrderMetrics } from '@/lib/order-utils';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { PaginationControls } from '@/components/ui/PaginationControls';
 import { CustomDropdown } from '@/components/ui/CustomDropdown';
