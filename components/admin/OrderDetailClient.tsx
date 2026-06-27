@@ -202,6 +202,13 @@ export const OrderDetailClient = memo(function OrderDetailClient({ id }: OrderDe
       
       // Update local state variables immediately
       setOrder((prev) => prev ? { ...prev, status: selectedStatus } : null);
+      const newHistoryEntry: OrderStatusHistory = {
+        id: crypto.randomUUID(),
+        order_id: order.id_unique_tracking,
+        status: selectedStatus,
+        created_at: new Date().toISOString(),
+      };
+      setStatusHistory((prev) => [newHistoryEntry, ...prev]);
 
       setToastMessage('تم حفظ تغييرات الطلب بنجاح ✓');
       setToastType('success');

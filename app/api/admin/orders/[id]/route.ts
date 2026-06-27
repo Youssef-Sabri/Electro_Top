@@ -106,8 +106,10 @@ export async function PATCH(
     if (typeof rawNotes !== 'string' || rawNotes.length > ADMIN_NOTES_MAX_LENGTH) {
       return NextResponse.json({ error: `Admin notes must be a string up to ${ADMIN_NOTES_MAX_LENGTH} characters` }, { status: 400 })
     }
-    let notes: string = rawNotes
-    notes = notes.replace(/<\/?[^>]+(>|$)/g, '')
+    const notes: string = rawNotes
+      .replace(/<[^>]*>/g, '')
+      .replace(/&lt;|&gt;|&amp;|&quot;|&#x27;|&#x2F;/gi, '')
+      .trim()
     updates.admin_notes = notes
   }
 

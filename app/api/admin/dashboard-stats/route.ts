@@ -12,63 +12,51 @@ export async function GET(request: Request) {
 
   try {
     const [
-      revenueRes,
-      activeRevenueRes,
-      statusCountsRes,
-      productCountsRes,
-      outOfStockRes,
-      lowStockRes,
+      ordersDataRes,
+      productsStockRes,
       recentOrdersRes,
       salesRes
     ] = await Promise.all([
-      // 1. Total Revenue (Delivered orders)
-      adminClient.from(TABLES.orders).select('total_amount').eq('status', 'Delivered'),
-      // 2. Pending Revenue (Active orders)
-      adminClient.from(TABLES.orders).select('total_amount').in('status', ['Pending Review', 'Accepted', 'Processing', 'Check Internal Note']),
-      // 3. Status lists for counts
-      adminClient.from(TABLES.orders).select('status'),
-      // 4. Products count
-      adminClient.from(TABLES.products).select('*', { count: 'exact', head: true }),
-      // 5. Out of stock products count
-      adminClient.from(TABLES.products).select('*', { count: 'exact', head: true }).eq('stock', 0),
-      // 6. Low stock products count
-      adminClient.from(TABLES.products).select('*', { count: 'exact', head: true }).gt('stock', 0).lte('stock', 5),
-      // 7. Recent orders (exactly 5)
+      // 1. Fetch status and total_amount for all orders to aggregate metrics
+      adminClient.from(TABLES.orders).select('status, total_amount'),
+      // 2. Fetch all product stock values for inventory counts
+      adminClient.from(TABLES.products).select('stock'),
+      // 3. Recent orders (exactly 5)
       adminClient.from(TABLES.orders).select('id_unique_tracking, customer_name, status, total_amount, created_at').order('created_at', { ascending: false }).limit(5),
-      // 8. Order items category sales (joined)
+      // 4. Order items category sales (joined)
       adminClient.from(TABLES.orderItems).select('quantity, unit_price, products(category), orders!inner(status)').eq('orders.status', 'Delivered')
     ])
 
-    if (revenueRes.error) throw revenueRes.error
-    if (activeRevenueRes.error) throw activeRevenueRes.error
-    if (statusCountsRes.error) throw statusCountsRes.error
+    if (ordersDataRes.error) throw ordersDataRes.error
+    if (productsStockRes.error) throw productsStockRes.error
     if (recentOrdersRes.error) throw recentOrdersRes.error
     if (salesRes.error) throw salesRes.error
 
-    const totalRevenue = (revenueRes.data || []).reduce((sum, o) => sum + Number(o.total_amount), 0)
-    const pendingRevenue = (activeRevenueRes.data || []).reduce((sum, o) => sum + Number(o.total_amount), 0)
+    const ordersList = ordersDataRes.data || []
+    const totalRevenue = ordersList.filter(o => o.status === 'Delivered').reduce((sum, o) => sum + Number(o.total_amount), 0)
+    const pendingRevenue = ordersList.filter(o => ['Pending Review', 'Accepted', 'Processing', 'Check Internal Note'].includes(o.status)).reduce((sum, o) => sum + Number(o.total_amount), 0)
 
-    const ordersStatusList = statusCountsRes.data || []
-    const totalOrders = ordersStatusList.length
-    const pendingCount = ordersStatusList.filter(o => o.status === 'Pending Review').length
-    const processingCount = ordersStatusList.filter(o => o.status === 'Processing' || o.status === 'Accepted').length
-    const deliveredCount = ordersStatusList.filter(o => o.status === 'Delivered').length
-    const declinedCount = ordersStatusList.filter(o => o.status === 'Declined').length
+    const totalOrders = ordersList.length
+    const pendingCount = ordersList.filter(o => o.status === 'Pending Review').length
+    const processingCount = ordersList.filter(o => o.status === 'Processing' || o.status === 'Accepted').length
+    const deliveredCount = ordersList.filter(o => o.status === 'Delivered').length
+    const declinedCount = ordersList.filter(o => o.status === 'Declined').length
 
-    const totalProductsCount = productCountsRes.count || 0
-    const outOfStockCount = outOfStockRes.count || 0
-    const lowStockCount = lowStockRes.count || 0
+    const productsStock = productsStockRes.data || []
+    const totalProductsCount = productsStock.length
+    const outOfStockCount = productsStock.filter(p => p.stock === 0).length
+    const lowStockCount = productsStock.filter(p => p.stock > 0 && p.stock <= 5).length
 
     const salesByCategory: Record<string, number> = {}
     const unitsByCategory: Record<string, number> = {}
 
-    type SalesItem = {
+    type SalesRow = {
       quantity: number
       unit_price: number | string
       products: { category: string | null } | { category: string | null }[] | null
     }
 
-    const salesData = (salesRes.data || []) as unknown as SalesItem[]
+    const salesData: SalesRow[] = salesRes.data || []
 
     salesData.forEach(item => {
       const prod = Array.isArray(item.products) ? item.products[0] : item.products

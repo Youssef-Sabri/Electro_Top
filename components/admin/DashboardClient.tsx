@@ -1,6 +1,6 @@
 'use client';
 
-import { memo, useEffect, useState, useCallback } from 'react';
+import { memo, useEffect, useState, useCallback, useRef } from 'react';
 import Link from 'next/link';
 
 import { formatCurrency } from '@/lib/format-currency';
@@ -21,7 +21,7 @@ interface DashboardStats {
   lowStockCount: number;
   salesByCategory: Record<string, number>;
   unitsByCategory: Record<string, number>;
-  recentOrders: Order[];
+  recentOrders: Pick<Order, 'id_unique_tracking' | 'customer_name' | 'status' | 'total_amount' | 'created_at'>[];
 }
 
 export const DashboardClient = memo(function DashboardClient() {
@@ -42,13 +42,18 @@ export const DashboardClient = memo(function DashboardClient() {
     recentOrders: [],
   });
   const [isLoading, setIsLoading] = useState(true);
+  const lastFetchRef = useRef(0);
+  const STALE_MS = 30_000;
 
-  const fetchStats = useCallback(async () => {
+  const fetchStats = useCallback(async (force = false) => {
+    const now = Date.now();
+    if (!force && now - lastFetchRef.current < STALE_MS) return;
     try {
       const res = await fetch('/api/admin/dashboard-stats');
       if (res.ok) {
         const data = await res.json();
         setStats(data);
+        lastFetchRef.current = now;
       }
     } catch (err) {
       if (process.env.NODE_ENV !== 'production') console.error('Failed to fetch dashboard stats:', err);
@@ -62,7 +67,7 @@ export const DashboardClient = memo(function DashboardClient() {
     fetchStats();
   }, [fetchStats]);
 
-  // Tab focus refetch as a safety net
+  // Tab focus refetch with staleness check
   useEffect(() => {
     const handleVisibility = () => {
       if (document.visibilityState === 'visible') {
@@ -244,7 +249,7 @@ export const DashboardClient = memo(function DashboardClient() {
               </thead>
               <tbody className="divide-y divide-outline-variant/5">
                 {stats.recentOrders.length > 0 ? (
-                  stats.recentOrders.map((o: Order) => (
+                  stats.recentOrders.map((o) => (
                     <tr key={o.id_unique_tracking} className="hover:bg-surface/50 transition-colors">
                       <td className="py-3.5 font-mono text-sm font-semibold text-primary text-start">
                         <Link href={`/admin/orders/${o.id_unique_tracking}`} className="hover:underline">

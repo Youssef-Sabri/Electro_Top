@@ -38,11 +38,14 @@ A full-featured e-commerce platform purpose-built for the electrical supplies ma
 
 ### Security
 - **CSP with nonces** — Per-request content security policy via middleware
-- **CSRF protection** — Origin/referrer validation on all mutating requests
+- **CSRF protection** — Origin/referer validation on all mutating requests
 - **Host validation** — DNS rebinding prevention in production
 - **Rate limiting** — IP-based limits on login, checkout, and tracking lookups
-- **File validation** — Magic-byte detection for uploaded images
+- **File validation** — Magic-byte detection for uploaded images (rejects non-images)
+- **Client-side image compression** — Compress receipt uploads to WebP/JPG using `createImageBitmap` before upload
 - **Server-side price verification** — Database prices always override client-submitted values
+- **Honeypot bot prevention** — Invisible field to detect and reject non-human form submissions
+- **File size limit** — Max 5 MB for all uploads (client + server validation)
 
 ---
 

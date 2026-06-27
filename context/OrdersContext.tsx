@@ -145,17 +145,14 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
 
       const orderIds = (oData || []).map(o => o.id_unique_tracking);
 
-      const [oiResult, hResult, countAll, countPending, countActive, countCompleted] = await Promise.all([
+      const [oiResult, hResult, statusesResult] = await Promise.all([
         orderIds.length > 0
           ? supabase.from(TABLES.orderItems).select(ORDER_ITEM_SELECT_FIELDS).in('order_id', orderIds)
           : { data: [] as OrderItem[], error: null },
         orderIds.length > 0
           ? supabase.from(TABLES.orderStatusHistory).select(STATUS_HISTORY_SELECT_FIELDS).in('order_id', orderIds)
           : { data: [] as OrderStatusHistory[], error: null },
-        supabase.from(TABLES.orders).select('*', { count: 'exact', head: true }),
-        supabase.from(TABLES.orders).select('*', { count: 'exact', head: true }).eq('status', 'Pending Review'),
-        supabase.from(TABLES.orders).select('*', { count: 'exact', head: true }).in('status', ['Processing', 'Accepted']),
-        supabase.from(TABLES.orders).select('*', { count: 'exact', head: true }).eq('status', 'Delivered'),
+        supabase.rpc('get_order_counts'),
       ]);
 
       setOrders(oData || []);
@@ -164,11 +161,13 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
       setTotalPages(oCount ? Math.ceil(oCount / PAGE_SIZE) : 0);
       setPage(pageNum);
 
+      const countRows: { status: string; count: number }[] = statusesResult.data || [];
+      const countMap = new Map(countRows.map(r => [r.status, r.count]));
       setGlobalCounts({
-        totalCount: countAll.count || 0,
-        pendingCount: countPending.count || 0,
-        activeFulfillmentCount: countActive.count || 0,
-        completedCount: countCompleted.count || 0,
+        totalCount: countRows.reduce((sum, r) => sum + r.count, 0),
+        pendingCount: countMap.get('Pending Review') || 0,
+        activeFulfillmentCount: (countMap.get('Processing') || 0) + (countMap.get('Accepted') || 0),
+        completedCount: countMap.get('Delivered') || 0,
       });
     } catch (error) {
       devLog('Failed to load orders/items/logs from Supabase:', error);
