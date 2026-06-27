@@ -5,7 +5,6 @@ import type { Order, OrderItem, OrderStatusHistory, OrderStatus } from '@/types'
 import type { Session } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
 import { TABLES, ORDER_SELECT_FIELDS, ORDER_ITEM_SELECT_FIELDS, STATUS_HISTORY_SELECT_FIELDS, VALID_ORDER_STATUSES, ADMIN_NOTES_MAX_LENGTH } from '@/lib/db-constants';
-import { now } from '@/lib/date-utils';
 import { devLog } from '@/lib/dev-log';
 import { normalizeTrackingId } from '@/lib/constants';
 
@@ -352,25 +351,13 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    const timestamp = now();
-    const historyId = `h-${orderId}-${Date.now()}`;
-
-    const newHistoryEntry: OrderStatusHistory = {
-      id: historyId,
-      order_id: orderId,
-      status,
-      created_at: timestamp,
-    };
-
     const previousOrders = ordersRef.current;
-    const previousHistory = statusHistoryRef.current;
 
     setOrders((prevOrders) =>
       prevOrders.map((order) =>
         order.id_unique_tracking === orderId ? { ...order, status } : order
       )
     );
-    setStatusHistory((prevHistory) => [...prevHistory, newHistoryEntry]);
 
     try {
       const response = await fetch(`/api/admin/orders/${orderId}`, {
@@ -381,13 +368,11 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
 
       if (!response.ok) {
         setOrders(previousOrders);
-        setStatusHistory(previousHistory);
         const data = await response.json();
         throw new Error(data.error || 'Failed to update order status');
       }
     } catch (e) {
       setOrders(previousOrders);
-      setStatusHistory(previousHistory);
       throw e;
     }
   }, []);

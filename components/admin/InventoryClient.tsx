@@ -106,11 +106,10 @@ export const InventoryClient = memo(function InventoryClient() {
       showToast("لا يمكن حذف آخر فئة. يجب أن توجد فئة واحدة على الأقل.");
       return;
     }
-    const fallback = categories.filter((c) => c !== catToDelete)[0];
     setConfirmModal({
       isOpen: true,
       title: 'حذف فئة',
-      message: `هل أنت متأكد من رغبتك في حذف الفئة "${catToDelete}"؟ سيتم نقل المنتجات في هذه الفئة تلقائياً إلى "${fallback}".`,
+      message: `هل أنت متأكد من رغبتك في حذف الفئة "${catToDelete}"؟ ستصبح جميع المنتجات في هذه الفئة غير مصنفة.`,
       confirmLabel: 'حذف فئة',
       cancelLabel: 'إلغاء',
       isDestructive: true,

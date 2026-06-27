@@ -10,9 +10,9 @@ import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
 
 
 const jsonLdEnvSchema = z.object({
-  siteUrl: z.string().url().default(''),
-  supportPhone1: z.string().min(1).optional().default(''),
-  supportPhone2: z.string().min(1).optional().default(''),
+  siteUrl: z.union([z.string().url(), z.literal('')]).default(''),
+  supportPhone1: z.string().optional().default(''),
+  supportPhone2: z.string().optional().default(''),
 });
 
 type JsonLdEnv = z.infer<typeof jsonLdEnvSchema>;

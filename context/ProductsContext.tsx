@@ -313,9 +313,8 @@ export function ProductsProvider({ children }: { children: ReactNode }) {
     const oldProducts = currentProducts;
 
     const newCategories = currentCategories.filter((c) => c !== trimmed);
-    const fallbackCat = newCategories[0] ?? null;
     const newProducts = currentProducts.map((p) =>
-      p.category === trimmed ? { ...p, category: fallbackCat } : p
+      p.category === trimmed ? { ...p, category: null } : p
     );
 
     setCategories(newCategories);

@@ -53,7 +53,7 @@ export async function checkAndIncrementRateLimit(
 
   return row.blocked
     ? { blocked: true, cooldown: row.cooldown_secs ?? 60, limit: config.maxAttempts, remaining: 0 }
-    : { blocked: false, limit: config.maxAttempts, remaining: config.maxAttempts - 1 };
+    : { blocked: false, limit: config.maxAttempts, remaining: Math.max(0, config.maxAttempts - row.current_count) };
 }
 
 export function setRateLimitHeaders(response: NextResponse, result: RateLimitResult): void {

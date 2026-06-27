@@ -8,7 +8,7 @@ import { useProducts } from '@/hooks/useProducts';
 import { z } from 'zod';
 import type { OrderStatus, Order, OrderItem, OrderStatusHistory } from '@/types';
 import { formatCurrency } from '@/lib/format-currency';
-import { now, formatOrderDate } from '@/lib/date-utils';
+import { formatOrderDate } from '@/lib/date-utils';
 import { getInitials } from '@/lib/string-utils';
 import { STATUS_OPTIONS, translateStatus, translateHistoryStatus } from '@/lib/status-utils';
 import { getSafeUrl } from '@/lib/safe-url';
@@ -95,15 +95,22 @@ export const OrderDetailClient = memo(function OrderDetailClient({ id }: OrderDe
       });
   }, [order?.instapay_screenshot, order?.id_unique_tracking]);
 
+  const contextOrder = getOrderById(id);
+  const contextItems = getOrderItems(id);
+  const contextHistory = getStatusHistory(id);
+
+  useEffect(() => {
+    if (contextOrder) {
+      setOrder(contextOrder);
+      setOrderItems(contextItems);
+      setStatusHistory(contextHistory);
+      setLoading(false);
+    }
+  }, [contextOrder, contextItems, contextHistory]);
+
   useEffect(() => {
     const fromContext = getOrderById(id);
-    if (fromContext) {
-      setOrder(fromContext);
-      setOrderItems(getOrderItems(id));
-      setStatusHistory(getStatusHistory(id));
-      setLoading(false);
-      return;
-    }
+    if (fromContext) return;
 
     const isValidId = isValidTrackingId(id);
 
@@ -131,7 +138,7 @@ export const OrderDetailClient = memo(function OrderDetailClient({ id }: OrderDe
     }
 
     loadFromDB();
-  }, [id, getOrderById, getOrderItems, getStatusHistory]);
+  }, [id, getOrderById]);
 
   // Ref to track last-saved notes value to prevent redundant Supabase writes
   const lastSavedNotes = useRef<string>('');
@@ -195,14 +202,6 @@ export const OrderDetailClient = memo(function OrderDetailClient({ id }: OrderDe
       
       // Update local state variables immediately
       setOrder((prev) => prev ? { ...prev, status: selectedStatus } : null);
-      const timestamp = now();
-      const newHistoryEntry: OrderStatusHistory = {
-        id: `h-${order.id_unique_tracking}-${Date.now()}`,
-        order_id: order.id_unique_tracking,
-        status: selectedStatus,
-        created_at: timestamp,
-      };
-      setStatusHistory((prev) => [...prev, newHistoryEntry]);
 
       setToastMessage('تم حفظ تغييرات الطلب بنجاح ✓');
       setToastType('success');

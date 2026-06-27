@@ -11,69 +11,72 @@ export async function GET(request: Request) {
   const adminClient = createSupabaseAdminClient()
 
   try {
-    // Fetch orders status, amount, date, customer name, and tracking code
-    const { data: orders, error: ordersError } = await adminClient
-      .from(TABLES.orders)
-      .select('status, total_amount, created_at, customer_name, id_unique_tracking')
+    const [
+      revenueRes,
+      activeRevenueRes,
+      statusCountsRes,
+      productCountsRes,
+      outOfStockRes,
+      lowStockRes,
+      recentOrdersRes,
+      salesRes
+    ] = await Promise.all([
+      // 1. Total Revenue (Delivered orders)
+      adminClient.from(TABLES.orders).select('total_amount').eq('status', 'Delivered'),
+      // 2. Pending Revenue (Active orders)
+      adminClient.from(TABLES.orders).select('total_amount').in('status', ['Pending Review', 'Accepted', 'Processing', 'Check Internal Note']),
+      // 3. Status lists for counts
+      adminClient.from(TABLES.orders).select('status'),
+      // 4. Products count
+      adminClient.from(TABLES.products).select('*', { count: 'exact', head: true }),
+      // 5. Out of stock products count
+      adminClient.from(TABLES.products).select('*', { count: 'exact', head: true }).eq('stock', 0),
+      // 6. Low stock products count
+      adminClient.from(TABLES.products).select('*', { count: 'exact', head: true }).gt('stock', 0).lte('stock', 5),
+      // 7. Recent orders (exactly 5)
+      adminClient.from(TABLES.orders).select('id_unique_tracking, customer_name, status, total_amount, created_at').order('created_at', { ascending: false }).limit(5),
+      // 8. Order items category sales (joined)
+      adminClient.from(TABLES.orderItems).select('quantity, unit_price, products(category), orders!inner(status)').eq('orders.status', 'Delivered')
+    ])
 
-    if (ordersError || !orders) {
-      devLog('Dashboard stats orders error:', ordersError)
-      return NextResponse.json({ error: 'Failed to fetch orders statistics' }, { status: 500 })
-    }
+    if (revenueRes.error) throw revenueRes.error
+    if (activeRevenueRes.error) throw activeRevenueRes.error
+    if (statusCountsRes.error) throw statusCountsRes.error
+    if (recentOrdersRes.error) throw recentOrdersRes.error
+    if (salesRes.error) throw salesRes.error
 
-    // Fetch products catalog status
-    const { data: products, error: productsError } = await adminClient
-      .from(TABLES.products)
-      .select('id, stock, category')
+    const totalRevenue = (revenueRes.data || []).reduce((sum, o) => sum + Number(o.total_amount), 0)
+    const pendingRevenue = (activeRevenueRes.data || []).reduce((sum, o) => sum + Number(o.total_amount), 0)
 
-    if (productsError || !products) {
-      devLog('Dashboard stats products error:', productsError)
-      return NextResponse.json({ error: 'Failed to fetch products statistics' }, { status: 500 })
-    }
+    const ordersStatusList = statusCountsRes.data || []
+    const totalOrders = ordersStatusList.length
+    const pendingCount = ordersStatusList.filter(o => o.status === 'Pending Review').length
+    const processingCount = ordersStatusList.filter(o => o.status === 'Processing' || o.status === 'Accepted').length
+    const deliveredCount = ordersStatusList.filter(o => o.status === 'Delivered').length
+    const declinedCount = ordersStatusList.filter(o => o.status === 'Declined').length
 
-    // Fetch delivered order items
-    const { data: orderItems, error: itemsError } = await adminClient
-      .from(TABLES.orderItems)
-      .select('product_id, quantity, unit_price, orders!inner(status)')
-      .eq('orders.status', 'Delivered')
-
-    if (itemsError || !orderItems) {
-      devLog('Dashboard stats items error:', itemsError)
-      return NextResponse.json({ error: 'Failed to fetch order items statistics' }, { status: 500 })
-    }
-
-    // Process statistics
-    const completedOrders = orders.filter(o => o.status === 'Delivered')
-    const activeOrders = orders.filter(o => o.status !== 'Delivered' && o.status !== 'Declined')
-
-    const totalRevenue = completedOrders.reduce((sum, o) => sum + Number(o.total_amount), 0)
-    const pendingRevenue = activeOrders.reduce((sum, o) => sum + Number(o.total_amount), 0)
-
-    const totalOrders = orders.length
-    const pendingCount = orders.filter(o => o.status === 'Pending Review').length
-    const processingCount = orders.filter(o => o.status === 'Processing' || o.status === 'Accepted').length
-    const deliveredCount = completedOrders.length
-    const declinedCount = orders.filter(o => o.status === 'Declined').length
-
-    const totalProductsCount = products.length
-    const outOfStockCount = products.filter(p => p.stock === 0).length
-    const lowStockCount = products.filter(p => p.stock > 0 && p.stock <= 5).length
-
-    const productCategoryMap = new Map(products.map(p => [p.id, p.category || 'أخرى']))
+    const totalProductsCount = productCountsRes.count || 0
+    const outOfStockCount = outOfStockRes.count || 0
+    const lowStockCount = lowStockRes.count || 0
 
     const salesByCategory: Record<string, number> = {}
     const unitsByCategory: Record<string, number> = {}
 
-    orderItems.forEach(item => {
-      const category = productCategoryMap.get(item.product_id) || 'أخرى'
+    type SalesItem = {
+      quantity: number
+      unit_price: number | string
+      products: { category: string | null } | { category: string | null }[] | null
+    }
+
+    const salesData = (salesRes.data || []) as unknown as SalesItem[]
+
+    salesData.forEach(item => {
+      const prod = Array.isArray(item.products) ? item.products[0] : item.products
+      const category = prod?.category || 'أخرى'
       const cost = Number(item.unit_price) * item.quantity
       salesByCategory[category] = (salesByCategory[category] || 0) + cost
       unitsByCategory[category] = (unitsByCategory[category] || 0) + item.quantity
     })
-
-    const recentOrders = [...orders]
-      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-      .slice(0, 5)
 
     return NextResponse.json({
       totalRevenue,
@@ -88,7 +91,7 @@ export async function GET(request: Request) {
       lowStockCount,
       salesByCategory,
       unitsByCategory,
-      recentOrders,
+      recentOrders: recentOrdersRes.data || [],
     })
   } catch (error) {
     devLog('Failed to calculate dashboard statistics:', error)

@@ -4,7 +4,7 @@ import { validateRequestOrigin } from '@/lib/csrf'
 import { detectImageMimeType } from '@/lib/magic-bytes'
 import { checkAndIncrementRateLimit, setRateLimitHeaders } from '@/lib/rate-limit'
 import { getClientIp } from '@/lib/ip-utils'
-import { STORAGE_BUCKETS, RATE_LIMIT_CONFIGS } from '@/lib/db-constants'
+import { TABLES, STORAGE_BUCKETS, RATE_LIMIT_CONFIGS } from '@/lib/db-constants'
 import { MAX_FILE_SIZE_BYTES } from '@/lib/constants'
 import { parseJsonBody } from '@/lib/parse-json'
 import { SAFE_FILENAME_RE } from '@/lib/validators'
@@ -103,6 +103,22 @@ export async function DELETE(request: NextRequest) {
   }
 
   const adminClient = createSupabaseAdminClient()
+
+  // Verify the receipt does not belong to an active order
+  const { data: linkedOrder, error: checkError } = await adminClient
+    .from(TABLES.orders)
+    .select('id_unique_tracking')
+    .eq('instapay_screenshot', filename)
+    .maybeSingle()
+
+  if (checkError) {
+    return NextResponse.json({ error: 'Failed to verify receipt status.' }, { status: 500 })
+  }
+
+  if (linkedOrder) {
+    return NextResponse.json({ error: 'Cannot delete receipt for an active order.' }, { status: 400 })
+  }
+
   const { error: removeError } = await adminClient.storage
     .from(STORAGE_BUCKETS.receipts)
     .remove([filename])

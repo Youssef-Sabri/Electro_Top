@@ -2,8 +2,7 @@
 
 import { memo, useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
-import { useOrders } from '@/hooks/useOrders';
-import { useProducts } from '@/hooks/useProducts';
+
 import { formatCurrency } from '@/lib/format-currency';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { Spinner } from '@/components/ui/Spinner';
@@ -26,8 +25,6 @@ interface DashboardStats {
 }
 
 export const DashboardClient = memo(function DashboardClient() {
-  const { orders } = useOrders();
-  const { products } = useProducts();
 
   const [stats, setStats] = useState<DashboardStats>({
     totalRevenue: 0,
@@ -60,10 +57,10 @@ export const DashboardClient = memo(function DashboardClient() {
     }
   }, []);
 
-  // Fetch stats on mount and reactively when context updates from real-time events
+  // Fetch stats on mount
   useEffect(() => {
     fetchStats();
-  }, [orders, products, fetchStats]);
+  }, [fetchStats]);
 
   // Tab focus refetch as a safety net
   useEffect(() => {

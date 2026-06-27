@@ -85,8 +85,7 @@ export async function POST(request: NextRequest) {
   await supabaseClient
     .from(RATE_LIMIT_CONFIGS.login.table)
     .delete()
-    .eq('ip_address', ip)
-    .lt('first_attempt_at', new Date(Date.now() - RATE_LIMIT_CONFIGS.login.windowMs).toISOString());
+    .eq('ip_address', ip);
 
   // Return success response. Note: createServerClient writes directly to the cookies via the proxy setters.
   return NextResponse.json({ success: true });
