@@ -26,12 +26,12 @@ export function validateRequestOrigin(request: Request): boolean {
 
     if (origin) {
       const originHost = new URL(origin).host
-      return originHost === allowedHost
+      return originHost === allowedHost || originHost === `www.${allowedHost}` || `www.${originHost}` === allowedHost
     }
 
     if (referer) {
       const refererHost = new URL(referer).host
-      return refererHost === allowedHost
+      return refererHost === allowedHost || refererHost === `www.${allowedHost}` || `www.${refererHost}` === allowedHost
     }
   } catch {
     return false
