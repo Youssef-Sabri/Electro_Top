@@ -133,9 +133,9 @@ export const LandingPage = memo(function LandingPage({ initialCategories = [], i
               <div className="w-16 h-16 rounded-full bg-primary/5 flex items-center justify-center text-primary mb-6">
                 <span className="material-symbols-outlined text-[32px]">local_shipping</span>
               </div>
-              <h3 className="font-headline-md text-[18px] text-on-background font-bold mb-2">التوصيل للموقع</h3>
+              <h3 className="font-headline-md text-[18px] text-on-background font-bold mb-2">توصيل سريع إلى موقعك</h3>
               <p className="text-on-surface-variant text-xs leading-relaxed">
-                توصيل سريع وآمن مباشرة إلى مواقع مشاريعك أو مخازنك في جميع أنحاء الإسكندرية وجمهورية مصر العربية.
+                نوصل طلباتك بسرعة وأمان إلى المشاريع، المصانع، الشركات، والمنازل داخل الإسكندرية وجميع محافظات مصر.
               </p>
             </div>
 
@@ -143,9 +143,9 @@ export const LandingPage = memo(function LandingPage({ initialCategories = [], i
               <div className="w-16 h-16 rounded-full bg-primary/5 flex items-center justify-center text-primary mb-6">
                 <span className="material-symbols-outlined text-[32px]">workspace_premium</span>
               </div>
-              <h3 className="font-headline-md text-[18px] text-on-background font-bold mb-2">منتجات أصلية 100%</h3>
+              <h3 className="font-headline-md text-[18px] text-on-background font-bold mb-2">منتجات أصلية بضمان الجودة</h3>
               <p className="text-on-surface-variant text-xs leading-relaxed">
-                موزع معتمد يضمن منتجات أصلية معتمدة بالكامل مباشرة من السويدي، شنايدر، سيمنز، هيميل، جيويس، وشينت.
+                نعمل كموزعين معتمدين لأشهر العلامات التجارية مثل السويدي، شنايدر، ABB، سيمنس، هيميل، وجيوبس، لضمان أعلى مستويات الجودة والأمان.
               </p>
             </div>
 
@@ -153,9 +153,9 @@ export const LandingPage = memo(function LandingPage({ initialCategories = [], i
               <div className="w-16 h-16 rounded-full bg-primary/5 flex items-center justify-center text-primary mb-6">
                 <span className="material-symbols-outlined text-[32px]">payments</span>
               </div>
-              <h3 className="font-headline-md text-[18px] text-on-background font-bold mb-2">أفضل قيمة</h3>
+              <h3 className="font-headline-md text-[18px] text-on-background font-bold mb-2">أفضل الأسعار</h3>
               <p className="text-on-surface-variant text-xs leading-relaxed">
-                هياكل تسعير تنافسية للغاية للجملة والتجزئة على جميع كابلات الطاقة وقواطع الحماية الكهربائية.
+                دون المساومة على الجودة نوفر أسعارًا تنافسية للجملة والتجزئة على الأسلاك، الكابلات، القواطع، ولوحات التوزيع، مع أفضل قيمة مقابل السعر.
               </p>
             </div>
           </div>
@@ -166,10 +166,10 @@ export const LandingPage = memo(function LandingPage({ initialCategories = [], i
         <div className="absolute inset-0 diagonal-accents opacity-5"></div>
         <div className="max-w-max-width mx-auto px-margin-mobile md:px-margin-desktop relative z-10">
           <h2 className="font-display-lg text-headline-lg text-white mb-4 font-bold">
-            هل أنت جاهز لتزويد مشروعك بالطاقة؟
+            هل أنت مستعد لتزويد مشروعك بالطاقة؟
           </h2>
           <p className="text-surface-variant/70 text-body-lg max-w-xl mx-auto mb-10 leading-relaxed">
-            انضم إلى المقاولين والمهندسين الذين يثقون في إلكترو توب للحصول على المكونات الكهربائية المعتمدة ومستلزمات التوصيل.
+            انضم إلى المقاولين والمهندسين الذين يثقون في إلكترو توب للحصول على مكونات كهربائية أصلية وحلول توصيل موثوقة.
           </p>
           <Link
             href="/shop"
