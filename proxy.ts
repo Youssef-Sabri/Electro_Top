@@ -83,16 +83,16 @@ export async function proxy(request: NextRequest) {
   const requestHeaders = new Headers(request.headers)
   requestHeaders.set('x-nonce', nonce)
 
-  const response = NextResponse.next({
+  let response = NextResponse.next({
     request: {
       headers: requestHeaders,
     }
   })
-  response.headers.set('x-nonce', nonce)
-  response.headers.set('Content-Security-Policy', buildCsp(nonce, supabaseHost))
 
   // Allow admin login page and API without session
   if (pathname === '/admin' || pathname === '/api/admin/login') {
+    response.headers.set('x-nonce', nonce)
+    response.headers.set('Content-Security-Policy', buildCsp(nonce, supabaseHost))
     return response
   }
 
@@ -104,10 +104,24 @@ export async function proxy(request: NextRequest) {
       },
       set(name: string, value: string, options: Record<string, unknown>) {
         request.cookies.set(name, value)
+        const cookieVal = request.cookies.toString()
+        requestHeaders.set('cookie', cookieVal)
+        response = NextResponse.next({
+          request: {
+            headers: requestHeaders,
+          }
+        })
         response.cookies.set(name, value, options)
       },
       remove(name: string, options: Record<string, unknown>) {
         request.cookies.set(name, '')
+        const cookieVal = request.cookies.toString()
+        requestHeaders.set('cookie', cookieVal)
+        response = NextResponse.next({
+          request: {
+            headers: requestHeaders,
+          }
+        })
         response.cookies.set(name, '', options)
       },
     })
@@ -123,6 +137,8 @@ export async function proxy(request: NextRequest) {
     }
   }
 
+  response.headers.set('x-nonce', nonce)
+  response.headers.set('Content-Security-Policy', buildCsp(nonce, supabaseHost))
   return response
 }
 
