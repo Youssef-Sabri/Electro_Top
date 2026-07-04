@@ -35,6 +35,8 @@ const cairo = Cairo({
   display: 'swap',
 });
 
+import { SITE_METADATA } from '@/lib/constants';
+
 const tajawal = Tajawal({
   subsets: ['arabic', 'latin'],
   weight: ['400', '500', '700'],
@@ -43,8 +45,34 @@ const tajawal = Tajawal({
 });
 
 export const metadata: Metadata = {
-  title: 'إلكترو توب | مستلزمات كهربائية معتمدة',
-  description: 'الموزع المعتمد لمنتجات السويدي، شنايدر، سيمنز، هيميل، جيويس، وشينت. مستلزمات كهربائية ممتازة مع إمكانية الدفع كزائر وتتبع الطلبات.',
+  metadataBase: SITE_METADATA.url ? new URL(SITE_METADATA.url) : undefined,
+  title: {
+    default: SITE_METADATA.title,
+    template: `%s | ${SITE_METADATA.title}`,
+  },
+  description: SITE_METADATA.description,
+  openGraph: {
+    title: SITE_METADATA.title,
+    description: SITE_METADATA.description,
+    url: SITE_METADATA.url,
+    siteName: 'إلكترو توب',
+    locale: 'ar_EG',
+    type: 'website',
+    images: [
+      {
+        url: '/logo.png',
+        width: 1200,
+        height: 630,
+        alt: 'إلكترو توب',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: SITE_METADATA.title,
+    description: SITE_METADATA.description,
+    images: ['/logo.png'],
+  },
 };
 
 export default async function RootLayout({

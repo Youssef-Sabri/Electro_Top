@@ -55,7 +55,6 @@ export async function proxy(request: NextRequest) {
     const expectedHost = getExpectedHost();
     const vercelUrl = process.env.VERCEL_URL || '';
     const isAllowed = (!expectedHost || requestHost === expectedHost || requestHost === `www.${expectedHost}`) || 
-                      requestHost.endsWith('.vercel.app') ||
                       (vercelUrl && requestHost === vercelUrl);
     if (!isAllowed) {
       return new NextResponse('Forbidden', { status: 403 });

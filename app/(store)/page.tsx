@@ -2,9 +2,11 @@ import { Metadata } from 'next';
 import { LandingPage } from '@/components/catalog/LandingPage';
 import { fetchCatalog } from '@/lib/fetch-catalog';
 
+import { SITE_METADATA } from '@/lib/constants';
+
 export const metadata: Metadata = {
-  title: 'إلكترو توب | مستلزمات كهربائية معتمدة',
-  description: 'متجر إلكتروني متخصص في المستلزمات الكهربائية. تسوق كزائر وتتبع طلبك بسهولة.',
+  title: SITE_METADATA.title,
+  description: SITE_METADATA.description,
 };
 
 export const revalidate = 60;

@@ -12,3 +12,9 @@ export function normalizeTrackingId(id: string): string {
 export function isValidTrackingId(id: string): boolean {
   return TRACKING_ID_REGEX.test(id)
 }
+
+export const SITE_METADATA = {
+  title: 'إلكترو توب | مستلزمات كهربائية معتمدة',
+  description: 'متجر إلكتروني متخصص في المستلزمات الكهربائية. تسوق كزائر وتتبع طلبك بسهولة.',
+  url: process.env.NEXT_PUBLIC_SITE_URL || '',
+} as const
