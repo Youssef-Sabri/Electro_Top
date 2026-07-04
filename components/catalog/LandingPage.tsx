@@ -47,14 +47,12 @@ export const LandingPage = memo(function LandingPage({ initialCategories = [], i
         <div className="absolute inset-0 diagonal-accents opacity-10"></div>
         <div className="max-w-max-width mx-auto px-margin-mobile md:px-margin-desktop relative z-10">
           <div className="max-w-2xl text-start">
-            <span className="text-electro-gold font-bold text-xs uppercase tracking-widest block mb-3 animate-fade-in">
-              المستلزمات الكهربائية وحلول الهندسة
-            </span>
+
             <h1 className="font-display-lg text-[40px] md:text-[56px] text-white mb-6 leading-tight font-extrabold animate-fade-in-up">
-              طاقة هندسية <br /> <span className="text-electro-red">ودقة عالية</span>
+              اسلاك السويدي ومستلزمات كهرابائيه <span className="text-electro-red">عالية الجوده</span>
             </h1>
             <p className="text-surface-variant/80 text-body-lg mb-10 leading-relaxed max-w-2xl">
-              اكتشف مجموعة شاملة من المكونات الكهربائية من العلامات التجارية الرائدة مثل السويدي إلكتريك، شنايدر، سيمنز، هيميل، جيويس، وشينت. كموزعين معتمدين، نوفر قواطع الحماية والكابلات ولوحات التوزيع والاستشارات الهندسية المتخصصة للمشاريع السكنية والتجارية والصناعية.
+              موزعين معتمدين لدي السويدى الكتيرك، متسوبيشى يابانى، هيمل صينى، ABB (الوطنية)، فينوس ويوجد لدينا جميع اللوحات و مجري الاسلاك التركي. نوفر كل قواطع الحماية والكابلات ولوحات التوزيع والاستشارات الهندسية المتخصصة للمشاريع السكنية والتجارية والصناعية.
             </p>
             <div className="flex gap-4">
               <Link
