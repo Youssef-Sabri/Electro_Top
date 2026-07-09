@@ -45,8 +45,8 @@ export const StatusBadge = memo(function StatusBadge({ status }: StatusBadgeProp
       );
     default:
       return (
-        <span className="px-3 py-1 rounded-full bg-gray-100 text-gray-700 font-label-sm text-label-sm inline-flex items-center gap-1 border border-gray-200 select-none">
-          <span className="w-1.5 h-1.5 rounded-full bg-gray-500"></span> {status}
+        <span className="px-3 py-1 rounded-full bg-surface-container-low text-on-surface-variant font-label-sm text-label-sm inline-flex items-center gap-1 border border-outline-variant select-none">
+          <span className="w-1.5 h-1.5 rounded-full bg-on-surface-variant/40"></span> {status}
         </span>
       );
   }

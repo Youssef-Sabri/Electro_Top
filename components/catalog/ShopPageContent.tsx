@@ -35,7 +35,6 @@ export const ShopPageContent = memo(function ShopPageContent({ initialProducts, 
   const router = useRouter();
   const isInitialSync = useRef(false);
 
-
   useEffect(() => {
     if (!isLoaded && initialProducts && initialProducts.length > 0) {
       initializeData(initialProducts, initialCategories);
@@ -51,7 +50,6 @@ export const ShopPageContent = memo(function ShopPageContent({ initialProducts, 
   const [sortBy, setSortBy] = useState<SortByType>(() => (searchParams.get('sort') as SortByType) || 'name-asc');
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
-  // 2. Debounce search input to prevent performance lag and rapid router writes
   const [debouncedSearch, setDebouncedSearch] = useState(searchInput);
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -97,7 +95,6 @@ export const ShopPageContent = memo(function ShopPageContent({ initialProducts, 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams]);
 
-  
   const categoriesList = useMemo(() => {
     const cleanCats = categories.filter(cat => {
       if (!cat) return false;
@@ -110,7 +107,6 @@ export const ShopPageContent = memo(function ShopPageContent({ initialProducts, 
   const filteredProducts = useMemo(() => {
     return products.filter((product) => {
       if (!product.is_active) return false;
-
       if (hideOutOfStock && product.stock <= 0) return false;
 
       let matchesCategory = true;
@@ -163,31 +159,33 @@ export const ShopPageContent = memo(function ShopPageContent({ initialProducts, 
 
   return (
     <div className="min-h-screen bg-white font-tajawal text-on-surface">
+      {/* Sleek Dark Header Banner */}
       <section className="bg-on-background py-16 text-start relative overflow-hidden">
-        <div className="absolute inset-0 diagonal-accents opacity-10"></div>
+        <div className="absolute inset-0 bg-gradient-to-r from-[#CA202B]/10 to-transparent pointer-events-none" />
         <div className="max-w-max-width mx-auto px-margin-mobile md:px-margin-desktop relative z-10">
-          <span className="text-electro-gold font-bold text-xs uppercase tracking-widest">
+          <span className="text-secondary-fixed font-bold text-xs uppercase tracking-widest">
             اكتشف كتالوج منتجاتنا
           </span>
           <h1 className="font-headline-lg text-[32px] md:text-[40px] text-white font-extrabold mt-2">
             المتجر
           </h1>
-          <div className="w-16 h-1 bg-electro-red rounded-full mt-4"></div>
+          <div className="w-16 h-1 bg-[#CA202B] rounded-full mt-4"></div>
         </div>
       </section>
 
       {/* Main Shop Container */}
       <main className="max-w-max-width mx-auto px-margin-mobile md:px-margin-desktop py-12">
-        {/* Mobile category chips — horizontal scroll, shown only on small screens */}
-        <div className="flex lg:hidden gap-2 overflow-x-auto pb-2 mb-4 scrollbar-hide -mx-4 px-4">
+        
+        {/* Category chips list (Both mobile & desktop for clean inline visual filter tabs) */}
+        <div className="flex gap-2.5 overflow-x-auto pb-4 mb-8 scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0">
           {categoriesList.map((cat) => (
             <button
               key={cat}
               onClick={() => setCategory(cat)}
-              className={`flex-shrink-0 px-4 py-1.5 rounded-full text-xs font-bold transition-all duration-200 border ${
+              className={`flex-shrink-0 px-5 py-2 rounded-full text-xs font-bold transition-all duration-200 border cursor-pointer ${
                 category === cat
-                  ? 'bg-electro-red text-white border-electro-red shadow-sm'
-                  : 'bg-white text-on-surface-variant border-outline-variant/50 hover:border-primary hover:text-primary'
+                  ? 'bg-primary text-on-primary border-transparent shadow-sm'
+                  : 'bg-white text-on-surface-variant border-outline-variant hover:border-primary/40 hover:text-primary'
               }`}
             >
               {getCategoryLabel(cat)}
@@ -195,44 +193,35 @@ export const ShopPageContent = memo(function ShopPageContent({ initialProducts, 
           ))}
         </div>
 
-        <div className="bg-surface-container-low border border-outline-variant/30 rounded-xl p-6 mb-10 space-y-6">
+        {/* Filters Toolbar */}
+        <div className="bg-surface-container-low border border-outline-variant/40 rounded-2xl p-6 mb-10 space-y-6">
           <div className="flex flex-col lg:flex-row gap-4 items-stretch lg:items-center justify-between">
+            
+            {/* Search Input */}
             <div className="relative flex-grow max-w-xl text-start">
                <input
-                 className="w-full bg-white border border-gray-300 rounded-lg pr-10 pl-4 py-2.5 text-label-md focus:ring-2 focus:ring-primary/10 focus:border-primary outline-none transition-all text-on-surface text-right"
+                 className="w-full bg-white border border-outline-variant rounded-full pr-11 pl-4 py-2.5 text-label-md focus:ring-2 focus:ring-primary/10 focus:border-primary outline-none transition-all text-on-surface text-right"
                  placeholder="البحث عن مستلزمات كهربائية..."
                  type="text"
                  value={searchInput}
                  onChange={(e) => setSearchInput(e.target.value)}
                />
-              <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant select-none">
-               search
+              <span className="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-on-surface-variant select-none">
+                search
               </span>
             </div>
 
+            {/* Other Controls */}
             <div className="flex flex-wrap items-center gap-6 justify-start lg:justify-end">
-              <label className="flex items-center gap-2 cursor-pointer font-semibold text-sm text-on-surface select-none">
+              <label className="flex items-center gap-2 cursor-pointer font-bold text-sm text-on-surface select-none">
                <input
                  type="checkbox"
                  checked={hideOutOfStock}
-                  onChange={(e) => setHideOutOfStock(e.target.checked)}
-                 className="w-4.5 h-4.5 rounded border-gray-300 focus:ring-primary text-primary accent-primary cursor-pointer"
+                 onChange={(e) => setHideOutOfStock(e.target.checked)}
+                 className="w-4.5 h-4.5 rounded border-outline-variant focus:ring-primary text-primary accent-primary cursor-pointer"
                />
-                إخفاء المنتجات غير المتوفرة
+                إخفاء غير المتوفر
               </label>
-
-              <div className="hidden lg:flex items-center gap-2">
-               <CustomDropdown
-                 labelPrefix="القسم:"
-                 options={categoriesList.map(cat => ({ 
-                   value: cat, 
-                   label: getCategoryLabel(cat)
-                 }))}
-                 value={category}
-                  onChange={(val) => setCategory(val)}
-                 className="min-w-[200px]"
-               />
-              </div>
 
               <div className="flex items-center gap-2">
                <CustomDropdown
@@ -243,24 +232,25 @@ export const ShopPageContent = memo(function ShopPageContent({ initialProducts, 
                    { value: 'price-desc', label: 'السعر: من الأعلى للأقل' },
                  ]}
                  value={sortBy}
-                  onChange={(val) => setSortBy(val as SortByType)}
+                 onChange={(val) => setSortBy(val as SortByType)}
                />
               </div>
             </div>
           </div>
         </div>
 
-
         {paginatedProducts.length > 0 ? (
           <div className="space-y-12">
             {/* Product count badge */}
             <div className="flex items-center justify-between mb-2">
-              <span className="inline-flex items-center gap-1.5 bg-surface-container border border-outline-variant/30 text-on-surface-variant text-xs font-semibold px-3 py-1.5 rounded-full">
+              <span className="inline-flex items-center gap-1.5 bg-surface-container-low border border-outline-variant text-on-surface-variant text-xs font-bold px-3.5 py-1.5 rounded-full">
                 <span className="material-symbols-outlined text-[14px] text-primary">inventory_2</span>
                 {sortedProducts.length} منتج
               </span>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-gutter">
+
+            {/* Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
               {paginatedProducts.map((product, index) => (
                 <ProductCard
                   key={product.id}
@@ -271,17 +261,18 @@ export const ShopPageContent = memo(function ShopPageContent({ initialProducts, 
               ))}
             </div>
 
-            <div className="flex justify-between items-center bg-surface-container-low border border-outline-variant/30 rounded-xl px-6 py-4 select-none font-tajawal">
-              <p className="font-label-md text-label-sm text-on-surface-variant font-medium">
+            {/* Pagination Controls */}
+            <div className="flex justify-between items-center bg-surface-container-low border border-outline-variant/40 rounded-2xl px-6 py-4 select-none font-tajawal">
+              <p className="text-xs text-on-surface-variant font-bold">
                 الصفحة {currentPage} من {totalPages}
               </p>
               <div className="flex gap-2">
                 <button
                   onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
                   disabled={currentPage === 1}
-                  className={`p-2 border border-gray-300 rounded transition-all duration-200 flex items-center bg-white ${
+                  className={`p-2 border border-outline-variant rounded-lg transition-all duration-200 flex items-center bg-white ${
                     currentPage === 1 
-                      ? 'opacity-40 cursor-not-allowed text-on-surface-variant/40' 
+                      ? 'opacity-40 cursor-not-allowed text-on-surface-variant' 
                       : 'hover:border-primary hover:text-primary cursor-pointer text-on-surface'
                   }`}
                 >
@@ -290,9 +281,9 @@ export const ShopPageContent = memo(function ShopPageContent({ initialProducts, 
                 <button
                   onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
                   disabled={currentPage === totalPages}
-                  className={`p-2 border border-gray-300 rounded transition-all duration-200 flex items-center bg-white ${
+                  className={`p-2 border border-outline-variant rounded-lg transition-all duration-200 flex items-center bg-white ${
                     currentPage === totalPages 
-                      ? 'opacity-40 cursor-not-allowed text-on-surface-variant/40' 
+                      ? 'opacity-40 cursor-not-allowed text-on-surface-variant' 
                       : 'hover:border-primary hover:text-primary cursor-pointer text-on-surface'
                   }`}
                 >
@@ -302,17 +293,17 @@ export const ShopPageContent = memo(function ShopPageContent({ initialProducts, 
             </div>
           </div>
         ) : (
-          <div className="text-center py-20 bg-white rounded-xl border border-outline-variant/35 p-8 max-w-md mx-auto">
+          <div className="text-center py-20 bg-white rounded-2xl border border-outline-variant/40 p-8 max-w-md mx-auto">
             <span className="material-symbols-outlined text-[64px] text-on-surface-variant mb-4 select-none">
               search_off
             </span>
-            <h3 className="font-headline-md text-[20px] text-on-surface mb-2">لم يتم العثور على أي منتجات</h3>
-            <p className="text-on-surface-variant text-label-sm mb-6">
+            <h3 className="font-bold text-[20px] text-on-surface mb-2">لم يتم العثور على أي منتجات</h3>
+            <p className="text-on-surface-variant text-xs mb-6">
               لم نتمكن من العثور على أي مستلزمات كهربائية تطابق التصفية الحالية.
             </p>
             <button
               onClick={handleClearFilters}
-              className="bg-primary text-on-primary px-6 py-2.5 rounded-lg font-label-md hover:opacity-90 transition-opacity cursor-pointer font-bold uppercase tracking-wider text-xs"
+              className="bg-primary text-white px-8 py-3 rounded-full font-bold hover:opacity-95 transition-opacity cursor-pointer text-xs"
             >
               إعادة تعيين التصفية
             </button>
@@ -330,3 +321,4 @@ export const ShopPageContent = memo(function ShopPageContent({ initialProducts, 
     </div>
   );
 });
+ShopPageContent.displayName = 'ShopPageContent';

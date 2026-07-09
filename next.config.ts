@@ -34,7 +34,7 @@ const nextConfig: NextConfig = {
     optimizePackageImports: ['@supabase/supabase-js'],
   },
   images: {
-    qualities: [70, 75, 80, 85],
+    qualities: [60, 70, 75, 80, 85],
     minimumCacheTTL: 60 * 60 * 24 * 7,
     formats: ['image/avif', 'image/webp'],
     remotePatterns: [

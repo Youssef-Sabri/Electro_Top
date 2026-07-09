@@ -58,20 +58,11 @@ export const metadata: Metadata = {
     siteName: 'إلكترو توب',
     locale: 'ar_EG',
     type: 'website',
-    images: [
-      {
-        url: '/logo.png',
-        width: 1200,
-        height: 630,
-        alt: 'إلكترو توب',
-      },
-    ],
   },
   twitter: {
-    card: 'summary_large_image',
+    card: 'summary',
     title: SITE_METADATA.title,
     description: SITE_METADATA.description,
-    images: ['/logo.png'],
   },
 };
 

@@ -1,3 +1,4 @@
+'use client';
 
 import { memo } from 'react';
 import { getSupportEnv } from '@/lib/env-utils';
@@ -6,13 +7,14 @@ export const Footer = memo(function Footer() {
   const { whatsapp: whatsappNumbers, phone: phoneNumbers, facebook: facebookUrl } = getSupportEnv();
 
   return (
-    <footer className="bg-on-background text-secondary-fixed w-full">
-      <div className="max-w-max-width mx-auto px-margin-desktop py-20 flex flex-col md:flex-row justify-between items-start gap-12">
-        {/* Brand Column */}
-        <div className="space-y-6 max-w-2xl text-start">
+    <footer className="bg-on-background text-secondary-fixed w-full border-t border-surface-variant/10 font-tajawal">
+      {/* Upper Grid Area */}
+      <div className="max-w-max-width mx-auto px-margin-mobile md:px-margin-desktop py-16 grid grid-cols-1 md:grid-cols-2 gap-12 text-start">
+        
+        {/* Column 1: Brand Info */}
+        <div className="space-y-5">
           <div className="flex items-center gap-3">
-            <div className="bg-white rounded-xl p-1.5 shadow-lg">
-              {/* eslint-disable-next-line @next/next/no-img-element -- static logo */}
+            <div className="bg-white rounded-xl p-1.5 shadow-sm">
                <img
                 alt="شعار إلكترو توب"
                 className="h-8 w-auto"
@@ -27,37 +29,37 @@ export const Footer = memo(function Footer() {
               إلكترو توب
             </span>
           </div>
-          <p className="font-body-md text-surface-variant/80 max-w-xl">
+          <p className="text-sm text-surface-variant/80 leading-relaxed max-w-sm">
             شريكك الموثوق في الحلول الكهربائية. نوفر مستلزمات كهربائية أصلية من أفضل العلامات التجارية العالمية، بأسعار تنافسية، واستشارات فنية، وتوصيل سريع للمشروعات السكنية والتجارية والصناعية.
           </p>
-          <div className="flex gap-4">
+          <div className="flex gap-3 pt-2">
             <a
               href={facebookUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="w-10 h-10 rounded-full bg-surface-variant/10 flex items-center justify-center hover:bg-primary transition-colors text-surface-variant hover:text-white"
+              className="w-9 h-9 rounded-full bg-surface-variant/10 flex items-center justify-center hover:bg-primary transition-all duration-250 text-surface-variant hover:text-white"
               aria-label="تابعنا على فيسبوك"
             >
-              <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24" aria-hidden="true">
+              <svg className="w-4.5 h-4.5 fill-current" viewBox="0 0 24 24" aria-hidden="true">
                 <path fillRule="evenodd" d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z" clipRule="evenodd" />
               </svg>
             </a>
           </div>
         </div>
 
-        {/* Support Column */}
-        <div className="space-y-4 text-start md:text-end min-w-[200px]">
-          <h4 className="text-secondary-fixed font-bold text-xs uppercase tracking-widest">
+        {/* Column 2: Contact & Support */}
+        <div className="space-y-4">
+          <h4 className="text-secondary-fixed font-bold text-sm tracking-wide border-b border-surface-variant/10 pb-2 w-fit">
             الاتصال والدعم
           </h4>
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-3.5 text-sm">
             {phoneNumbers.map((number, index) => (
               <a
                 key={index}
                 href={`tel:${number}`}
-                className="flex items-center md:justify-end gap-2 text-surface-variant hover:text-secondary-fixed transition-colors font-medium text-sm"
+                className="flex items-center gap-2 text-surface-variant hover:text-secondary-fixed transition-colors font-medium"
               >
-                <span className="material-symbols-outlined text-[18px]">phone</span>
+                <span className="material-symbols-outlined text-[20px] text-primary">phone</span>
                 <span dir="ltr">{number} {phoneNumbers.length > 1 && `(${index + 1})`}</span>
               </a>
             ))}
@@ -67,19 +69,22 @@ export const Footer = memo(function Footer() {
                 href={`https://wa.me/${number}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center md:justify-end gap-2 text-surface-variant hover:text-secondary-fixed transition-colors font-medium text-sm"
+                className="flex items-center gap-2 text-surface-variant hover:text-secondary-fixed transition-colors font-medium"
               >
-                <span className="material-symbols-outlined text-[18px]">chat</span>
+                <span className="material-symbols-outlined text-[20px] text-[#25D366]">chat</span>
                 <span>مراسلتنا عبر واتساب {whatsappNumbers.length > 1 && `(${index + 1})`}</span>
               </a>
             ))}
           </div>
         </div>
+
       </div>
 
-      <div className="max-w-max-width mx-auto px-margin-desktop py-8 border-t border-surface-variant/10 text-center text-surface-variant/60 text-label-sm">
+      {/* Bottom Copyright Bar */}
+      <div className="border-t border-surface-variant/10 py-6 text-center text-xs text-surface-variant/60 max-w-max-width mx-auto px-margin-desktop">
         <span>© 2026 إلكترو توب. جميع الحقوق محفوظة.</span>
       </div>
     </footer>
   );
 });
+Footer.displayName = 'Footer';

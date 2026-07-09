@@ -12,7 +12,6 @@ interface ProductDetailsModalProps {
   onClose: () => void;
 }
 
-
 export const ProductDetailsModal = memo(function ProductDetailsModal({ product, onClose }: ProductDetailsModalProps) {
   const { addToCart } = useCart();
   const [quantity, setQuantity] = useState(1);
@@ -108,16 +107,19 @@ export const ProductDetailsModal = memo(function ProductDetailsModal({ product, 
     }, 1500);
   };
 
+  const totalPrice = product.price * quantity;
+
   return (
     <div
       onClick={handleBackdropClick}
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm transition-opacity duration-300"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm transition-opacity duration-300"
     >
       <div
-        className="relative w-full max-w-2xl bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col md:flex-row max-h-[82vh] md:h-[500px] border border-outline-variant/20"
+        className="relative w-full max-w-2xl bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col md:flex-row max-h-[85vh] md:h-[500px] border border-outline-variant/10"
         style={{ animation: 'modalSlideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards' }}
       >
-        <div className="relative w-full md:w-5/12 h-[260px] md:h-full bg-white flex-shrink-0 border-e border-outline-variant/10 flex flex-col p-4 justify-between">
+        {/* Left Side: Images */}
+        <div className="relative w-full md:w-5/12 h-[310px] md:h-full bg-white flex-shrink-0 border-e border-outline-variant/10 flex flex-col p-5 justify-between">
           <div className="relative w-full flex-grow h-[180px] md:h-[350px]">
             {images.length > 1 ? (
               <div
@@ -150,7 +152,7 @@ export const ProductDetailsModal = memo(function ProductDetailsModal({ product, 
                 {/* Navigation Arrows */}
                 <button
                   onClick={handlePrevImage}
-                  className="absolute left-1 top-1/2 -translate-y-1/2 z-20 bg-black/25 hover:bg-black/45 text-white rounded-full p-1.5 transition active:scale-95 shadow flex items-center justify-center opacity-0 group-hover:opacity-100"
+                  className="absolute left-1 top-1/2 -translate-y-1/2 z-20 bg-black/15 hover:bg-black/35 text-white rounded-full p-1.5 transition active:scale-95 shadow flex items-center justify-center opacity-0 group-hover:opacity-100"
                   aria-label="Previous image"
                 >
                   <svg className="w-4 h-4 rtl:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -159,7 +161,7 @@ export const ProductDetailsModal = memo(function ProductDetailsModal({ product, 
                 </button>
                 <button
                   onClick={handleNextImage}
-                  className="absolute right-1 top-1/2 -translate-y-1/2 z-20 bg-black/25 hover:bg-black/45 text-white rounded-full p-1.5 transition active:scale-95 shadow flex items-center justify-center opacity-0 group-hover:opacity-100"
+                  className="absolute right-1 top-1/2 -translate-y-1/2 z-20 bg-black/15 hover:bg-black/35 text-white rounded-full p-1.5 transition active:scale-95 shadow flex items-center justify-center opacity-0 group-hover:opacity-100"
                   aria-label="Next image"
                 >
                   <svg className="w-4 h-4 rtl:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -185,7 +187,7 @@ export const ProductDetailsModal = memo(function ProductDetailsModal({ product, 
 
           {/* Interactive Thumbnails */}
           {images.length > 1 && (
-            <div className="flex gap-2 justify-center mt-3 overflow-x-auto py-1 w-full select-none scrollbar-hide">
+            <div className="flex gap-2 justify-center mt-3 overflow-x-auto py-1 w-full select-none scrollbar-hide flex-shrink-0">
               {images.map((imgUrl, index) => {
                 const isActive = index === currentImageIndex;
                 return (
@@ -193,8 +195,8 @@ export const ProductDetailsModal = memo(function ProductDetailsModal({ product, 
                     key={imgUrl}
                     type="button"
                     onClick={() => setCurrentImageIndex(index)}
-                    className={`relative w-11 h-11 rounded-lg border-2 overflow-hidden transition-all duration-200 cursor-pointer bg-white flex-shrink-0 ${
-                      isActive ? 'border-primary scale-105 shadow-sm' : 'border-outline-variant/40 hover:border-gray-400'
+                    className={`relative w-11 h-11 rounded-lg border overflow-hidden transition-all duration-200 cursor-pointer bg-white flex-shrink-0 ${
+                      isActive ? 'border-primary ring-1 ring-primary/40 scale-105 shadow-sm' : 'border-outline-variant/30 hover:border-outline'
                     }`}
                   >
                     <Image
@@ -212,65 +214,64 @@ export const ProductDetailsModal = memo(function ProductDetailsModal({ product, 
           )}
 
           {product.stock <= 0 && (
-            <div className="absolute inset-0 bg-black/40 flex items-center justify-center backdrop-blur-[1px] z-30">
-              <span className="bg-electro-red text-white font-tajawal font-bold px-6 py-2.5 rounded-md uppercase tracking-wider text-sm shadow-md">
+            <div className="absolute inset-0 bg-black/45 flex items-center justify-center backdrop-blur-[1px] z-30">
+              <span className="bg-[#CA202B] text-white font-bold px-6 py-2.5 rounded-lg text-sm shadow-md">
                 نفذت الكمية
               </span>
             </div>
           )}
         </div>
  
-        <div className="p-6 flex flex-col flex-grow overflow-y-auto h-[calc(82vh-200px)] md:h-full text-start font-tajawal">
+        {/* Right Side: Details & Actions */}
+        <div className="p-6 flex flex-col flex-grow overflow-y-auto h-[calc(85vh-260px)] md:h-full text-start font-tajawal bg-white">
           <div className="flex justify-between items-start mb-4">
-            <div>
-              <h2 className="font-headline-md text-[20px] md:text-[22px] text-on-surface leading-tight font-bold">
-                {product.name}
-              </h2>
-            </div>
+            <h2 className="font-bold text-[20px] md:text-[22px] text-on-surface leading-snug">
+              {product.name}
+            </h2>
             <button
               onClick={onClose}
-              className="p-1.5 rounded-full text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors cursor-pointer"
+              className="p-1.5 rounded-full text-on-surface-variant/50 hover:bg-surface-container-low hover:text-on-surface transition-colors cursor-pointer shrink-0"
               aria-label="إغلاق النافذة"
             >
               <span className="material-symbols-outlined text-[24px] select-none">close</span>
             </button>
           </div>
  
-          <div className="flex items-center gap-4 mb-5">
-            <span className="text-electro-gold font-bold text-[22px] md:text-[24px] font-tajawal">
+          <div className="flex flex-wrap items-center gap-3 mb-5 text-sm">
+            <span className="text-primary font-bold text-2xl">
               {formatCurrency(product.price)}
             </span>
             {product.stock > 0 ? (
-              <span className="bg-green-50 text-green-700 text-xs font-semibold px-2.5 py-1 rounded-md border border-green-200">
+              <span className="bg-[var(--color-status-delivered)]/10 text-[var(--color-status-delivered)] text-xs font-semibold px-2.5 py-1 rounded-md border border-[var(--color-status-delivered)]/20">
                 متوفر في المخزون: {product.stock}
               </span>
             ) : (
-              <span className="bg-red-50 text-red-700 text-xs font-semibold px-2.5 py-1 rounded-md border border-red-200">
+              <span className="bg-error/10 text-error text-xs font-semibold px-2.5 py-1 rounded-md border border-error/20">
                 نفذت الكمية
               </span>
             )}
           </div>
 
           {product.has_colors && (
-            <div className="mb-5 border-t border-b border-gray-100 py-3.5 select-none text-start">
-              <h3 className="font-bold text-on-surface text-[13px] mb-3 font-tajawal flex items-center gap-1.5">
+            <div className="mb-5 border-t border-b border-outline-variant/10 py-3.5 select-none text-start">
+              <h3 className="font-bold text-on-surface text-[13px] mb-3 flex items-center gap-1.5">
                 <span>اللون:</span>
                 <span className="text-primary font-extrabold">{selectedColor || 'كل الألوان'}</span>
-                <span className="text-electro-red font-bold">*</span>
+                <span className="text-primary font-bold">*</span>
               </h3>
-              <div className="flex flex-wrap gap-3">
+              <div className="flex flex-wrap gap-2.5">
                 <button
                   type="button"
                   onClick={() => setSelectedColor(null)}
                   className={`w-8 h-8 rounded-full border transition-all duration-200 cursor-pointer flex items-center justify-center bg-surface-container-low ${
                     selectedColor === null
-                      ? 'border-primary ring-2 ring-offset-2 ring-primary scale-110'
-                      : 'border-gray-300 hover:border-gray-400 hover:scale-105'
+                      ? 'border-primary ring-2 ring-offset-2 ring-primary/60 scale-105'
+                      : 'border-outline-variant/40 hover:border-outline hover:scale-105'
                   }`}
                   title="كل الألوان"
                   aria-label="كل الألوان"
                 >
-                  <span className="material-symbols-outlined text-[16px] text-on-surface-variant select-none">palette</span>
+                  <span className="material-symbols-outlined text-[16px] text-on-surface-variant/60 select-none">palette</span>
                 </button>
                 {(product.colors && product.colors.length > 0 ? product.colors : ALL_COLORS.map(c => c.name)).map((colorName) => {
                   const hex = getColorHex(colorName);
@@ -281,9 +282,9 @@ export const ProductDetailsModal = memo(function ProductDetailsModal({ product, 
                       type="button"
                       onClick={() => setSelectedColor(colorName)}
                       className={`w-8 h-8 rounded-full border transition-all duration-200 cursor-pointer relative flex items-center justify-center ${
-                        isSelected
-                          ? 'border-primary ring-2 ring-offset-2 ring-primary scale-110'
-                          : 'border-gray-300 hover:border-gray-400 hover:scale-105'
+                          isSelected
+                          ? 'border-primary ring-2 ring-offset-2 ring-primary/60 scale-105'
+                          : 'border-outline-variant/40 hover:border-outline hover:scale-105'
                       }`}
                       title={colorName}
                       aria-label={`اختر لون ${colorName}`}
@@ -300,10 +301,10 @@ export const ProductDetailsModal = memo(function ProductDetailsModal({ product, 
           )}
 
           <div className="mb-6">
-            <h3 className="font-semibold text-on-surface text-[12px] uppercase tracking-wider mb-3 font-tajawal">
+            <h3 className="font-semibold text-on-surface-variant/50 text-xs uppercase tracking-wider mb-2">
               نظرة عامة
             </h3>
-            <div className="text-on-surface-variant text-label-md leading-relaxed space-y-2">
+            <div className="text-on-surface-variant text-sm leading-relaxed space-y-2">
               {product.description.split('\n').map((para, i) =>
                 para.trim() ? (
                   <p key={i}>{para.trim()}</p>
@@ -312,24 +313,23 @@ export const ProductDetailsModal = memo(function ProductDetailsModal({ product, 
             </div>
           </div>
 
-
-
-          <div className="mt-auto pt-6 border-t border-outline-variant/30 flex flex-col sm:flex-row gap-4 items-stretch">
+          {/* Bottom Row: Quantity + Price in Add to Cart CTA */}
+          <div className="mt-auto pt-5 border-t border-outline-variant/10 flex flex-col sm:flex-row gap-4 items-stretch">
             {product.stock > 0 && (
-              <div className="flex items-center border border-outline-variant/40 rounded-lg overflow-hidden shrink-0 bg-surface-container-lowest justify-between h-[48px] px-2">
+              <div className="flex items-center border border-outline-variant/30 rounded-xl overflow-hidden shrink-0 bg-surface-container-low justify-between h-[48px] px-2.5">
                 <button
                   onClick={handleDecrement}
                   disabled={quantity <= 1}
-                  className="p-1 hover:bg-surface-container rounded transition-colors disabled:opacity-30 disabled:hover:bg-transparent cursor-pointer"
+                  className="p-1 hover:bg-white rounded transition-colors disabled:opacity-30 disabled:hover:bg-transparent cursor-pointer"
                   aria-label="تقليل الكمية"
                 >
                   <span className="material-symbols-outlined text-[20px] select-none">remove</span>
                 </button>
-                <span className="w-12 text-center font-bold text-on-surface font-tajawal">{quantity}</span>
+                <span className="w-10 text-center font-bold text-on-surface">{quantity}</span>
                 <button
                   onClick={handleIncrement}
                   disabled={quantity >= product.stock}
-                  className="p-1 hover:bg-surface-container rounded transition-colors disabled:opacity-30 disabled:hover:bg-transparent cursor-pointer"
+                  className="p-1 hover:bg-white rounded transition-colors disabled:opacity-30 disabled:hover:bg-transparent cursor-pointer"
                   aria-label="زيادة الكمية"
                 >
                   <span className="material-symbols-outlined text-[20px] select-none">add</span>
@@ -340,18 +340,28 @@ export const ProductDetailsModal = memo(function ProductDetailsModal({ product, 
             <button
               onClick={handleAddToCart}
               disabled={product.stock <= 0 || (product.has_colors && selectedColor === null)}
-              className={`flex-grow h-[48px] rounded-lg font-label-md font-semibold transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer shadow-md ${
+              className={`flex-grow h-[48px] rounded-xl font-semibold transition-all duration-300 flex items-center justify-between px-6 cursor-pointer shadow-sm ${
                 product.stock <= 0 || (product.has_colors && selectedColor === null)
-                  ? 'bg-gray-200 text-gray-400 cursor-not-allowed shadow-none'
+                  ? 'bg-surface-container-low text-on-surface-variant/50 cursor-not-allowed shadow-none'
                   : isAdded
                     ? 'bg-green-600 text-white hover:bg-green-700'
-                    : 'bg-electro-red text-white hover:bg-brand-red-dark active:scale-[0.98]'
+                    : 'bg-[#CA202B] hover:bg-[#b01b24] text-white active:scale-[0.98]'
               }`}
             >
-              <span className="material-symbols-outlined text-[20px] select-none">
-                {isAdded ? 'check_circle' : 'shopping_cart'}
-              </span>
-              {product.stock <= 0 ? 'نفذت الكمية' : isAdded ? 'تمت الإضافة للسلة ✓' : `إضافة ${quantity} إلى السلة`}
+              <div className="flex items-center gap-2">
+                <span className="material-symbols-outlined text-[20px] select-none">
+                  {isAdded ? 'check_circle' : 'shopping_cart'}
+                </span>
+                <span>
+                  {product.stock <= 0 ? 'نفذت الكمية' : isAdded ? 'تمت الإضافة' : 'إضافة للسلة'}
+                </span>
+              </div>
+              
+              {product.stock > 0 && !isAdded && (
+                <span className="font-mono text-sm border-s border-white/20 ps-3.5">
+                  {formatCurrency(totalPrice)}
+                </span>
+              )}
             </button>
           </div>
         </div>
@@ -359,3 +369,4 @@ export const ProductDetailsModal = memo(function ProductDetailsModal({ product, 
     </div>
   );
 });
+ProductDetailsModal.displayName = 'ProductDetailsModal';

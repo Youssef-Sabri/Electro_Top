@@ -19,7 +19,6 @@ export function CheckoutForm() {
   const instapayAccountName = process.env.NEXT_PUBLIC_INSTAPAY_ACCOUNT_NAME || '';
   const instapayPhone = process.env.NEXT_PUBLIC_INSTAPAY_PHONE || '';
 
-  // Batch image upload state (image files + compression feedback)
   const [imageState, setImageState] = useState({
     selectedFile: null as File | null,
     compressedUploadFile: null as File | null,
@@ -27,7 +26,6 @@ export function CheckoutForm() {
     compressionInfo: null as string | null,
   });
 
-  // Batch UI state (hydration + submission)
   const [uiState, setUiState] = useState({
     isHydrated: false,
     isSubmitting: false,
@@ -88,8 +86,9 @@ export function CheckoutForm() {
     }
   };
 
-  // eslint-disable-next-line react-hooks/set-state-in-effect
-  useEffect(() => { setUiState((prev) => ({ ...prev, isHydrated: true })); }, []);
+  useEffect(() => { 
+    setUiState((prev) => ({ ...prev, isHydrated: true })); 
+  }, []);
 
   useEffect(() => {
     if (uiState.isHydrated && items.length === 0 && !uiState.isSubmitting) {
@@ -120,13 +119,11 @@ export function CheckoutForm() {
     e.preventDefault();
     setUiState((prev) => ({ ...prev, isSubmitting: true }));
 
-    // Honeypot check — if a bot filled the hidden field, silently ignore the submission
     if (honeypot) {
       setUiState((prev) => ({ ...prev, isSubmitting: false }));
       return;
     }
 
-    // Time-based bot detection — reject submissions < 2 seconds after page load
     const elapsedMs = Date.now() - pageLoadTimeRef.current;
     if (elapsedMs < 2000) {
       setUiState((prev) => ({ ...prev, isSubmitting: false }));
@@ -146,12 +143,11 @@ export function CheckoutForm() {
       return;
     }
 
-    let uploadedFileName: string | undefined
+    let uploadedFileName: string | undefined;
 
     try {
       let finalScreenshotUrl = formData.instapay_screenshot;
 
-      // 1. Upload receipt file only if InstaPay is chosen
       if (formData.payment_method === 'instapay') {
         const uploadFile = imageState.compressedUploadFile || imageState.selectedFile;
         if (uploadFile) {
@@ -174,7 +170,6 @@ export function CheckoutForm() {
         }
       }
 
-      // 2. Create order via direct API fetch (replaces context createOrder call)
       const orderData = {
         ...validationResult.data,
         instapay_screenshot: finalScreenshotUrl,
@@ -199,14 +194,9 @@ export function CheckoutForm() {
       }
 
       const trackingId = result.trackingId;
-      
-      // 3. Clear the cart
       clearCart();
-      
-      // 4. Redirect to order confirmation page
       router.push(`/checkout/confirmation?id=${trackingId}`);
     } catch (err) {
-      // Clean up orphaned upload if order creation failed
       if (uploadedFileName) {
         fetch(`/api/upload/receipt?filename=${encodeURIComponent(uploadedFileName)}`, { method: 'DELETE' })
           .catch(() => { /* best-effort cleanup */ });
@@ -218,8 +208,7 @@ export function CheckoutForm() {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="max-w-max-width mx-auto px-margin-mobile md:px-margin-desktop font-tajawal">
-      {/* Honeypot field for bot prevention — positioned off-screen to avoid modern bots detecting display:none */}
+    <form onSubmit={handleSubmit} className="max-w-max-width mx-auto px-margin-mobile md:px-margin-desktop py-12 font-tajawal text-on-surface">
       <div aria-hidden="true" className="absolute -left-[9999px] opacity-0 pointer-events-none" style={{ height: 0, overflow: 'hidden' }}>
         <label htmlFor="company_phone">Company Phone</label>
         <input
@@ -241,96 +230,96 @@ export function CheckoutForm() {
         />
       )}
 
-      <Link href="/cart" className="group flex items-center gap-2 text-primary font-label-md mb-6 w-fit">
-        <span className="material-symbols-outlined select-none rotate-180">arrow_back</span>
+      <Link href="/cart" className="group flex items-center gap-2 text-primary font-bold text-sm mb-6 w-fit">
+        <span className="material-symbols-outlined select-none rotate-180 text-[18px]">arrow_back</span>
         <span className="group-hover:underline">العودة إلى السلة</span>
       </Link>
 
-      <h1 className="font-headline-lg text-headline-lg mb-8 text-on-background text-start">
+      <h1 className="font-bold text-[28px] md:text-[32px] mb-8 text-on-background text-start">
         الدفع الآمن
       </h1>
 
-       <div className="bg-primary/5 border border-primary/20 rounded-xl p-6 mb-8 text-start">
-         <div className="space-y-6">
-           <div>
-             <h2 className="text-body-lg font-bold text-on-surface mb-4">اختر طريقة الدفع</h2>
-             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-               <label className={`relative flex items-center gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all ${formData.payment_method === 'instapay' ? 'border-primary bg-primary/10 ring-1 ring-primary/20' : 'border-gray-200 bg-white hover:border-primary/30'}`}>
-                 <input
-                   type="radio"
-                   name="payment_method"
-                   value="instapay"
-                   checked={formData.payment_method === 'instapay'}
-                   onChange={handleChange}
-                   className="sr-only"
-                 />
-                 <div className="w-5 h-5 rounded-full border-2 border-primary flex items-center justify-center">
-                   {formData.payment_method === 'instapay' && <div className="w-2.5 h-2.5 rounded-full bg-primary" />}
-                 </div>
-                 <div className="flex flex-col">
-                   <span className="font-bold text-on-surface">إنستاباي (InstaPay)</span>
-                   <span className="text-xs text-on-surface-variant">تحويل بنكي فوري</span>
-                 </div>
-               </label>
+      {/* Payment Selection Box */}
+      <div className="bg-surface-container-low border border-outline-variant/40 rounded-2xl p-6 mb-8 text-start">
+        <div className="space-y-6">
+          <div>
+            <h2 className="text-[17px] font-bold text-on-surface mb-4">اختر طريقة الدفع</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <label className={`relative flex items-center gap-3.5 p-5 rounded-2xl border-2 cursor-pointer transition-all ${formData.payment_method === 'instapay' ? 'border-primary bg-primary/5' : 'border-outline-variant bg-white hover:border-outline-variant/60'}`}>
+                <input
+                  type="radio"
+                  name="payment_method"
+                  value="instapay"
+                  checked={formData.payment_method === 'instapay'}
+                  onChange={handleChange}
+                  className="sr-only"
+                />
+                <div className="w-5 h-5 rounded-full border-2 border-primary flex items-center justify-center">
+                  {formData.payment_method === 'instapay' && <div className="w-2.5 h-2.5 rounded-full bg-primary" />}
+                </div>
+                <div className="flex flex-col">
+                  <span className="font-bold text-sm text-on-surface">إنستاباي (InstaPay)</span>
+                  <span className="text-xs text-on-surface-variant mt-0.5">تحويل بنكي فوري</span>
+                </div>
+              </label>
 
-               <label className={`relative flex items-center gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all ${formData.payment_method === 'cod' ? 'border-primary bg-primary/10 ring-1 ring-primary/20' : 'border-gray-200 bg-white hover:border-primary/30'}`}>
-                 <input
-                   type="radio"
-                   name="payment_method"
-                   value="cod"
-                   checked={formData.payment_method === 'cod'}
-                   onChange={handleChange}
-                   className="sr-only"
-                 />
-                 <div className="w-5 h-5 rounded-full border-2 border-primary flex items-center justify-center">
-                   {formData.payment_method === 'cod' && <div className="w-2.5 h-2.5 rounded-full bg-primary" />}
-                 </div>
-                 <div className="flex flex-col">
-                   <span className="font-bold text-on-surface">الدفع عند الاستلام</span>
-                   <span className="text-xs text-on-surface-variant">الدفع نقداً عند الاستلام</span>
-                 </div>
-               </label>
-             </div>
-           </div>
+              <label className={`relative flex items-center gap-3.5 p-5 rounded-2xl border-2 cursor-pointer transition-all ${formData.payment_method === 'cod' ? 'border-primary bg-primary/5' : 'border-outline-variant bg-white hover:border-outline-variant/60'}`}>
+                <input
+                  type="radio"
+                  name="payment_method"
+                  value="cod"
+                  checked={formData.payment_method === 'cod'}
+                  onChange={handleChange}
+                  className="sr-only"
+                />
+                <div className="w-5 h-5 rounded-full border-2 border-primary flex items-center justify-center">
+                  {formData.payment_method === 'cod' && <div className="w-2.5 h-2.5 rounded-full bg-primary" />}
+                </div>
+                <div className="flex flex-col">
+                  <span className="font-bold text-sm text-on-surface">الدفع عند الاستلام</span>
+                  <span className="text-xs text-on-surface-variant mt-0.5">الدفع نقداً عند استلام المنتجات</span>
+                </div>
+              </label>
+            </div>
+          </div>
 
-           {formData.payment_method === 'instapay' && (
-             <div className="pt-6 border-t border-primary/10 animate-in fade-in slide-in-from-top-2 duration-300">
-               <div className="flex items-start gap-4">
-                 <div className="w-12 h-12 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0">
-                   <span className="material-symbols-outlined text-[28px] select-none">account_balance_wallet</span>
-                 </div>
-                 <div>
-                   <h2 className="text-body-lg font-bold text-on-surface mb-2">تعليمات الدفع عبر إنستاباي (InstaPay)</h2>
-                   <p className="text-sm text-on-surface-variant mb-4 leading-relaxed">
-                     إكمال طلبك، يرجى تحويل المبلغ الإجمالي إلى حساب إنستاباي التالي وتحميل صورة إيصال التحويل أدناه:
-                   </p>
-                   <div className="flex flex-wrap gap-x-8 gap-y-3 bg-white p-4 rounded-lg border border-outline-variant/40 max-w-2xl text-start">
-                     <div>
-                       <span className="text-xs text-on-surface-variant block uppercase font-bold tracking-wider">اسم الحساب في إنستاباي</span>
-                       <span className="text-body-md font-bold text-on-surface">{instapayAccountName}</span>
-                     </div>
-                     <div>
-                       <span className="text-xs text-on-surface-variant block uppercase font-bold tracking-wider">رقم هاتف إنستاباي</span>
-                       <span className="text-body-md font-bold text-primary flex items-center gap-1.5">
-                         {instapayPhone}
-                       </span>
-                     </div>
-                   </div>
-                 </div>
-               </div>
-             </div>
-           )}
-         </div>
-       </div>
+          {formData.payment_method === 'instapay' && (
+            <div className="pt-6 border-t border-outline-variant/30 animate-in fade-in slide-in-from-top-2 duration-300">
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                  <span className="material-symbols-outlined text-[26px] select-none">account_balance_wallet</span>
+                </div>
+                <div>
+                  <h2 className="text-[16px] font-bold text-on-surface mb-2">تعليمات الدفع عبر إنستاباي (InstaPay)</h2>
+                  <p className="text-xs text-on-surface-variant mb-4 leading-relaxed">
+                    لإكمال طلبك، يرجى تحويل المبلغ الإجمالي إلى حساب إنستاباي التالي وتحميل صورة إيصال التحويل أدناه:
+                  </p>
+                  <div className="flex flex-wrap gap-x-8 gap-y-3 bg-surface-container-lowest p-4 rounded-xl border border-outline-variant max-w-2xl text-start">
+                    <div>
+                      <span className="text-[10px] text-on-surface-variant block uppercase font-bold tracking-wider mb-0.5">اسم الحساب في إنستاباي</span>
+                      <span className="text-sm font-bold text-on-surface">{instapayAccountName}</span>
+                    </div>
+                    <div>
+                      <span className="text-[10px] text-on-surface-variant block uppercase font-bold tracking-wider mb-0.5">رقم هاتف إنستاباي</span>
+                      <span className="text-sm font-bold text-primary">{instapayPhone}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
 
-      <div className="flex flex-col lg:flex-row gap-gutter">
-        <div className="lg:w-2/3 bg-white border border-gray-100 rounded-xl p-8 shadow-sm text-start space-y-6">
+      <div className="flex flex-col lg:flex-row gap-8">
+        {/* Billing/Shipping Inputs Section */}
+        <div className="lg:w-2/3 bg-white border border-outline-variant/40 rounded-2xl p-8 shadow-sm text-start space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
-              <label className="font-label-md text-on-surface block font-bold">الاسم الكامل</label>
+              <label className="text-sm text-on-surface block font-bold">الاسم الكامل</label>
               <input
-                className={`w-full border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/10 focus:border-primary transition-all bg-white text-on-background font-body-md ${
-                  errors.customer_name ? 'border-error ring-1 ring-error/20' : 'border-gray-300'
+                className={`w-full border rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/10 focus:border-primary transition-all bg-white text-on-background font-medium text-sm ${
+                  errors.customer_name ? 'border-error ring-1 ring-error/20' : 'border-outline-variant'
                 }`}
                 name="customer_name"
                 placeholder="مثال: محمد علي"
@@ -345,10 +334,10 @@ export function CheckoutForm() {
             </div>
 
             <div className="space-y-2">
-              <label className="font-label-md text-on-surface block font-bold">رقم الهاتف</label>
+              <label className="text-sm text-on-surface block font-bold">رقم الهاتف</label>
               <input
-                className={`w-full border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/10 focus:border-primary transition-all bg-white text-on-background font-body-md text-left ${
-                  errors.phone_number ? 'border-error ring-1 ring-error/20' : 'border-gray-300'
+                className={`w-full border rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/10 focus:border-primary transition-all bg-white text-on-background font-medium text-sm text-left ${
+                  errors.phone_number ? 'border-error ring-1 ring-error/20' : 'border-outline-variant'
                 }`}
                 name="phone_number"
                 placeholder="010 1234 5678"
@@ -358,8 +347,8 @@ export function CheckoutForm() {
                 onChange={handleChange}
                 disabled={uiState.isSubmitting}
               />
-              <p className="text-[11px] text-on-surface-variant font-medium mt-1">
-                يفضل أن يكون نشطاً على واتساب
+              <p className="text-[10px] text-on-surface-variant font-bold mt-1">
+                يفضل أن يكون نشطاً على واتساب للتنسيق مع مندوب الشحن
               </p>
               {errors.phone_number && (
                 <p className="text-xs text-error font-medium">{errors.phone_number}</p>
@@ -368,10 +357,10 @@ export function CheckoutForm() {
           </div>
 
           <div className="space-y-2">
-            <label className="font-label-md text-on-surface block font-bold">عنوان الشحن بالتفصيل</label>
+            <label className="text-sm text-on-surface block font-bold">عنوان الشحن بالتفصيل</label>
             <input
-              className={`w-full border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/10 focus:border-primary transition-all bg-white text-on-background font-body-md ${
-                errors.shipping_address ? 'border-error ring-1 ring-error/20' : 'border-gray-300'
+              className={`w-full border rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/10 focus:border-primary transition-all bg-white text-on-background font-medium text-sm ${
+                errors.shipping_address ? 'border-error ring-1 ring-error/20' : 'border-outline-variant'
               }`}
               name="shipping_address"
               placeholder="مثال: 12 شارع جمال عبد الناصر، سيدي بشر، الإسكندرية"
@@ -387,11 +376,11 @@ export function CheckoutForm() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className={`space-y-2 ${formData.payment_method === 'cod' ? 'md:col-span-2' : ''}`}>
-              <label className="font-label-md text-on-surface block font-bold">
-                رابط الموقع الجغرافي <span className="text-on-surface-variant font-normal text-xs">(اختياري - رابط جوجل ماب)</span>
+              <label className="text-sm text-on-surface block font-bold">
+                رابط الموقع الجغرافي <span className="text-on-surface-variant font-semibold text-xs">(اختياري - رابط جوجل ماب)</span>
               </label>
               <input
-                className="w-full border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/10 focus:border-primary transition-all bg-white text-on-background font-body-md border-gray-300 text-left"
+                className="w-full border rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/10 focus:border-primary transition-all bg-white text-on-background font-medium text-sm border-outline-variant text-left"
                 name="location_link"
                 placeholder="https://maps.app.goo.gl/xyz"
                 type="text"
@@ -404,11 +393,11 @@ export function CheckoutForm() {
 
             {formData.payment_method === 'instapay' && (
               <div className="space-y-2">
-                <label className="font-label-md text-on-surface block font-bold">
-                  رقم الهاتف المحول منه إنستاباي <span className="text-on-surface-variant font-normal text-xs">(اختياري)</span>
+                <label className="text-sm text-on-surface block font-bold">
+                  رقم الهاتف المحول منه إنستاباي <span className="text-on-surface-variant font-semibold text-xs">(اختياري)</span>
                 </label>
                 <input
-                  className="w-full border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/10 focus:border-primary transition-all bg-white text-on-background font-body-md border-gray-300 text-left"
+                  className="w-full border rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/10 focus:border-primary transition-all bg-white text-on-background font-medium text-sm border-outline-variant text-left"
                   name="instapay_phone_number"
                   placeholder="010 1122 3344"
                   type="tel"
@@ -417,67 +406,68 @@ export function CheckoutForm() {
                   onChange={handleChange}
                   disabled={uiState.isSubmitting}
                 />
-                <p className="text-[11px] text-on-surface-variant font-medium mt-1 leading-relaxed">
-                  ⓘ املأ هذا الحقل فقط إذا كان رقم الهاتف الذي قمت بالتحويل منه مختلفاً عن رقم الاتصال الأساسي.
+                <p className="text-[10px] text-on-surface-variant font-medium leading-relaxed">
+                  ⓘ املأ فقط إذا كان رقم هاتف محول مختلفاً عن رقم الاتصال.
                 </p>
               </div>
             )}
           </div>
 
-           {formData.payment_method === 'instapay' && (
-             <div className="space-y-2">
-               <label className="font-label-md text-on-surface block font-bold">
-                 لقطة شاشة تحويل إنستاباي <span className="text-red-500 font-bold">*</span>{' '}
-                 <span className="text-on-surface-variant font-normal text-xs">(إيصال التحويل - الحد الأقصى 5 ميجابايت، ويتم ضغطه تلقائياً)</span>
-               </label>
-               <div className="flex items-center gap-3">
-                 <input
-                   type="file"
-                   accept="image/*"
-                   onChange={handleFileChange}
-                   disabled={uiState.isSubmitting || imageState.isCompressing}
-                   className="block w-full text-xs text-on-surface-variant file:me-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-surface-container-low file:text-primary hover:file:bg-surface-container-medium cursor-pointer disabled:opacity-60"
-                 />
-                 {imageState.isCompressing && (
-                   <span className="text-xs text-primary font-medium flex items-center gap-1 shrink-0 animate-pulse">
-                     <span className="material-symbols-outlined text-base select-none">compress</span>
-                     جاري الضغط...
-                   </span>
-                 )}
-                  {!imageState.isCompressing && formData.instapay_screenshot && (
-                    <div className="relative w-12 h-12 rounded border border-outline-variant/30 overflow-hidden bg-surface-container-low shrink-0">
-                      {/* eslint-disable-next-line @next/next/no-img-element -- data-URI preview */}
-                      <img
-                        src={formData.instapay_screenshot}
-                        alt="معاينة إيصال إنستاباي"
-                        className="object-cover w-full h-full"
-                      />
-                    </div>
-                  )}
-               </div>
-               {imageState.compressionInfo && !errors.instapay_screenshot && (
-                 <p className="text-[11px] text-green-600 font-medium flex items-center gap-1">
-                   <span className="material-symbols-outlined text-sm select-none">check_circle</span>
-                   {imageState.compressionInfo}
-                 </p>
-               )}
-               {errors.instapay_screenshot && (
-                 <p className="text-xs text-error font-medium">{errors.instapay_screenshot}</p>
-               )}
-             </div>
-           )}
-        </div>{/* end lg:w-2/3 left panel */}
+          {formData.payment_method === 'instapay' && (
+            <div className="space-y-2 pt-2">
+              <label className="text-sm text-on-surface block font-bold">
+                لقطة شاشة تحويل إنستاباي <span className="text-red-500 font-bold">*</span>{' '}
+                <span className="text-on-surface-variant font-medium text-xs">(إيصال التحويل - الحد الأقصى 5 ميجابايت، يضغط تلقائياً)</span>
+              </label>
+              <div className="flex items-center gap-3">
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileChange}
+                  disabled={uiState.isSubmitting || imageState.isCompressing}
+                  className="block w-full text-xs text-on-surface-variant file:me-3 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-surface-container file:text-primary hover:file:bg-surface-container-high cursor-pointer disabled:opacity-60"
+                />
+                {imageState.isCompressing && (
+                  <span className="text-xs text-primary font-bold flex items-center gap-1 shrink-0 animate-pulse">
+                    <span className="material-symbols-outlined text-base select-none">compress</span>
+                    جاري الضغط...
+                  </span>
+                )}
+                {!imageState.isCompressing && formData.instapay_screenshot && (
+                  <div className="relative w-12 h-12 rounded-xl border border-outline-variant overflow-hidden shrink-0">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={formData.instapay_screenshot}
+                      alt="معاينة إيصال إنستاباي"
+                      className="object-cover w-full h-full"
+                    />
+                  </div>
+                )}
+              </div>
+              {imageState.compressionInfo && !errors.instapay_screenshot && (
+                <p className="text-[10px] text-green-600 font-semibold flex items-center gap-1">
+                  <span className="material-symbols-outlined text-sm select-none">check_circle</span>
+                  {imageState.compressionInfo}
+                </p>
+              )}
+              {errors.instapay_screenshot && (
+                <p className="text-xs text-error font-medium">{errors.instapay_screenshot}</p>
+              )}
+            </div>
+          )}
+        </div>
 
+        {/* Right Side: Final Order Review Panel (Warm dark theme) */}
         <div className="lg:w-1/3">
-          <div className="bg-on-background text-white rounded-xl p-8 shadow-xl sticky top-24 text-start">
-            <h2 className="font-headline-md text-headline-md mb-6 text-surface-bright pb-4 border-b border-surface-variant/20">
+          <div className="bg-on-background text-secondary-fixed rounded-2xl p-8 shadow-lg sticky top-24 text-start">
+            <h2 className="font-bold text-[18px] mb-6 text-secondary-fixed pb-4 border-b border-surface-variant/10">
               المراجعة النهائية
             </h2>
             
             <div className="space-y-4 mb-8 max-h-[300px] overflow-y-auto pe-1">
               {items.map((item) => (
-                <div key={item.product.id} className="flex gap-4 items-center">
-                  <div className="w-12 h-12 rounded border border-white/20 relative overflow-hidden bg-white shrink-0">
+                <div key={`${item.product.id}-${item.selectedColor || 'default'}`} className="flex gap-4 items-center">
+                  <div className="w-12 h-12 rounded-lg border border-white/10 relative overflow-hidden bg-white shrink-0">
                     <Image
                       src={item.product.image_url}
                       alt={item.product.name}
@@ -489,26 +479,26 @@ export function CheckoutForm() {
                     />
                   </div>
                   <div className="flex-grow min-w-0">
-                    <p className="font-label-md truncate text-white">{item.product.name}</p>
-                    <p className="text-surface-variant/70 text-[12px]">الكمية: {item.quantity}</p>
+                    <p className="text-xs font-bold truncate text-white">{item.product.name}</p>
+                    <p className="text-on-surface-variant text-[11px] mt-0.5">الكمية: {item.quantity}</p>
                     {item.selectedColor && (
-                      <p className="text-surface-variant/60 text-[11px]">اللون: {item.selectedColor}</p>
+                      <p className="text-on-surface-variant text-[10px]">اللون: {item.selectedColor}</p>
                     )}
                   </div>
-                  <p className="font-bold shrink-0">{formatCurrency(item.product.price * item.quantity)}</p>
+                  <p className="font-bold text-xs shrink-0">{formatCurrency(item.product.price * item.quantity)}</p>
                 </div>
               ))}
             </div>
 
-            <div className="space-y-3 mb-8 pt-4 border-t border-surface-variant/20">
-              <div className="flex justify-between font-label-md text-surface-variant">
+            <div className="space-y-3 mb-8 pt-4 border-t border-surface-variant/10">
+              <div className="flex justify-between text-xs text-surface-variant/80">
                 <span>المجموع الفرعي</span>
                 <span>{formatCurrency(total)}</span>
               </div>
 
-              <div className="flex justify-between font-label-md text-secondary-fixed">
+              <div className="flex justify-between text-xs text-electro-gold">
                 <span className="font-bold">المبلغ الإجمالي المطلوب</span>
-                <span className="text-[28px] font-display-lg gold-glow font-mono">
+                <span className="text-[26px] font-bold gold-glow leading-none font-mono">
                   {formatCurrency(total)}
                 </span>
               </div>
@@ -517,19 +507,17 @@ export function CheckoutForm() {
             <button
               type="submit"
               disabled={uiState.isSubmitting}
-              className="w-full bg-gradient-to-r from-primary to-primary-container text-white py-4 rounded-lg font-headline-md text-body-lg hover:brightness-110 active:scale-[0.98] transition-all shadow-lg shadow-primary/20 flex items-center justify-center gap-2 cursor-pointer uppercase tracking-wider"
+              className="w-full bg-[#CA202B] hover:bg-[#b01b24] text-white py-4 rounded-xl font-bold hover:shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer text-sm"
             >
               {uiState.isSubmitting ? (
                 <>
-                  <span className="material-symbols-outlined animate-spin select-none">sync</span>
+                  <span className="material-symbols-outlined animate-spin select-none text-[18px]">sync</span>
                   جاري إرسال الطلب...
                 </>
               ) : (
                 'تأكيد الطلب الآن'
               )}
             </button>
-
-
           </div>
         </div>
       </div>

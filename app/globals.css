@@ -60,7 +60,6 @@
   /* Border Radius */
   --radius-lg: 0.5rem;
   --radius-xl: 0.75rem;
-  --radius-default: 0.25rem;
 
   /* Spacings */
   --spacing-margin-desktop: 2rem;
@@ -129,16 +128,6 @@ body {
 @keyframes pulse {
   0%, 100% { opacity: 1; transform: scale(1); }
   50% { opacity: .5; transform: scale(1.2); }
-}
-
-/* Card hover lift transition */
-.card-hover-lift {
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.card-hover-lift:hover {
-  transform: translateY(-4px);
-  box-shadow: 0px 8px 30px rgba(28, 28, 31, 0.12);
 }
 
 /* Custom scrollbars */
@@ -210,8 +199,5 @@ body {
   text-shadow: 0 0 12px rgba(234, 179, 8, 0.35), 0 0 4px rgba(234, 179, 8, 0.15);
 }
 
-/* Product image hover scale helper (group-hover:scale-108) */
-.group:hover .group-hover\:scale-108 {
-  transform: scale(1.08);
-}
+
 
