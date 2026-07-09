@@ -208,6 +208,17 @@ body {
   display: none;
 }
 
+/* Image mount fade-in for category slideshow */
+@keyframes fadeInScale {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+/* Gold glow for order amount text */
+.gold-glow {
+  text-shadow: 0 0 12px rgba(234, 179, 8, 0.35), 0 0 4px rgba(234, 179, 8, 0.15);
+}
+
 /* Product image hover scale helper (group-hover:scale-108) */
 .group:hover .group-hover\:scale-108 {
   transform: scale(1.08);

@@ -75,13 +75,14 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Invalid instapay_screenshot format.' }, { status: 400 })
   }
 
-  const newItems = cartItems.map((item: { product: { id: string }; quantity: number }, index: number) => {
+  const newItems = cartItems.map((item: { product: { id: string }; quantity: number; selectedColor?: string | null }, index: number) => {
     return {
       id: `oi-${trackingId}-${index}`,
       order_id: trackingId,
       product_id: item.product.id,
       quantity: item.quantity,
       unit_price: 0, // overridden by before_order_item_insert database trigger
+      selected_color: item.selectedColor || null,
     }
   })
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { memo, useEffect, useMemo, useState, useRef } from 'react';
+import { memo, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useProducts } from '@/hooks/useProducts';
@@ -17,7 +17,6 @@ export function CategorySlideshowCard({ category, products, productCount }: Cate
     const urls = products
       .map((p) => {
         if (!p.image_url) return null;
-        // If it's a placeholder, append the product name to generate a unique image with custom text
         if (p.image_url.includes('placehold.co')) {
           return `${p.image_url}?text=${encodeURIComponent(p.name)}`;
         }
@@ -28,64 +27,26 @@ export function CategorySlideshowCard({ category, products, productCount }: Cate
   }, [products]);
 
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [nextIndex, setNextIndex] = useState<number | null>(null);
-  const [fade, setFade] = useState(true);
-  const [lastImage, setLastImage] = useState<string | null>(null);
+  const [prevImages, setPrevImages] = useState<string[]>(images);
 
-  // Keep track of the previous images list to transition between category changes
-  const prevImagesRef = useRef<string[]>(images);
-
-  useEffect(() => {
-    if (prevImagesRef.current !== images) {
-      // Save the old image that was visible
-      const lastActive = prevImagesRef.current[currentIndex] || null;
-      setLastImage(lastActive);
-
-      // Keep the currentIndex, but bound it safely to the new images list length
-      const targetIndex = images.length > 0 ? currentIndex % images.length : 0;
-      setCurrentIndex(targetIndex);
-      setNextIndex(null);
-      setFade(true); // Keep the old image fully visible initially
-
-      // Wait 2.5 seconds before starting the transition to the new category image
-      const delayTimeout = setTimeout(() => {
-        setFade(false); // Trigger crossfade out of lastImage / in of images[targetIndex]
-
-        const finishTimeout = setTimeout(() => {
-          setLastImage(null);
-          setFade(true);
-        }, 700); // Crossfade transition time
-
-        return () => clearTimeout(finishTimeout);
-      }, 2500); // Delay image transition for 2.5s after text updates
-
-      prevImagesRef.current = images;
-      return () => clearTimeout(delayTimeout);
-    }
-  }, [images, currentIndex]);
+  // Keep slideshow position when images change (category rotation) — bound to new length
+  if (prevImages !== images) {
+    const boundedIndex = images.length > 0 ? Math.min(currentIndex, images.length - 1) : 0;
+    setPrevImages(images);
+    setCurrentIndex(boundedIndex);
+  }
 
   useEffect(() => {
     if (images.length <= 1) return;
 
     const interval = setInterval(() => {
-      const nextIdx = (currentIndex + 1) % images.length;
-      setNextIndex(nextIdx);
-      setFade(false);
-
-      const timeout = setTimeout(() => {
-        setCurrentIndex(nextIdx);
-        setNextIndex(null);
-        setFade(true);
-      }, 600); // Crossfade transition time
-
-      return () => clearTimeout(timeout);
-    }, 3000); // Cycle normal category slideshow every 3 seconds
+      setCurrentIndex((prev) => (prev + 1) % images.length);
+    }, 3000);
 
     return () => clearInterval(interval);
-  }, [currentIndex, images]);
+  }, [images]);
 
-  const currentImg = lastImage || images[currentIndex];
-  const nextImg = lastImage ? images[currentIndex] : (nextIndex !== null ? images[nextIndex] : null);
+  const currentImg = images[currentIndex];
 
   return (
     <Link
@@ -94,12 +55,11 @@ export function CategorySlideshowCard({ category, products, productCount }: Cate
     >
       <div className="absolute inset-0 w-full h-full p-8 select-none pointer-events-none bg-white flex items-center justify-center">
         {currentImg && (
-          <div 
+          <div
+            key={currentImg}
             className="absolute inset-0 p-8 flex items-center justify-center"
             style={{
-              opacity: fade ? 1 : 0,
-              transform: fade ? 'scale(1)' : 'scale(0.96)',
-              transition: 'opacity 800ms cubic-bezier(0.4, 0, 0.2, 1), transform 800ms cubic-bezier(0.4, 0, 0.2, 1)'
+              animation: 'fadeInScale 800ms cubic-bezier(0.4, 0, 0.2, 1)'
             }}
           >
             <Image
@@ -110,25 +70,6 @@ export function CategorySlideshowCard({ category, products, productCount }: Cate
               sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
               quality={70}
               priority
-            />
-          </div>
-        )}
-        {nextImg && (
-          <div 
-            className="absolute inset-0 p-8 flex items-center justify-center"
-            style={{
-              opacity: fade ? 0 : 1,
-              transform: fade ? 'scale(0.96)' : 'scale(1)',
-              transition: 'opacity 800ms cubic-bezier(0.4, 0, 0.2, 1), transform 800ms cubic-bezier(0.4, 0, 0.2, 1)'
-            }}
-          >
-            <Image
-              src={nextImg}
-              alt={`${category} - ${nextIndex}`}
-              fill
-              className="object-contain p-8 group-hover:scale-105 transition-transform duration-500"
-              sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
-              quality={70}
             />
           </div>
         )}
@@ -203,21 +144,26 @@ export const LandingPage = memo(function LandingPage({ initialCategories = [], i
   useEffect(() => {
     if (activeCategories.length <= 3) return;
 
-    const interval = setInterval(() => {
-      setFadeCategories(false); // Start fading out cards before shifting category contents
-      
-      const timeout = setTimeout(() => {
-        setShiftOffset((prev) => (prev + 1) % activeCategories.length);
-        setFadeCategories(true); // Fade back in once content updates
-      }, 500);
-    }, 9000); // Shift to show next categories every 9 seconds
+    const timeoutRef = { current: undefined as ReturnType<typeof setTimeout> | undefined };
 
-    return () => clearInterval(interval);
+    const interval = setInterval(() => {
+      setFadeCategories(false);
+
+      timeoutRef.current = setTimeout(() => {
+        setShiftOffset((prev) => (prev + 1) % activeCategories.length);
+        setFadeCategories(true);
+      }, 500);
+    }, 9000);
+
+    return () => {
+      clearInterval(interval);
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    };
   }, [activeCategories.length]);
 
   const displayedCategories = useMemo(() => {
     if (activeCategories.length <= 3) return activeCategories;
-    
+
     const list: string[] = [];
     for (let i = 0; i < 3; i++) {
       const idx = (shiftOffset + i) % activeCategories.length;
@@ -266,7 +212,7 @@ export const LandingPage = memo(function LandingPage({ initialCategories = [], i
           </span>
         </div>
       </section>
- 
+
       <section className="max-w-max-width mx-auto px-margin-mobile md:px-margin-desktop py-24 text-center">
         <div className="max-w-lg mx-auto mb-16">
           <span className="text-primary font-bold text-xs uppercase tracking-widest">مجموعات مختارة بعناية</span>
@@ -275,7 +221,7 @@ export const LandingPage = memo(function LandingPage({ initialCategories = [], i
         </div>
 
         {/* Exactly 3 Visual Card Slots: side-by-side horizontally scrollable on mobile, 3-column grid on desktop */}
-        <div 
+        <div
           className="flex overflow-x-auto pb-6 scrollbar-hide -mx-margin-mobile px-margin-mobile md:mx-0 md:px-0 md:pb-0 md:overflow-visible md:grid md:grid-cols-3 gap-6 md:gap-8 transition-all duration-500 ease-in-out snap-x snap-mandatory"
           style={{
             opacity: fadeCategories ? 1 : 0,
@@ -335,7 +281,7 @@ export const LandingPage = memo(function LandingPage({ initialCategories = [], i
                 <span className="material-symbols-outlined text-[28px] md:text-[32px]">payments</span>
               </div>
               <div className="flex flex-col">
-                <h3 className="font-headline-md text-[16px] md:text-[18px] text-on-background font-bold mb-1 md:mb-2 group-hover:text-primary transition-colors duration-200">أفضل الأسعار</h3>
+                <h3 className="font-headline-md text-[16px] md:[18px] text-on-background font-bold mb-1 md:mb-2 group-hover:text-primary transition-colors duration-200">أفضل الأسعار</h3>
                 <p className="text-on-surface-variant text-[13px] leading-relaxed">
                   دون المساومة على الجودة نوفر أسعارًا تنافسية للجملة والتجزئة على الأسلاك، الكابلات، القواطع، ولوحات التوزيع، مع أفضل قيمة مقابل السعر.
                 </p>

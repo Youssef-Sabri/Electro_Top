@@ -13,6 +13,7 @@ import { getInitials } from '@/lib/string-utils';
 import { STATUS_OPTIONS, translateStatus, translateHistoryStatus } from '@/lib/status-utils';
 import { getSafeUrl } from '@/lib/safe-url';
 import { devLog } from '@/lib/dev-log';
+import { getColorHex } from '@/lib/color-palette';
 import { getSupportEnv } from '@/lib/env-utils';
 import { SAFE_FILENAME_RE } from '@/lib/validators';
 import { isValidTrackingId } from '@/lib/constants';
@@ -379,6 +380,14 @@ export const OrderDetailClient = memo(function OrderDetailClient({ id }: OrderDe
                             <p className="font-label-md text-label-md text-on-surface font-semibold">
                               {product ? product.name : 'عنصر غير معروف'}
                             </p>
+                            {item.selected_color && (
+                              <span className="inline-flex items-center gap-1.5 bg-gray-50 border border-gray-200 text-gray-700 text-[11px] font-bold px-2.5 py-0.5 mt-1 rounded">
+                                <span className="w-2 h-2 rounded-full border border-gray-300" style={{
+                                  background: getColorHex(item.selected_color)
+                                }} />
+                                اللون: {item.selected_color}
+                              </span>
+                            )}
                           </div>
                         </div>
                       </td>

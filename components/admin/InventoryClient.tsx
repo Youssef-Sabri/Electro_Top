@@ -15,6 +15,7 @@ import { Toast } from '@/components/ui/Toast';
 import { PaginationControls } from '@/components/ui/PaginationControls';
 import { exportToCSV } from '@/lib/csv-export';
 import { uploadProductImage, processAndCompressImage, deleteProductImage } from '@/lib/image-utils';
+import { ALL_COLORS } from '@/lib/color-palette';
 
 export const InventoryClient = memo(function InventoryClient() {
 
@@ -50,6 +51,8 @@ export const InventoryClient = memo(function InventoryClient() {
     image_url_2: '',
     image_url_3: '',
     is_active: true,
+    has_colors: false,
+    colors: [] as string[],
     category: '',
   });
   const [formErrors, setFormErrors] = useState<Partial<Record<keyof ProductFormData, string>>>({});
@@ -221,6 +224,8 @@ export const InventoryClient = memo(function InventoryClient() {
       image_url_2: '',
       image_url_3: '',
       is_active: true,
+      has_colors: false,
+      colors: [],
       category: categories[0] || '',
     });
     setFormErrors({});
@@ -244,6 +249,8 @@ export const InventoryClient = memo(function InventoryClient() {
       image_url_2: product.image_url_2 || '',
       image_url_3: product.image_url_3 || '',
       is_active: product.is_active,
+      has_colors: product.has_colors || false,
+      colors: product.colors || [],
       category: product.category || categories[0] || '',
     });
     setFormErrors({});
@@ -421,6 +428,8 @@ export const InventoryClient = memo(function InventoryClient() {
             await updateProduct({
               ...editingProduct,
               ...result.data,
+              has_colors: result.data.has_colors ?? false,
+              colors: result.data.colors ?? [],
               image_url: finalImageUrl,
               image_url_2: finalImageUrl2 || null,
               image_url_3: finalImageUrl3 || null,
@@ -476,6 +485,8 @@ export const InventoryClient = memo(function InventoryClient() {
 
             await addProduct({
               ...result.data,
+              has_colors: result.data.has_colors ?? false,
+              colors: result.data.colors ?? [],
               image_url: finalImageUrl,
               image_url_2: finalImageUrl2 || null,
               image_url_3: finalImageUrl3 || null,
@@ -1090,19 +1101,72 @@ export const InventoryClient = memo(function InventoryClient() {
                 )}
               </div>
 
-              <div className="flex items-center gap-3 bg-surface-container-low p-4 rounded-lg">
-                <input
-                  id="modal-is-active"
-                  name="is_active"
-                  type="checkbox"
-                  checked={formData.is_active}
-                  onChange={handleCheckboxChange}
-                  className="w-5 h-5 rounded border-outline focus:ring-primary text-primary cursor-pointer accent-primary"
-                />
-                <label htmlFor="modal-is-active" className="font-bold text-sm text-on-surface cursor-pointer select-none">
-                  جعل المنتج مرئياً في كتالوج المتجر (نشط)
-                </label>
+              <div className="flex items-center gap-6 bg-surface-container-low p-4 rounded-lg">
+                <div className="flex items-center gap-2">
+                  <input
+                    id="modal-is-active"
+                    name="is_active"
+                    type="checkbox"
+                    checked={formData.is_active}
+                    onChange={handleCheckboxChange}
+                    className="w-5 h-5 rounded border-outline focus:ring-primary text-primary cursor-pointer accent-primary"
+                  />
+                  <label htmlFor="modal-is-active" className="font-bold text-sm text-on-surface cursor-pointer select-none">
+                    نشط
+                  </label>
+                </div>
+                <div className="flex items-center gap-2">
+                  <input
+                    id="modal-has-colors"
+                    name="has_colors"
+                    type="checkbox"
+                    checked={formData.has_colors}
+                    onChange={handleCheckboxChange}
+                    className="w-5 h-5 rounded border-outline focus:ring-primary text-primary cursor-pointer accent-primary"
+                  />
+                  <label htmlFor="modal-has-colors" className="font-bold text-sm text-on-surface cursor-pointer select-none">
+                    يتطلب اختيار لون
+                  </label>
+                </div>
               </div>
+
+              {formData.has_colors && (
+                <div className="bg-surface-container-low p-4 rounded-lg">
+                  <label className="font-bold text-sm text-on-surface block mb-3">
+                    الألوان المتاحة <span className="text-electro-red">*</span>
+                  </label>
+                  <div className="flex flex-wrap gap-2">
+                    {ALL_COLORS.map((color) => {
+                      const isSelected = (formData.colors ?? []).includes(color.name);
+                      return (
+                        <button
+                          key={color.name}
+                          type="button"
+                          onClick={() => {
+                            setFormData((prev) => ({
+                              ...prev,
+                              colors: isSelected
+                                ? (prev.colors ?? []).filter((c) => c !== color.name)
+                                : [...(prev.colors ?? []), color.name],
+                            }));
+                          }}
+                          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-semibold cursor-pointer transition-all duration-200 ${
+                            isSelected
+                              ? 'border-primary bg-primary/5 text-primary ring-2 ring-primary/10 font-bold'
+                              : 'border-outline-variant/60 hover:border-gray-400 text-on-surface-variant'
+                          }`}
+                        >
+                          <span
+                            className="w-3.5 h-3.5 rounded-full border border-gray-300 shadow-sm shrink-0"
+                            style={{ background: color.hex, borderColor: color.name === 'أبيض' ? '#D1D5DB' : undefined }}
+                          />
+                          <span>{color.name}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
 
               <div className="pt-4 border-t border-outline-variant/20 flex justify-end gap-3">
                 <button

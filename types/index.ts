@@ -18,6 +18,8 @@ export interface Product {
   is_active: boolean;
   category?: string | null;
   created_at: string;
+  has_colors: boolean;
+  colors: string[];
 }
 
 
@@ -44,6 +46,7 @@ export interface OrderItem {
   unit_price: number;
   product_name?: string;
   product_image?: string;
+  selected_color?: string | null;
 }
 
 export interface OrderStatusHistory {
@@ -56,4 +59,5 @@ export interface OrderStatusHistory {
 export interface CartItem {
   product: Product;
   quantity: number;
+  selectedColor?: string | null;
 }

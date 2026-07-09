@@ -38,6 +38,8 @@ export const productFormSchema = z.object({
   image_url_3: z.string().url('الرجاء إدخال رابط صورة صحيح').optional().nullable().or(z.literal('')),
   is_active: z.boolean(),
   category: z.string().optional().nullable(),
+  has_colors: z.boolean().optional(),
+  colors: z.array(z.string()).optional(),
 });
 
 export const SAFE_FILENAME_RE = /^receipt-[a-z0-9]+\.(jpg|jpeg|png|webp|heic|heif|gif)$/i;

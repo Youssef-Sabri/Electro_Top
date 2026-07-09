@@ -28,6 +28,10 @@ export const ProductCard = React.memo(function ProductCard({ product, onOpenDeta
   const handleAddToCart = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (product.stock <= 0) return;
+    if (product.has_colors) {
+      onOpenDetails(product);
+      return;
+    }
     addToCart(product, 1);
     setShowToast(true);
     setIsAdded(true);

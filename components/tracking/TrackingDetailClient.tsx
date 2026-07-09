@@ -10,6 +10,7 @@ import { StatusTimeline } from '@/components/tracking/StatusTimeline';
 import { formatCurrency } from '@/lib/format-currency';
 import { formatOrderDate } from '@/lib/date-utils';
 import { getSafeUrl } from '@/lib/safe-url';
+import { getColorHex } from '@/lib/color-palette';
 import { normalizeTrackingId, isValidTrackingId } from '@/lib/constants';
 
 import { translateStatus, publicStatus } from '@/lib/status-utils';
@@ -209,9 +210,17 @@ export function TrackingDetailClient({ id }: TrackingDetailClientProps) {
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="font-label-md text-label-md text-white truncate">
+                      <p className="font-label-md text-label-md text-white truncate font-bold">
                         {name}
                       </p>
+                      {item.selected_color && (
+                        <p className="text-[11px] text-surface-variant/90 font-bold flex items-center gap-1.5 mt-0.5">
+                          <span className="w-2 h-2 rounded-full border border-surface-variant/20 shadow-sm" style={{
+                            background: getColorHex(item.selected_color)
+                          }} />
+                          اللون: {item.selected_color}
+                        </p>
+                      )}
                       <p className="text-surface-variant font-label-sm">الكمية: {item.quantity} × {formatCurrency(item.unit_price)}</p>
                     </div>
                     <p className="font-bold shrink-0 font-mono">{formatCurrency(item.unit_price * item.quantity)}</p>

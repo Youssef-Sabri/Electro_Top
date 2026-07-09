@@ -5,6 +5,7 @@ import Image from 'next/image';
 import type { CartItem as CartItemType } from '@/types';
 import { useCart } from '@/hooks/useCart';
 import { formatCurrency } from '@/lib/format-currency';
+import { getColorHex } from '@/lib/color-palette';
 
 interface CartItemProps {
   item: CartItemType;
@@ -16,19 +17,19 @@ export const CartItem = memo(function CartItem({ item }: CartItemProps) {
 
   const handleDecrease = useCallback(() => {
     if (quantity > 1) {
-      updateQuantity(product.id, quantity - 1);
+      updateQuantity(product.id, quantity - 1, item.selectedColor);
     }
-  }, [quantity, product.id, updateQuantity]);
+  }, [quantity, product.id, item.selectedColor, updateQuantity]);
 
   const handleIncrease = useCallback(() => {
     if (quantity < product.stock) {
-      updateQuantity(product.id, quantity + 1);
+      updateQuantity(product.id, quantity + 1, item.selectedColor);
     }
-  }, [quantity, product.stock, product.id, updateQuantity]);
+  }, [quantity, product.stock, product.id, item.selectedColor, updateQuantity]);
 
   const handleRemove = useCallback(() => {
-    removeFromCart(product.id);
-  }, [product.id, removeFromCart]);
+    removeFromCart(product.id, item.selectedColor);
+  }, [product.id, item.selectedColor, removeFromCart]);
 
   return (
     <div className="bg-white border border-gray-100 rounded-xl p-6 flex flex-col sm:flex-row gap-6 items-center card-hover-lift shadow-sm">
@@ -46,16 +47,26 @@ export const CartItem = memo(function CartItem({ item }: CartItemProps) {
       </div>
 
       <div className="flex-grow flex flex-col w-full text-start">
-        <div className="flex justify-between items-start mb-4 gap-4">
-          <h3 className="font-headline-md text-[20px] text-on-background uppercase tracking-tight">
-            {product.name}
-          </h3>
-          <p className="font-headline-md text-primary text-end shrink-0">
+        <div className="flex justify-between items-start mb-2 gap-4">
+          <div className="flex flex-col gap-1.5">
+            <h3 className="font-headline-md text-[20px] text-on-background uppercase tracking-tight font-bold">
+              {product.name}
+            </h3>
+            {item.selectedColor && (
+              <span className="inline-flex items-center gap-1.5 bg-gray-50 border border-gray-200 text-gray-700 text-xs font-semibold px-2.5 py-1 rounded-md w-fit">
+                <span className="w-2.5 h-2.5 rounded-full border border-gray-300" style={{
+                  background: getColorHex(item.selectedColor)
+                }} />
+                اللون: {item.selectedColor}
+              </span>
+            )}
+          </div>
+          <p className="font-headline-md text-primary text-end shrink-0 font-bold">
             {formatCurrency(product.price)}
           </p>
         </div>
 
-        <div className="flex justify-between items-center mt-auto">
+        <div className="flex justify-between items-center mt-auto pt-4 border-t border-gray-50">
           <div className="flex items-center border border-outline-variant rounded-lg p-1 bg-surface select-none">
             <button
               onClick={handleDecrease}

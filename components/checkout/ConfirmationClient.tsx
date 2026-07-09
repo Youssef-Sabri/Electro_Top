@@ -224,10 +224,15 @@ export function ConfirmationClient() {
               const product = productsById.get(item.product_id);
               return (
                 <div key={item.id} className="flex justify-between items-center text-sm">
-                  <span className="text-on-surface-variant font-medium">
-                    {product ? product.name : item.product_id}
-                  </span>
-                  <div className="flex items-center gap-4">
+                  <div>
+                    <span className="text-on-surface-variant font-medium">
+                      {product ? product.name : item.product_id}
+                    </span>
+                    {item.selected_color && (
+                      <p className="text-on-surface-variant text-[11px] mt-0.5">اللون: {item.selected_color}</p>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-4 shrink-0">
                     <span className="text-on-surface-variant text-xs">×{item.quantity} — {formatCurrency(item.unit_price)}</span>
                     <span className="font-bold text-on-surface font-mono">
                       {formatCurrency(item.unit_price * item.quantity)}

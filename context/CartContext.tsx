@@ -5,9 +5,9 @@ import type { CartItem, Product } from '@/types';
 
 export interface CartContextType {
   items: CartItem[];
-  addToCart: (product: Product, quantity?: number) => void;
-  removeFromCart: (productId: string) => void;
-  updateQuantity: (productId: string, quantity: number) => void;
+  addToCart: (product: Product, quantity?: number, selectedColor?: string | null) => void;
+  removeFromCart: (productId: string, selectedColor?: string | null) => void;
+  updateQuantity: (productId: string, quantity: number, selectedColor?: string | null) => void;
   clearCart: () => void;
   reconcileCart: (productsById: Map<string, Product>) => void;
   total: number;
@@ -36,19 +36,22 @@ function loadCartFromStorage(): CartItem[] {
         const quantityNum = typeof itemObj.quantity === 'number' ? itemObj.quantity : 1;
 
         if (productObj && typeof productObj.id === 'string' && typeof productObj.price === 'number') {
-          validated.push({
-            product: {
-              id: productObj.id,
-              name: (productObj.name as string) || 'Unnamed Product',
-              description: (productObj.description as string) || '',
-              price: productObj.price,
-              image_url: (productObj.image_url as string) || '',
-              stock: typeof productObj.stock === 'number' ? productObj.stock : 10,
-              is_active: productObj.is_active !== false,
-              category: (productObj.category as string) || 'General',
-              created_at: (productObj.created_at as string) || new Date().toISOString(),
-            },
+              validated.push({
+                product: {
+                  id: productObj.id,
+                  name: (productObj.name as string) || 'Unnamed Product',
+                  description: (productObj.description as string) || '',
+                  price: productObj.price,
+                  image_url: (productObj.image_url as string) || '',
+                  stock: typeof productObj.stock === 'number' ? productObj.stock : 10,
+                  is_active: productObj.is_active !== false,
+                  category: (productObj.category as string) || 'General',
+                  has_colors: productObj.has_colors === true,
+                  colors: Array.isArray(productObj.colors) ? productObj.colors : [],
+                  created_at: (productObj.created_at as string) || new Date().toISOString(),
+                },
             quantity: quantityNum,
+            selectedColor: typeof itemObj.selectedColor === 'string' ? itemObj.selectedColor : null,
           });
         }
       }
@@ -79,11 +82,13 @@ export function CartProvider({ children }: { children: ReactNode }) {
     return () => { if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current); };
   }, [items, isHydrated]);
 
-  const addToCart = useCallback((product: Product, quantity = 1) => {
+  const addToCart = useCallback((product: Product, quantity = 1, selectedColor: string | null = null) => {
     if (product.stock <= 0) return;
 
     setItems((prevItems) => {
-      const existingIndex = prevItems.findIndex((item) => item.product.id === product.id);
+      const existingIndex = prevItems.findIndex(
+        (item) => item.product.id === product.id && item.selectedColor === selectedColor
+      );
 
       if (existingIndex > -1) {
         const existingItem = prevItems[existingIndex];
@@ -98,21 +103,21 @@ export function CartProvider({ children }: { children: ReactNode }) {
         return updatedItems;
       } else {
         const clampedQuantity = Math.min(quantity, product.stock);
-        return [...prevItems, { product, quantity: clampedQuantity }];
+        return [...prevItems, { product, quantity: clampedQuantity, selectedColor }];
       }
     });
   }, []);
 
-  const removeFromCart = useCallback((productId: string) => {
-    setItems((prevItems) => prevItems.filter((item) => item.product.id !== productId));
+  const removeFromCart = useCallback((productId: string, selectedColor: string | null = null) => {
+    setItems((prevItems) => prevItems.filter((item) => !(item.product.id === productId && item.selectedColor === selectedColor)));
   }, []);
 
-  const updateQuantity = useCallback((productId: string, quantity: number) => {
+  const updateQuantity = useCallback((productId: string, quantity: number, selectedColor: string | null = null) => {
     if (quantity < 1) return;
 
     setItems((prevItems) =>
       prevItems.map((item) => {
-        if (item.product.id === productId) {
+        if (item.product.id === productId && item.selectedColor === selectedColor) {
           const clampedQuantity = Math.min(quantity, item.product.stock);
           return { ...item, quantity: clampedQuantity };
         }

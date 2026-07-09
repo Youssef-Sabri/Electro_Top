@@ -491,6 +491,9 @@ export function CheckoutForm() {
                   <div className="flex-grow min-w-0">
                     <p className="font-label-md truncate text-white">{item.product.name}</p>
                     <p className="text-surface-variant/70 text-[12px]">الكمية: {item.quantity}</p>
+                    {item.selectedColor && (
+                      <p className="text-surface-variant/60 text-[11px]">اللون: {item.selectedColor}</p>
+                    )}
                   </div>
                   <p className="font-bold shrink-0">{formatCurrency(item.product.price * item.quantity)}</p>
                 </div>
