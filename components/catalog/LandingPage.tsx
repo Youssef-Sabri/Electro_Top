@@ -253,7 +253,7 @@ export const LandingPage = memo(function LandingPage({ initialCategories = [], i
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 text-start md:text-center">
             {/* Card 1 */}
             <div className="bg-white p-6 md:p-8 rounded-2xl border border-outline-variant/30 hover:border-primary/20 shadow-sm hover:shadow-xl hover:scale-[1.01] active:scale-[0.98] transition-all duration-300 flex flex-row md:flex-col items-center md:items-center gap-5 md:gap-6 group cursor-default">
-              <div className="w-14 h-14 md:w-16 md:h-16 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 group-hover:from-primary group-hover:to-brand-red-dark group-hover:text-white flex items-center justify-center text-primary shrink-0 transition-all duration-350 shadow-inner">
+              <div className="w-14 h-14 md:w-16 md:h-16 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 group-hover:from-primary group-hover:to-brand-red-dark group-hover:text-white flex items-center justify-center text-primary shrink-0 transition-all duration-[350ms] shadow-inner">
                 <span className="material-symbols-outlined text-[28px] md:text-[32px]">local_shipping</span>
               </div>
               <div className="flex flex-col">
@@ -266,7 +266,7 @@ export const LandingPage = memo(function LandingPage({ initialCategories = [], i
 
             {/* Card 2 */}
             <div className="bg-white p-6 md:p-8 rounded-2xl border border-outline-variant/30 hover:border-primary/20 shadow-sm hover:shadow-xl hover:scale-[1.01] active:scale-[0.98] transition-all duration-300 flex flex-row md:flex-col items-center md:items-center gap-5 md:gap-6 group cursor-default">
-              <div className="w-14 h-14 md:w-16 md:h-16 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 group-hover:from-primary group-hover:to-brand-red-dark group-hover:text-white flex items-center justify-center text-primary shrink-0 transition-all duration-350 shadow-inner">
+              <div className="w-14 h-14 md:w-16 md:h-16 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 group-hover:from-primary group-hover:to-brand-red-dark group-hover:text-white flex items-center justify-center text-primary shrink-0 transition-all duration-[350ms] shadow-inner">
                 <span className="material-symbols-outlined text-[28px] md:text-[32px]">workspace_premium</span>
               </div>
               <div className="flex flex-col">
@@ -279,7 +279,7 @@ export const LandingPage = memo(function LandingPage({ initialCategories = [], i
 
             {/* Card 3 */}
             <div className="bg-white p-6 md:p-8 rounded-2xl border border-outline-variant/30 hover:border-primary/20 shadow-sm hover:shadow-xl hover:scale-[1.01] active:scale-[0.98] transition-all duration-300 flex flex-row md:flex-col items-center md:items-center gap-5 md:gap-6 group cursor-default">
-              <div className="w-14 h-14 md:w-16 md:h-16 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 group-hover:from-primary group-hover:to-brand-red-dark group-hover:text-white flex items-center justify-center text-primary shrink-0 transition-all duration-350 shadow-inner">
+              <div className="w-14 h-14 md:w-16 md:h-16 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 group-hover:from-primary group-hover:to-brand-red-dark group-hover:text-white flex items-center justify-center text-primary shrink-0 transition-all duration-[350ms] shadow-inner">
                 <span className="material-symbols-outlined text-[28px] md:text-[32px]">payments</span>
               </div>
               <div className="flex flex-col">

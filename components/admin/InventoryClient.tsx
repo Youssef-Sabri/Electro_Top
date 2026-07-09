@@ -675,7 +675,7 @@ export const InventoryClient = memo(function InventoryClient() {
 
           <div className="space-y-2 flex-grow">
             <p className="text-[10px] font-semibold text-on-surface-variant uppercase select-none">الفئات الحالية</p>
-            <div className="flex flex-wrap gap-1.5 max-h-[85px] overflow-y-auto pe-1 scrollbar-thin scrollbar-thumb-outline-variant">
+            <div className="flex flex-wrap gap-1.5 max-h-[85px] overflow-y-auto pe-1">
               {categories.map((cat) => (
                 <div
                   key={cat}
@@ -767,7 +767,7 @@ export const InventoryClient = memo(function InventoryClient() {
                         className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold cursor-pointer transition-colors border ${
                           product.is_active
                             ? 'bg-green-50 text-green-700 border-green-100 hover:bg-green-100'
-                            : 'bg-surface-container-low text-on-surface-variant border-outline-variant/30 hover:bg-surface-container-medium'
+                            : 'bg-surface-container-low text-on-surface-variant border-outline-variant/30 hover:bg-surface-container-high'
                         }`}
                       >
                         <span className="material-symbols-outlined text-[16px]">
@@ -861,7 +861,7 @@ export const InventoryClient = memo(function InventoryClient() {
                       accept="image/*"
                       onChange={(e) => handleImageFileChange(e, 0)}
                       disabled={isCompressing}
-                      className="block w-full text-xs text-on-surface-variant file:me-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-surface-container-low file:text-primary hover:file:bg-surface-container-medium cursor-pointer disabled:opacity-60"
+                      className="block w-full text-xs text-on-surface-variant file:me-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-surface-container-low file:text-primary hover:file:bg-surface-container-high cursor-pointer disabled:opacity-60"
                     />
                     {isCompressing && (
                       <span className="text-xs text-primary font-medium flex items-center gap-1 shrink-0 animate-pulse">
@@ -899,7 +899,7 @@ export const InventoryClient = memo(function InventoryClient() {
                       accept="image/*"
                       onChange={(e) => handleImageFileChange(e, 1)}
                       disabled={isCompressing2}
-                      className="block w-full text-xs text-on-surface-variant file:me-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-surface-container-low file:text-primary hover:file:bg-surface-container-medium cursor-pointer disabled:opacity-60"
+                      className="block w-full text-xs text-on-surface-variant file:me-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-surface-container-low file:text-primary hover:file:bg-surface-container-high cursor-pointer disabled:opacity-60"
                     />
                     {isCompressing2 && (
                       <span className="text-xs text-primary font-medium flex items-center gap-1 shrink-0 animate-pulse">
@@ -937,7 +937,7 @@ export const InventoryClient = memo(function InventoryClient() {
                       accept="image/*"
                       onChange={(e) => handleImageFileChange(e, 2)}
                       disabled={isCompressing3}
-                      className="block w-full text-xs text-on-surface-variant file:me-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-surface-container-low file:text-primary hover:file:bg-surface-container-medium cursor-pointer disabled:opacity-60"
+                      className="block w-full text-xs text-on-surface-variant file:me-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-surface-container-low file:text-primary hover:file:bg-surface-container-high cursor-pointer disabled:opacity-60"
                     />
                     {isCompressing3 && (
                       <span className="text-xs text-primary font-medium flex items-center gap-1 shrink-0 animate-pulse">

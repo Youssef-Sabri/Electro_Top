@@ -7,7 +7,7 @@
   --color-secondary-fixed-dim: #dbc666;
   --color-on-surface: #271716;
   --color-outline: #906f6d;
-  --color-on-primary-container: #ffe1de;
+
   --color-background: #fff8f7;
   --color-error: #ba1a1a;
   --color-on-secondary: #ffffff;
@@ -17,7 +17,7 @@
   --color-secondary: #6d5e00;
   --color-surface-container-highest: #fadcd9;
   --color-surface: #fff8f7;
-  --color-tertiary: #504f53;
+
   --color-surface-container: #ffe9e7;
   --color-surface-container-lowest: #ffffff;
   --color-surface-container-low: #fff0ef;
@@ -31,7 +31,7 @@
   --color-brand-red-dark: #A01820;
   --color-electro-gold: #C6B254;
   --color-electro-red: #CA202B;
-  --color-brand-whatsapp: #25D366;
+
   /* Status Badge Colors */
   --color-status-pending: #FACC15;
   --color-status-accepted: #3B82F6;
@@ -65,7 +65,7 @@
   --spacing-margin-desktop: 2rem;
   --spacing-max-width: 1280px;
   --spacing-margin-mobile: 1rem;
-  --spacing-gutter: 1.5rem;
+
 }
 
 body {
@@ -78,14 +78,6 @@ body {
 /* Material symbols styles */
 .material-symbols-outlined {
   font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
-}
-
-/* Custom background pattern for landing page */
-.diagonal-accents {
-  background-image: linear-gradient(135deg, transparent 45%, #CA202B 45%, #CA202B 50%, transparent 50%),
-                    linear-gradient(135deg, transparent 25%, #CA202B 25%, #CA202B 26%, transparent 26%);
-  background-size: 200px 200px;
-  opacity: 0.1;
 }
 
 /* Custom clip path for landing page Hero section */

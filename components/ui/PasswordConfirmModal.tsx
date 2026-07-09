@@ -76,7 +76,7 @@ export const PasswordConfirmModal = memo(function PasswordConfirmModal({
             <span className="material-symbols-outlined text-[26px] select-none">lock</span>
           </div>
           <div className="flex-grow space-y-2">
-            <h3 className="text-body-lg font-bold text-on-surface leading-snug">{title}</h3>
+            <h3 className="text-body-md font-bold text-on-surface leading-snug">{title}</h3>
             <p className="text-sm text-on-surface-variant leading-relaxed">{message}</p>
           </div>
         </div>

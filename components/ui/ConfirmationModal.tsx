@@ -55,7 +55,7 @@ export const ConfirmationModal = memo(function ConfirmationModal({
             </span>
           </div>
           <div className="flex-grow space-y-2">
-            <h3 className="text-body-lg font-bold text-on-surface leading-snug">
+            <h3 className="text-body-md font-bold text-on-surface leading-snug">
               {title}
             </h3>
             <p className="text-sm text-on-surface-variant leading-relaxed">

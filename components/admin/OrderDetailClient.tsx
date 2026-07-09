@@ -551,7 +551,7 @@ export const OrderDetailClient = memo(function OrderDetailClient({ id }: OrderDe
             </h3>
             
             {sortedHistory.length > 0 ? (
-              <div className="space-y-6 relative before:content-[''] before:absolute before:right-[7px] before:top-2 before:bottom-2 before:w-[2px] before:bg-outline-variant/30 pr-1 text-start max-h-[260px] overflow-y-auto pl-2 scrollbar-thin scrollbar-thumb-outline-variant">
+              <div className="space-y-6 relative before:content-[''] before:absolute before:right-[7px] before:top-2 before:bottom-2 before:w-[2px] before:bg-outline-variant/30 pr-1 text-start max-h-[260px] overflow-y-auto pl-2">
                 {sortedHistory.map((h, idx) => {
                   const logDate = formatOrderDate(h.created_at);
                   const logTime = new Date(h.created_at).toLocaleTimeString('ar-EG', {

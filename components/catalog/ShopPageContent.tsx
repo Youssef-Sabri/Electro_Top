@@ -218,7 +218,7 @@ export const ShopPageContent = memo(function ShopPageContent({ initialProducts, 
                  type="checkbox"
                  checked={hideOutOfStock}
                  onChange={(e) => setHideOutOfStock(e.target.checked)}
-                 className="w-4.5 h-4.5 rounded border-outline-variant focus:ring-primary text-primary accent-primary cursor-pointer"
+                 className="w-[18px] h-[18px] rounded border-outline-variant focus:ring-primary text-primary accent-primary cursor-pointer"
                />
                 إخفاء غير المتوفر
               </label>

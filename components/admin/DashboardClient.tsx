@@ -157,7 +157,7 @@ export const DashboardClient = memo(function DashboardClient() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="bg-white border border-outline-variant/30 rounded-xl p-6 shadow-sm lg:col-span-2 space-y-6">
-          <h3 className="font-headline-md text-headline-sm font-bold text-on-surface">حالة شحن وتوصيل الطلبات</h3>
+          <h3 className="font-headline-md text-headline-md font-bold text-on-surface">حالة شحن وتوصيل الطلبات</h3>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             <div className="bg-surface p-4 rounded-lg text-center border border-outline-variant/10">
               <p className="text-2xl font-black text-amber-600">{stats.pendingCount}</p>
@@ -179,7 +179,7 @@ export const DashboardClient = memo(function DashboardClient() {
         </div>
 
         <div className="bg-white border border-outline-variant/30 rounded-xl p-6 shadow-sm space-y-6">
-          <h3 className="font-headline-md text-headline-sm font-bold text-on-surface">مراقبة المخزون</h3>
+          <h3 className="font-headline-md text-headline-md font-bold text-on-surface">مراقبة المخزون</h3>
           <div className="space-y-4">
             <div className="flex justify-between items-center">
               <div className="flex items-center gap-2">
@@ -210,8 +210,8 @@ export const DashboardClient = memo(function DashboardClient() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="bg-white border border-outline-variant/30 rounded-xl p-6 shadow-sm space-y-6">
-          <h3 className="font-headline-md text-headline-sm font-bold text-on-surface">حجم مبيعات الفئات</h3>
-          <div className="space-y-4 max-h-[320px] overflow-y-auto pe-2 scrollbar-thin scrollbar-thumb-outline-variant">
+          <h3 className="font-headline-md text-headline-md font-bold text-on-surface">حجم مبيعات الفئات</h3>
+          <div className="space-y-4 max-h-[320px] overflow-y-auto pe-2">
             {Object.keys(stats.salesByCategory).length > 0 ? (
               Object.entries(stats.salesByCategory).map(([cat, val]) => (
                 <div key={cat} className="space-y-1">
@@ -236,7 +236,7 @@ export const DashboardClient = memo(function DashboardClient() {
         </div>
 
         <div className="bg-white border border-outline-variant/30 rounded-xl p-6 shadow-sm lg:col-span-2 space-y-6">
-          <h3 className="font-headline-md text-headline-sm font-bold text-on-surface">الطلبات الواردة مؤخراً</h3>
+          <h3 className="font-headline-md text-headline-md font-bold text-on-surface">الطلبات الواردة مؤخراً</h3>
           <div className="overflow-x-auto">
             <table className="w-full text-start">
               <thead>

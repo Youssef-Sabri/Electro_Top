@@ -150,7 +150,7 @@ export const Navbar = memo(function Navbar() {
           <div className="max-w-max-width mx-auto flex justify-center items-center gap-10 py-3">
             <Link
               href="/"
-              className={`font-label-md text-sm font-semibold transition-colors duration-250 pb-1 border-b-2 ${
+              className={`font-label-md text-sm font-semibold transition-colors duration-[250ms] pb-1 border-b-2 ${
                 isHomeActive
                   ? 'text-primary border-primary'
                   : 'text-on-surface-variant border-transparent hover:text-primary'
@@ -160,7 +160,7 @@ export const Navbar = memo(function Navbar() {
             </Link>
             <Link
               href="/shop"
-              className={`font-label-md text-sm font-semibold transition-colors duration-250 pb-1 border-b-2 ${
+              className={`font-label-md text-sm font-semibold transition-colors duration-[250ms] pb-1 border-b-2 ${
                 pathname.startsWith('/shop')
                   ? 'text-primary border-primary'
                   : 'text-on-surface-variant border-transparent hover:text-primary'
@@ -170,7 +170,7 @@ export const Navbar = memo(function Navbar() {
             </Link>
             <Link
               href="/track"
-              className={`font-label-md text-sm font-semibold transition-colors duration-250 pb-1 border-b-2 ${
+              className={`font-label-md text-sm font-semibold transition-colors duration-[250ms] pb-1 border-b-2 ${
                 isTrackActive
                   ? 'text-primary border-primary'
                   : 'text-on-surface-variant border-transparent hover:text-primary'
@@ -180,7 +180,7 @@ export const Navbar = memo(function Navbar() {
             </Link>
             <Link
               href="/support"
-              className={`font-label-md text-sm font-semibold transition-colors duration-250 pb-1 border-b-2 ${
+              className={`font-label-md text-sm font-semibold transition-colors duration-[250ms] pb-1 border-b-2 ${
                 pathname.startsWith('/support')
                   ? 'text-primary border-primary'
                   : 'text-on-surface-variant border-transparent hover:text-primary'
