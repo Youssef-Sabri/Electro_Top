@@ -30,6 +30,39 @@ export function CategorySlideshowCard({ category, products, productCount }: Cate
   const [currentIndex, setCurrentIndex] = useState(0);
   const [nextIndex, setNextIndex] = useState<number | null>(null);
   const [fade, setFade] = useState(true);
+  const [lastImage, setLastImage] = useState<string | null>(null);
+
+  // Keep track of the previous images list to transition between category changes
+  const prevImagesRef = useRef<string[]>(images);
+
+  useEffect(() => {
+    if (prevImagesRef.current !== images) {
+      // Save the old image that was visible
+      const lastActive = prevImagesRef.current[currentIndex] || null;
+      setLastImage(lastActive);
+
+      // Keep the currentIndex, but bound it safely to the new images list length
+      const targetIndex = images.length > 0 ? currentIndex % images.length : 0;
+      setCurrentIndex(targetIndex);
+      setNextIndex(null);
+      setFade(true); // Keep the old image fully visible initially
+
+      // Wait 2.5 seconds before starting the transition to the new category image
+      const delayTimeout = setTimeout(() => {
+        setFade(false); // Trigger crossfade out of lastImage / in of images[targetIndex]
+
+        const finishTimeout = setTimeout(() => {
+          setLastImage(null);
+          setFade(true);
+        }, 700); // Crossfade transition time
+
+        return () => clearTimeout(finishTimeout);
+      }, 2500); // Delay image transition for 2.5s after text updates
+
+      prevImagesRef.current = images;
+      return () => clearTimeout(delayTimeout);
+    }
+  }, [images, currentIndex]);
 
   useEffect(() => {
     if (images.length <= 1) return;
@@ -46,13 +79,13 @@ export function CategorySlideshowCard({ category, products, productCount }: Cate
       }, 600); // Crossfade transition time
 
       return () => clearTimeout(timeout);
-    }, 4000); // Cycle every 4 seconds
+    }, 3000); // Cycle normal category slideshow every 3 seconds
 
     return () => clearInterval(interval);
   }, [currentIndex, images]);
 
-  const currentImg = images[currentIndex];
-  const nextImg = nextIndex !== null ? images[nextIndex] : null;
+  const currentImg = lastImage || images[currentIndex];
+  const nextImg = lastImage ? images[currentIndex] : (nextIndex !== null ? images[nextIndex] : null);
 
   return (
     <Link
@@ -62,10 +95,11 @@ export function CategorySlideshowCard({ category, products, productCount }: Cate
       <div className="absolute inset-0 w-full h-full p-8 select-none pointer-events-none bg-white flex items-center justify-center">
         {currentImg && (
           <div 
-            className="absolute inset-0 p-8 transition-all duration-700 ease-in-out flex items-center justify-center"
+            className="absolute inset-0 p-8 flex items-center justify-center"
             style={{
               opacity: fade ? 1 : 0,
-              transform: fade ? 'scale(1)' : 'scale(0.95)'
+              transform: fade ? 'scale(1)' : 'scale(0.96)',
+              transition: 'opacity 800ms cubic-bezier(0.4, 0, 0.2, 1), transform 800ms cubic-bezier(0.4, 0, 0.2, 1)'
             }}
           >
             <Image
@@ -81,10 +115,11 @@ export function CategorySlideshowCard({ category, products, productCount }: Cate
         )}
         {nextImg && (
           <div 
-            className="absolute inset-0 p-8 transition-all duration-700 ease-in-out flex items-center justify-center"
+            className="absolute inset-0 p-8 flex items-center justify-center"
             style={{
               opacity: fade ? 0 : 1,
-              transform: fade ? 'scale(0.95)' : 'scale(1)'
+              transform: fade ? 'scale(0.96)' : 'scale(1)',
+              transition: 'opacity 800ms cubic-bezier(0.4, 0, 0.2, 1), transform 800ms cubic-bezier(0.4, 0, 0.2, 1)'
             }}
           >
             <Image
@@ -119,6 +154,7 @@ export function CategorySlideshowCard({ category, products, productCount }: Cate
     </Link>
   );
 }
+
 
 interface LandingPageProps {
   initialCategories?: string[];
@@ -174,9 +210,7 @@ export const LandingPage = memo(function LandingPage({ initialCategories = [], i
         setShiftOffset((prev) => (prev + 1) % activeCategories.length);
         setFadeCategories(true); // Fade back in once content updates
       }, 500);
-
-      return () => clearTimeout(timeout);
-    }, 6000); // Shift to show next categories every 6 seconds
+    }, 9000); // Shift to show next categories every 9 seconds
 
     return () => clearInterval(interval);
   }, [activeCategories.length]);
@@ -248,8 +282,8 @@ export const LandingPage = memo(function LandingPage({ initialCategories = [], i
             transform: fadeCategories ? 'translateY(0) scale(1)' : 'translateY(4px) scale(0.995)'
           }}
         >
-          {displayedCategories.map((category) => (
-            <div key={category} className="shrink-0 w-[82vw] sm:w-[340px] md:w-full snap-center">
+          {displayedCategories.map((category, index) => (
+            <div key={index} className="shrink-0 w-[82vw] sm:w-[340px] md:w-full snap-center">
               <CategorySlideshowCard
                 category={category}
                 products={categoryProducts[category] || []}
