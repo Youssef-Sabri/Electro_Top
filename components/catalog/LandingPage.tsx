@@ -50,7 +50,7 @@ export function CategorySlideshowCard({ category, products, productCount }: Cate
   return (
     <Link
       href={`/shop?category=${encodeURIComponent(category)}`}
-      className="group relative h-[380px] rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-500 hover:-translate-y-1.5 border border-outline-variant/20 w-full block bg-white"
+      className="group relative h-[380px] rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-500 hover:-translate-y-1.5 active:scale-[0.98] active:shadow-md border border-outline-variant/20 w-full block bg-white"
     >
       <div className="absolute inset-0 w-full h-full select-none pointer-events-none bg-white">
         {currentImg ? (
@@ -188,14 +188,14 @@ export const LandingPage = memo(function LandingPage({ initialCategories = [], i
             <div className="flex flex-wrap gap-4">
               <Link
                 href="/shop"
-                className="bg-primary hover:bg-primary-container text-on-primary px-10 py-4 rounded-full font-semibold transition-all duration-200 shadow-lg shadow-primary/20 text-sm flex items-center gap-2"
+                className="bg-primary hover:bg-primary-container active:scale-[0.97] text-on-primary px-10 py-4 rounded-full font-semibold transition-all duration-200 shadow-lg shadow-primary/20 text-sm flex items-center gap-2"
               >
                 تسوق من المتجر
                 <span className="material-symbols-outlined text-sm rotate-180">arrow_forward</span>
               </Link>
               <Link
                 href="/support"
-                className="border border-white/30 text-white hover:bg-white/10 px-10 py-4 rounded-full font-semibold transition-all duration-200 text-sm"
+                className="border border-white/30 text-white hover:bg-white/10 active:scale-[0.97] px-10 py-4 rounded-full font-semibold transition-all duration-200 text-sm"
               >
                 تواصل معنا
               </Link>
@@ -252,7 +252,7 @@ export const LandingPage = memo(function LandingPage({ initialCategories = [], i
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 text-start md:text-center">
             {/* Card 1 */}
-            <div className="bg-white p-6 md:p-8 rounded-2xl border border-outline-variant/30 hover:border-primary/20 shadow-sm hover:shadow-xl hover:scale-[1.01] transition-all duration-300 flex flex-row md:flex-col items-center md:items-center gap-5 md:gap-6 group cursor-default">
+            <div className="bg-white p-6 md:p-8 rounded-2xl border border-outline-variant/30 hover:border-primary/20 shadow-sm hover:shadow-xl hover:scale-[1.01] active:scale-[0.98] transition-all duration-300 flex flex-row md:flex-col items-center md:items-center gap-5 md:gap-6 group cursor-default">
               <div className="w-14 h-14 md:w-16 md:h-16 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 group-hover:from-primary group-hover:to-brand-red-dark group-hover:text-white flex items-center justify-center text-primary shrink-0 transition-all duration-350 shadow-inner">
                 <span className="material-symbols-outlined text-[28px] md:text-[32px]">local_shipping</span>
               </div>
@@ -265,7 +265,7 @@ export const LandingPage = memo(function LandingPage({ initialCategories = [], i
             </div>
 
             {/* Card 2 */}
-            <div className="bg-white p-6 md:p-8 rounded-2xl border border-outline-variant/30 hover:border-primary/20 shadow-sm hover:shadow-xl hover:scale-[1.01] transition-all duration-300 flex flex-row md:flex-col items-center md:items-center gap-5 md:gap-6 group cursor-default">
+            <div className="bg-white p-6 md:p-8 rounded-2xl border border-outline-variant/30 hover:border-primary/20 shadow-sm hover:shadow-xl hover:scale-[1.01] active:scale-[0.98] transition-all duration-300 flex flex-row md:flex-col items-center md:items-center gap-5 md:gap-6 group cursor-default">
               <div className="w-14 h-14 md:w-16 md:h-16 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 group-hover:from-primary group-hover:to-brand-red-dark group-hover:text-white flex items-center justify-center text-primary shrink-0 transition-all duration-350 shadow-inner">
                 <span className="material-symbols-outlined text-[28px] md:text-[32px]">workspace_premium</span>
               </div>
@@ -278,7 +278,7 @@ export const LandingPage = memo(function LandingPage({ initialCategories = [], i
             </div>
 
             {/* Card 3 */}
-            <div className="bg-white p-6 md:p-8 rounded-2xl border border-outline-variant/30 hover:border-primary/20 shadow-sm hover:shadow-xl hover:scale-[1.01] transition-all duration-300 flex flex-row md:flex-col items-center md:items-center gap-5 md:gap-6 group cursor-default">
+            <div className="bg-white p-6 md:p-8 rounded-2xl border border-outline-variant/30 hover:border-primary/20 shadow-sm hover:shadow-xl hover:scale-[1.01] active:scale-[0.98] transition-all duration-300 flex flex-row md:flex-col items-center md:items-center gap-5 md:gap-6 group cursor-default">
               <div className="w-14 h-14 md:w-16 md:h-16 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 group-hover:from-primary group-hover:to-brand-red-dark group-hover:text-white flex items-center justify-center text-primary shrink-0 transition-all duration-350 shadow-inner">
                 <span className="material-symbols-outlined text-[28px] md:text-[32px]">payments</span>
               </div>
@@ -305,7 +305,7 @@ export const LandingPage = memo(function LandingPage({ initialCategories = [], i
           </p>
           <Link
             href="/shop"
-            className="bg-primary hover:bg-primary-container text-on-primary px-12 py-4 rounded-full font-semibold transition-all duration-200 shadow-lg shadow-primary/20 text-sm inline-block"
+            className="bg-primary hover:bg-primary-container active:scale-[0.97] text-on-primary px-12 py-4 rounded-full font-semibold transition-all duration-200 shadow-lg shadow-primary/20 text-sm inline-block"
           >
             دخول المتجر
           </Link>

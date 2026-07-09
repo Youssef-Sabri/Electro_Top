@@ -46,7 +46,7 @@ export const ProductCard = React.memo(function ProductCard({ product, onOpenDeta
   return (
     <div
       onClick={() => onOpenDetails(product)}
-      className="group bg-white rounded-2xl border border-outline-variant/30 overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 flex flex-col cursor-pointer animate-fade-in-up opacity-0 relative"
+      className="group bg-white rounded-2xl border border-outline-variant/30 overflow-hidden shadow-sm hover:shadow-lg active:scale-[0.98] transition-all duration-300 flex flex-col cursor-pointer animate-fade-in-up opacity-0 relative"
       style={{ animationDelay: `${(index % 8) * 60}ms` }}
     >
       {/* Image Area */}
@@ -103,7 +103,7 @@ export const ProductCard = React.memo(function ProductCard({ product, onOpenDeta
                 ? 'bg-surface-container-low text-on-surface-variant/40 border-outline-variant/30 cursor-not-allowed'
                 : isAdded
                   ? 'bg-green-600 text-white border-green-600'
-                  : 'bg-primary text-on-primary border-transparent hover:bg-primary-container hover:shadow-md'
+                  : 'bg-primary text-on-primary border-transparent hover:bg-primary-container hover:shadow-md active:scale-[0.92]'
             }`}
             aria-label="إضافة إلى السلة"
           >

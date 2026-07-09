@@ -32,7 +32,7 @@ export default function SupportPage() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           
           {/* WhatsApp Card */}
-          <div className="bg-white border border-outline-variant/40 rounded-2xl p-8 text-center flex flex-col items-center justify-between hover:shadow-lg hover:border-primary/20 hover:-translate-y-1 transition-all duration-300">
+          <div className="bg-white border border-outline-variant/40 rounded-2xl p-8 text-center flex flex-col items-center justify-between hover:shadow-lg hover:border-primary/20 hover:-translate-y-1 active:scale-[0.98] transition-all duration-300">
             <div className="space-y-4">
               <div className="w-14 h-14 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center mb-6">
                 <svg className="w-7 h-7 fill-current" viewBox="0 0 24 24">
@@ -51,7 +51,7 @@ export default function SupportPage() {
                   href={`https://wa.me/${number}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="bg-emerald-600 hover:bg-emerald-700 text-white py-3 px-4 rounded-xl font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer text-xs"
+                  className="bg-emerald-600 hover:bg-emerald-700 active:scale-[0.97] text-white py-3 px-4 rounded-xl font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer text-xs"
                 >
                   <span className="material-symbols-outlined text-[18px] select-none">chat</span>
                   <span>واتساب {whatsappNumbers.length > 1 && `(${index + 1})`}</span>
@@ -61,7 +61,7 @@ export default function SupportPage() {
           </div>
 
           {/* Facebook Card */}
-          <div className="bg-white border border-outline-variant/40 rounded-2xl p-8 text-center flex flex-col items-center justify-between hover:shadow-lg hover:border-primary/20 hover:-translate-y-1 transition-all duration-300">
+          <div className="bg-white border border-outline-variant/40 rounded-2xl p-8 text-center flex flex-col items-center justify-between hover:shadow-lg hover:border-primary/20 hover:-translate-y-1 active:scale-[0.98] transition-all duration-300">
             <div className="space-y-4">
               <div className="w-14 h-14 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center mb-6">
                 <svg className="w-7 h-7 fill-current" viewBox="0 0 24 24">
@@ -77,7 +77,7 @@ export default function SupportPage() {
               href={facebookUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3.5 px-6 rounded-xl font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer text-xs"
+              className="w-full bg-blue-600 hover:bg-blue-700 active:scale-[0.97] text-white py-3.5 px-6 rounded-xl font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer text-xs"
             >
               <span className="material-symbols-outlined text-[18px] select-none">public</span>
               زيارة صفحة فيسبوك
@@ -85,7 +85,7 @@ export default function SupportPage() {
           </div>
 
           {/* Call Us Card */}
-          <div className="bg-white border border-outline-variant/40 rounded-2xl p-8 text-center flex flex-col items-center justify-between hover:shadow-lg hover:border-primary/20 hover:-translate-y-1 transition-all duration-300">
+          <div className="bg-white border border-outline-variant/40 rounded-2xl p-8 text-center flex flex-col items-center justify-between hover:shadow-lg hover:border-primary/20 hover:-translate-y-1 active:scale-[0.98] transition-all duration-300">
             <div className="space-y-4">
               <div className="w-14 h-14 rounded-full bg-primary/5 text-primary flex items-center justify-center mb-6">
                 <span className="material-symbols-outlined text-[28px] select-none">
@@ -102,7 +102,7 @@ export default function SupportPage() {
                 <a
                   key={index}
                   href={`tel:${number}`}
-                  className="bg-primary hover:bg-primary/95 text-white py-3 px-4 rounded-xl font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer text-xs"
+                  className="bg-primary hover:bg-primary/95 active:scale-[0.97] text-white py-3 px-4 rounded-xl font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer text-xs"
                 >
                   <span className="material-symbols-outlined text-[18px] select-none">phone</span>
                   <span>اتصال هاتفي {phoneNumbers.length > 1 && `(${index + 1})`}</span>
