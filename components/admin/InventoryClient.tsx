@@ -292,89 +292,61 @@ export const InventoryClient = memo(function InventoryClient() {
     setEditingProduct(null);
   };
 
-  const handleImageFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageFileChange = async (e: React.ChangeEvent<HTMLInputElement>, slot: 0 | 1 | 2) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    setFormErrors((prev) => ({ ...prev, image_url: undefined }));
-    setCompressionInfo(null);
-    setIsCompressing(true);
+    const fieldKey = slot === 0 ? 'image_url' : slot === 1 ? 'image_url_2' : 'image_url_3';
+    const setCompressing = slot === 0 ? setIsCompressing : slot === 1 ? setIsCompressing2 : setIsCompressing3;
+    const setInfo = slot === 0 ? setCompressionInfo : slot === 1 ? setCompressionInfo2 : setCompressionInfo3;
+    const setFile = slot === 0 ? setSelectedImageFile : slot === 1 ? setSelectedImageFile2 : setSelectedImageFile3;
+
+    setFormErrors((prev) => ({ ...prev, [fieldKey]: undefined }));
+    setInfo(null);
+    setCompressing(true);
 
     try {
-      // Validate and compress locally first to generate preview URL
       const { dataUrl, info } = await processAndCompressImage(file);
-      setCompressionInfo(info);
-      setSelectedImageFile(file);
+      setInfo(info);
+      setFile(file);
       setFormData((prev) => ({
         ...prev,
-        image_url: dataUrl,
+        [fieldKey]: dataUrl,
       }));
     } catch (err: unknown) {
       const errorMsg = err instanceof Error ? err.message : 'فشل معالجة الصورة. يرجى محاولة رفع ملف آخر.';
       setFormErrors((prev) => ({
         ...prev,
-        image_url: errorMsg,
+        [fieldKey]: errorMsg,
       }));
       e.target.value = '';
     } finally {
-      setIsCompressing(false);
+      setCompressing(false);
     }
   };
 
-  const handleImageFileChange2 = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const uploadImageFiles = async (uploadedUrls: string[]) => {
+    let finalImageUrl = formData.image_url;
+    let finalImageUrl2 = formData.image_url_2;
+    let finalImageUrl3 = formData.image_url_3;
 
-    setFormErrors((prev) => ({ ...prev, image_url_2: undefined }));
-    setCompressionInfo2(null);
-    setIsCompressing2(true);
-
-    try {
-      const { dataUrl, info } = await processAndCompressImage(file);
-      setCompressionInfo2(info);
-      setSelectedImageFile2(file);
-      setFormData((prev) => ({
-        ...prev,
-        image_url_2: dataUrl,
-      }));
-    } catch (err: unknown) {
-      const errorMsg = err instanceof Error ? err.message : 'فشل معالجة الصورة. يرجى محاولة رفع ملف آخر.';
-      setFormErrors((prev) => ({
-        ...prev,
-        image_url_2: errorMsg,
-      }));
-      e.target.value = '';
-    } finally {
-      setIsCompressing2(false);
+    if (selectedImageFile) {
+      const { imageUrl } = await uploadProductImage(selectedImageFile);
+      finalImageUrl = imageUrl;
+      uploadedUrls.push(imageUrl);
     }
-  };
-
-  const handleImageFileChange3 = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    setFormErrors((prev) => ({ ...prev, image_url_3: undefined }));
-    setCompressionInfo3(null);
-    setIsCompressing3(true);
-
-    try {
-      const { dataUrl, info } = await processAndCompressImage(file);
-      setCompressionInfo3(info);
-      setSelectedImageFile3(file);
-      setFormData((prev) => ({
-        ...prev,
-        image_url_3: dataUrl,
-      }));
-    } catch (err: unknown) {
-      const errorMsg = err instanceof Error ? err.message : 'فشل معالجة الصورة. يرجى محاولة رفع ملف آخر.';
-      setFormErrors((prev) => ({
-        ...prev,
-        image_url_3: errorMsg,
-      }));
-      e.target.value = '';
-    } finally {
-      setIsCompressing3(false);
+    if (selectedImageFile2) {
+      const { imageUrl } = await uploadProductImage(selectedImageFile2);
+      finalImageUrl2 = imageUrl;
+      uploadedUrls.push(imageUrl);
     }
+    if (selectedImageFile3) {
+      const { imageUrl } = await uploadProductImage(selectedImageFile3);
+      finalImageUrl3 = imageUrl;
+      uploadedUrls.push(imageUrl);
+    }
+
+    return { finalImageUrl, finalImageUrl2, finalImageUrl3 };
   };
 
   const handleFormSubmit = (e: React.FormEvent) => {
@@ -408,25 +380,7 @@ export const InventoryClient = memo(function InventoryClient() {
           setIsSaving(true);
           const uploadedUrls: string[] = [];
           try {
-            let finalImageUrl = formData.image_url;
-            let finalImageUrl2 = formData.image_url_2;
-            let finalImageUrl3 = formData.image_url_3;
-
-            if (selectedImageFile) {
-              const { imageUrl } = await uploadProductImage(selectedImageFile);
-              finalImageUrl = imageUrl;
-              uploadedUrls.push(imageUrl);
-            }
-            if (selectedImageFile2) {
-              const { imageUrl } = await uploadProductImage(selectedImageFile2);
-              finalImageUrl2 = imageUrl;
-              uploadedUrls.push(imageUrl);
-            }
-            if (selectedImageFile3) {
-              const { imageUrl } = await uploadProductImage(selectedImageFile3);
-              finalImageUrl3 = imageUrl;
-              uploadedUrls.push(imageUrl);
-            }
+            const { finalImageUrl, finalImageUrl2, finalImageUrl3 } = await uploadImageFiles(uploadedUrls);
 
             await updateProduct({
               ...editingProduct,
@@ -466,25 +420,7 @@ export const InventoryClient = memo(function InventoryClient() {
           setIsSaving(true);
           const uploadedUrls: string[] = [];
           try {
-            let finalImageUrl = formData.image_url;
-            let finalImageUrl2 = formData.image_url_2;
-            let finalImageUrl3 = formData.image_url_3;
-
-            if (selectedImageFile) {
-              const { imageUrl } = await uploadProductImage(selectedImageFile);
-              finalImageUrl = imageUrl;
-              uploadedUrls.push(imageUrl);
-            }
-            if (selectedImageFile2) {
-              const { imageUrl } = await uploadProductImage(selectedImageFile2);
-              finalImageUrl2 = imageUrl;
-              uploadedUrls.push(imageUrl);
-            }
-            if (selectedImageFile3) {
-              const { imageUrl } = await uploadProductImage(selectedImageFile3);
-              finalImageUrl3 = imageUrl;
-              uploadedUrls.push(imageUrl);
-            }
+            const { finalImageUrl, finalImageUrl2, finalImageUrl3 } = await uploadImageFiles(uploadedUrls);
 
             await addProduct({
               ...result.data,
@@ -923,7 +859,7 @@ export const InventoryClient = memo(function InventoryClient() {
                     <input
                       type="file"
                       accept="image/*"
-                      onChange={handleImageFileChange}
+                      onChange={(e) => handleImageFileChange(e, 0)}
                       disabled={isCompressing}
                       className="block w-full text-xs text-on-surface-variant file:me-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-surface-container-low file:text-primary hover:file:bg-surface-container-medium cursor-pointer disabled:opacity-60"
                     />
@@ -961,7 +897,7 @@ export const InventoryClient = memo(function InventoryClient() {
                     <input
                       type="file"
                       accept="image/*"
-                      onChange={handleImageFileChange2}
+                      onChange={(e) => handleImageFileChange(e, 1)}
                       disabled={isCompressing2}
                       className="block w-full text-xs text-on-surface-variant file:me-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-surface-container-low file:text-primary hover:file:bg-surface-container-medium cursor-pointer disabled:opacity-60"
                     />
@@ -999,7 +935,7 @@ export const InventoryClient = memo(function InventoryClient() {
                     <input
                       type="file"
                       accept="image/*"
-                      onChange={handleImageFileChange3}
+                      onChange={(e) => handleImageFileChange(e, 2)}
                       disabled={isCompressing3}
                       className="block w-full text-xs text-on-surface-variant file:me-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-surface-container-low file:text-primary hover:file:bg-surface-container-medium cursor-pointer disabled:opacity-60"
                     />

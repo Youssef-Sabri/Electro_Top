@@ -1,15 +1,35 @@
 import type { NextConfig } from "next";
+import os from "os";
 
 const isDev = process.env.NODE_ENV === 'development';
 import { getSupabaseHostname } from '@/lib/supabase-url';
 
 const supabaseHost = getSupabaseHostname();
 
+const getDevOrigins = () => {
+  const ips = ['localhost:3000', 'localhost', '127.0.0.1'];
+  try {
+    const interfaces = os.networkInterfaces();
+    for (const devName in interfaces) {
+      const iface = interfaces[devName];
+      if (!iface) continue;
+      for (const alias of iface) {
+        if (alias.family === 'IPv4' && !alias.internal) {
+          ips.push(alias.address);
+          ips.push(`${alias.address}:3000`);
+        }
+      }
+    }
+  } catch (e) {
+    // fallback
+  }
+  return ips;
+};
+
 const nextConfig: NextConfig = {
-  compress: true,
   reactStrictMode: true,
   poweredByHeader: false,
-  allowedDevOrigins: isDev ? ['192.168.1.15', 'localhost:3000'] : [],
+  allowedDevOrigins: isDev ? getDevOrigins() : [],
   experimental: {
     optimizePackageImports: ['@supabase/supabase-js'],
   },

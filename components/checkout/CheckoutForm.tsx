@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, type ChangeEvent, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -52,7 +52,7 @@ export function CheckoutForm() {
     instapay_phone_number: '',
   });
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -106,7 +106,7 @@ export function CheckoutForm() {
   }
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+    e: ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -116,7 +116,7 @@ export function CheckoutForm() {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setUiState((prev) => ({ ...prev, isSubmitting: true }));
 
@@ -220,7 +220,7 @@ export function CheckoutForm() {
   return (
     <form onSubmit={handleSubmit} className="max-w-max-width mx-auto px-margin-mobile md:px-margin-desktop font-tajawal">
       {/* Honeypot field for bot prevention — positioned off-screen to avoid modern bots detecting display:none */}
-      <div aria-hidden="true" className="absolute -left-[9999px] opacity-0 pointer-events-none" style={{ position: 'absolute', left: '-9999px', height: 0, overflow: 'hidden' }}>
+      <div aria-hidden="true" className="absolute -left-[9999px] opacity-0 pointer-events-none" style={{ height: 0, overflow: 'hidden' }}>
         <label htmlFor="company_phone">Company Phone</label>
         <input
           id="company_phone"

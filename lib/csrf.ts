@@ -7,6 +7,25 @@ export function validateRequestOrigin(request: Request): boolean {
     return false
   }
 
+  // In development, we allow localhost and local/private network IPs (like 192.168.x.x, 10.x.x.x)
+  // to make testing on mobile devices or local network easy.
+  if (process.env.NODE_ENV !== 'production') {
+    const check = origin || referer || ''
+    try {
+      const host = new URL(check).hostname
+      const isLocalHost = host === 'localhost' || host === '127.0.0.1'
+      const isLanIp = host.startsWith('192.168.') || 
+                      host.startsWith('10.') || 
+                      /^172\.(1[6-9]|2[0-9]|3[0-1])\./.test(host)
+      
+      if (isLocalHost || isLanIp) {
+        return true
+      }
+    } catch {
+      // Fall through to standard validation if URL parsing fails
+    }
+  }
+
   if (!siteUrl) {
     // Fail closed in production — never allow all origins without an explicit site URL
     if (process.env.NODE_ENV === 'production') return false

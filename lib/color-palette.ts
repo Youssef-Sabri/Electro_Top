@@ -11,8 +11,6 @@ export const ALL_COLORS = [
   { name: 'وردي', hex: '#EC4899' },
 ] as const;
 
-export type ColorName = typeof ALL_COLORS[number]['name'];
-
 export function getColorHex(name: string): string {
   return ALL_COLORS.find(c => c.name === name)?.hex ?? '#000000';
 }

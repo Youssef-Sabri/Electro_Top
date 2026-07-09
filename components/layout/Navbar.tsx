@@ -19,7 +19,10 @@ export const Navbar = memo(function Navbar() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const searchRef = useRef(searchQuery);
-  searchRef.current = searchQuery;
+
+  useEffect(() => {
+    searchRef.current = searchQuery;
+  }, [searchQuery]);
 
   useEffect(() => {
     setIsMounted(true);

@@ -29,7 +29,6 @@ export function CategorySlideshowCard({ category, products, productCount }: Cate
   const [currentIndex, setCurrentIndex] = useState(0);
   const [prevImages, setPrevImages] = useState<string[]>(images);
 
-  // Keep slideshow position when images change (category rotation) — bound to new length
   if (prevImages !== images) {
     const boundedIndex = images.length > 0 ? Math.min(currentIndex, images.length - 1) : 0;
     setPrevImages(images);
@@ -53,11 +52,11 @@ export function CategorySlideshowCard({ category, products, productCount }: Cate
       href={`/shop?category=${encodeURIComponent(category)}`}
       className="group relative h-[380px] rounded-2xl overflow-hidden shadow-md transition-all duration-500 hover:scale-[1.02] hover:shadow-xl border border-outline-variant/10 w-full block bg-white"
     >
-      <div className="absolute inset-0 w-full h-full p-8 select-none pointer-events-none bg-white flex items-center justify-center">
+      <div className="absolute inset-0 w-full h-full select-none pointer-events-none bg-white">
         {currentImg && (
           <div
             key={currentImg}
-            className="absolute inset-0 p-8 flex items-center justify-center"
+            className="absolute inset-0"
             style={{
               animation: 'fadeInScale 800ms cubic-bezier(0.4, 0, 0.2, 1)'
             }}
@@ -66,7 +65,7 @@ export function CategorySlideshowCard({ category, products, productCount }: Cate
               src={currentImg}
               alt={`${category} - ${currentIndex}`}
               fill
-              className="object-contain p-8 group-hover:scale-105 transition-transform duration-500"
+              className="object-cover group-hover:scale-105 transition-transform duration-500"
               sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
               quality={70}
               priority
@@ -225,7 +224,8 @@ export const LandingPage = memo(function LandingPage({ initialCategories = [], i
           className="flex overflow-x-auto pb-6 scrollbar-hide -mx-margin-mobile px-margin-mobile md:mx-0 md:px-0 md:pb-0 md:overflow-visible md:grid md:grid-cols-3 gap-6 md:gap-8 transition-all duration-500 ease-in-out snap-x snap-mandatory"
           style={{
             opacity: fadeCategories ? 1 : 0,
-            transform: fadeCategories ? 'translateY(0) scale(1)' : 'translateY(4px) scale(0.995)'
+            transform: fadeCategories ? 'translateY(0) scale(1)' : 'translateY(4px) scale(0.995)',
+            pointerEvents: fadeCategories ? 'auto' : 'none' as const
           }}
         >
           {displayedCategories.map((category, index) => (

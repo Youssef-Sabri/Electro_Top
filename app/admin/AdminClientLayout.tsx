@@ -1,12 +1,10 @@
 'use client';
 
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
-
-import { ADMIN_SESSION_TIMEOUT_MS as SESSION_TIMEOUT_MS } from '@/lib/constants';
 
 interface AdminClientLayoutProps {
   children: React.ReactNode;
@@ -106,55 +104,6 @@ export default function AdminClientLayout({ children, initialAuthState }: AdminC
     }, 5000);
     return () => clearInterval(timer);
   }, [loginCooldown]);
-
-  const lastActivityRef = useRef(0);
-
-  const resetActivityTimer = useCallback(() => {
-    lastActivityRef.current = Date.now();
-  }, []);
-
-  useEffect(() => {
-    if (!isAuthenticated) return;
-
-    lastActivityRef.current = Date.now();
-
-    const events = ['mousedown', 'keydown', 'touchstart', 'scroll', 'mousemove'] as const;
-    for (const evt of events) {
-      window.addEventListener(evt, resetActivityTimer, { passive: true });
-    }
-
-    const interval = setInterval(() => {
-      const elapsed = Date.now() - lastActivityRef.current;
-      if (elapsed >= SESSION_TIMEOUT_MS) {
-        supabase.auth.signOut();
-        window.location.href = '/admin';
-      }
-    }, 30_000);
-
-    return () => {
-      for (const evt of events) {
-        window.removeEventListener(evt, resetActivityTimer);
-      }
-      clearInterval(interval);
-    };
-  }, [isAuthenticated, resetActivityTimer]);
-
-  useEffect(() => {
-    if (!isAuthenticated) return;
-
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible') {
-        const elapsed = Date.now() - lastActivityRef.current;
-        if (elapsed >= SESSION_TIMEOUT_MS) {
-          supabase.auth.signOut();
-          window.location.href = '/admin';
-        }
-      }
-    };
-
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
-  }, [isAuthenticated]);
 
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
