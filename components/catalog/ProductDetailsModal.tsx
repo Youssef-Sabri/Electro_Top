@@ -93,6 +93,7 @@ export const ProductDetailsModal = memo(function ProductDetailsModal({ product, 
 
   const handleAddToCart = () => {
     if (product.stock <= 0) return;
+    if (product.has_colors && selectedColor === null) return;
     addToCart(product, quantity, selectedColor);
     setIsAdded(true);
     if (isAddedTimerRef.current) clearTimeout(isAddedTimerRef.current);
@@ -309,9 +310,9 @@ export const ProductDetailsModal = memo(function ProductDetailsModal({ product, 
 
             <button
               onClick={handleAddToCart}
-              disabled={product.stock <= 0}
+              disabled={product.stock <= 0 || (product.has_colors && selectedColor === null)}
               className={`flex-grow h-[48px] rounded-lg font-label-md font-semibold transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer shadow-md ${
-                product.stock <= 0
+                product.stock <= 0 || (product.has_colors && selectedColor === null)
                   ? 'bg-gray-200 text-gray-400 cursor-not-allowed shadow-none'
                   : isAdded
                     ? 'bg-green-600 text-white hover:bg-green-700'
