@@ -106,7 +106,7 @@ export const ProductDetailsModal = memo(function ProductDetailsModal({ product, 
     >
       <div
         className="relative w-full max-w-2xl bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col md:flex-row max-h-[82vh] md:h-[500px] border border-outline-variant/20"
-        style={{ animation: 'modalAppear 0.2s ease-out forwards' }}
+        style={{ animation: 'modalSlideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards' }}
       >
         <div className="relative w-full md:w-5/12 h-[200px] md:h-full bg-white flex-shrink-0 border-e border-outline-variant/10">
           {images.length > 1 ? (
@@ -227,12 +227,16 @@ export const ProductDetailsModal = memo(function ProductDetailsModal({ product, 
           </div>
 
           <div className="mb-6">
-            <h3 className="font-semibold text-on-surface text-[12px] uppercase tracking-wider mb-2 font-tajawal">
+            <h3 className="font-semibold text-on-surface text-[12px] uppercase tracking-wider mb-3 font-tajawal">
               نظرة عامة
             </h3>
-            <p className="text-on-surface-variant text-label-md leading-relaxed">
-              {product.description}
-            </p>
+            <div className="text-on-surface-variant text-label-md leading-relaxed space-y-2">
+              {product.description.split('\n').map((para, i) =>
+                para.trim() ? (
+                  <p key={i}>{para.trim()}</p>
+                ) : null
+              )}
+            </div>
           </div>
 
 

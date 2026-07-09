@@ -17,11 +17,15 @@ export const Navbar = memo(function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
   const searchRef = useRef(searchQuery);
   searchRef.current = searchQuery;
 
   useEffect(() => {
     setIsMounted(true);
+
+    const handleScroll = () => setIsScrolled(window.scrollY > 20);
+    window.addEventListener('scroll', handleScroll, { passive: true });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       try {
@@ -38,6 +42,7 @@ export const Navbar = memo(function Navbar() {
 
     return () => {
       subscription.unsubscribe();
+      window.removeEventListener('scroll', handleScroll);
     };
   }, []);
 
@@ -63,7 +68,7 @@ export const Navbar = memo(function Navbar() {
   const isTrackActive = pathname.startsWith('/track');
 
   return (
-    <nav className="sticky top-0 w-full z-50 bg-surface/80 backdrop-blur-md border-b border-outline-variant/30 shadow-sm">
+    <nav className={`sticky top-0 w-full z-50 bg-surface/90 backdrop-blur-md border-b border-outline-variant/30 transition-shadow duration-300 ${isScrolled ? 'shadow-md' : 'shadow-sm'}`}>
       <div className="max-w-max-width mx-auto flex justify-between items-center px-margin-desktop py-4">
         <Link href="/" className="flex items-center gap-3 hover:opacity-90 transition-opacity">
            <Image
@@ -152,7 +157,10 @@ export const Navbar = memo(function Navbar() {
               shopping_cart
             </span>
             {isMounted && itemCount > 0 && (
-              <span className="absolute -top-2 -end-2 bg-primary text-on-primary text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center">
+              <span
+                key={itemCount}
+                className="absolute -top-2 -end-2 bg-primary text-on-primary text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center animate-cart-badge"
+              >
                 {itemCount}
               </span>
             )}

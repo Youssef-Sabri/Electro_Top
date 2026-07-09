@@ -28,8 +28,9 @@ export const LandingPage = memo(function LandingPage({ initialCategories = [], i
       .slice(0, 3);
   }, [categories]);
 
+  const activeProds = products.length > 0 ? products : initialProducts;
+
   const categoryImages = useMemo(() => {
-    const activeProds = products.length > 0 ? products : initialProducts;
     const images: Record<string, string | null> = {};
     activeCategories.forEach((category) => {
       const product = activeProds.find(
@@ -38,7 +39,15 @@ export const LandingPage = memo(function LandingPage({ initialCategories = [], i
       images[category] = product?.image_url ?? null;
     });
     return images;
-  }, [activeCategories, products, initialProducts]);
+  }, [activeCategories, activeProds]);
+
+  const categoryCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    activeCategories.forEach((category) => {
+      counts[category] = activeProds.filter((p) => p.category === category && p.is_active).length;
+    });
+    return counts;
+  }, [activeCategories, activeProds]);
 
 
   return (
@@ -54,12 +63,18 @@ export const LandingPage = memo(function LandingPage({ initialCategories = [], i
             <p className="text-surface-variant/80 text-body-lg mb-10 leading-relaxed max-w-2xl">
               موزعين معتمدين لدي السويدى الكتيرك، متسوبيشى يابانى، هيمل صينى، ABB (الوطنية)، فينوس ويوجد لدينا جميع اللوحات و مجري الاسلاك التركي. نوفر كل قواطع الحماية والكابلات ولوحات التوزيع والاستشارات الهندسية المتخصصة للمشاريع السكنية والتجارية والصناعية.
             </p>
-            <div className="flex gap-4">
+            <div className="flex flex-wrap gap-4">
               <Link
                 href="/shop"
                 className="bg-electro-red text-white px-10 py-4 rounded-lg font-label-md hover:scale-105 active:scale-[0.98] transition-all duration-200 cursor-pointer shadow-lg shadow-primary/20 uppercase tracking-wider text-xs font-bold"
               >
                 تسوق من المتجر
+              </Link>
+              <Link
+                href="/support"
+                className="border border-white/40 text-white px-10 py-4 rounded-lg font-label-md hover:bg-white/10 active:scale-[0.98] transition-all duration-200 cursor-pointer uppercase tracking-wider text-xs font-bold"
+              >
+                تواصل معنا
               </Link>
             </div>
           </div>
@@ -105,12 +120,17 @@ export const LandingPage = memo(function LandingPage({ initialCategories = [], i
                 ) : (
                   <div className="absolute inset-0 bg-gradient-to-br from-on-background via-on-background/90 to-on-background/70" />
                 )}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent flex flex-col justify-end p-6 text-left">
-                  <h3 className="font-headline-md text-white font-bold text-[20px] text-start">{category}</h3>
-                  <p className="text-surface-variant/80 text-xs mt-1.5 leading-relaxed text-start">
-                    استكشف مجموعتنا الممتازة من مستلزمات {category}.
+                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent flex flex-col justify-end p-6 text-start">
+                  <h3 className="font-headline-md text-white font-bold text-[20px]">{category}</h3>
+                  {categoryCounts[category] != null && categoryCounts[category] > 0 && (
+                    <span className="text-white/60 text-xs mt-1 font-medium">
+                      {categoryCounts[category]} منتج
+                    </span>
+                  )}
+                  <p className="text-white/70 text-xs mt-1.5 leading-relaxed">
+                    استكشف مجموعتنا الممتازة من {category}.
                   </p>
-                  <span className="mt-4 text-electro-gold text-xs font-bold uppercase tracking-wider flex items-center gap-1 group-hover:-translate-x-1 transition-transform justify-start">
+                  <span className="mt-4 text-electro-gold text-xs font-bold uppercase tracking-wider flex items-center gap-1 group-hover:gap-2 transition-all duration-300 justify-start">
                     تصفح المجموعة <span className="material-symbols-outlined text-xs rotate-180">arrow_forward</span>
                   </span>
                 </div>

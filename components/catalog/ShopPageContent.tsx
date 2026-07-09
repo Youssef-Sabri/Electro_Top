@@ -178,7 +178,23 @@ export const ShopPageContent = memo(function ShopPageContent({ initialProducts, 
 
       {/* Main Shop Container */}
       <main className="max-w-max-width mx-auto px-margin-mobile md:px-margin-desktop py-12">
-        
+        {/* Mobile category chips — horizontal scroll, shown only on small screens */}
+        <div className="flex lg:hidden gap-2 overflow-x-auto pb-2 mb-4 scrollbar-hide -mx-4 px-4">
+          {categoriesList.map((cat) => (
+            <button
+              key={cat}
+              onClick={() => setCategory(cat)}
+              className={`flex-shrink-0 px-4 py-1.5 rounded-full text-xs font-bold transition-all duration-200 border ${
+                category === cat
+                  ? 'bg-electro-red text-white border-electro-red shadow-sm'
+                  : 'bg-white text-on-surface-variant border-outline-variant/50 hover:border-primary hover:text-primary'
+              }`}
+            >
+              {getCategoryLabel(cat)}
+            </button>
+          ))}
+        </div>
+
         <div className="bg-surface-container-low border border-outline-variant/30 rounded-xl p-6 mb-10 space-y-6">
           <div className="flex flex-col lg:flex-row gap-4 items-stretch lg:items-center justify-between">
             <div className="relative flex-grow max-w-xl text-start">
@@ -190,7 +206,7 @@ export const ShopPageContent = memo(function ShopPageContent({ initialProducts, 
                  onChange={(e) => setSearchInput(e.target.value)}
                />
               <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant select-none">
-                search
+               search
               </span>
             </div>
 
@@ -205,7 +221,7 @@ export const ShopPageContent = memo(function ShopPageContent({ initialProducts, 
                 إخفاء المنتجات غير المتوفرة
               </label>
 
-              <div className="flex items-center gap-2">
+              <div className="hidden lg:flex items-center gap-2">
                <CustomDropdown
                  labelPrefix="القسم:"
                  options={categoriesList.map(cat => ({ 
@@ -234,8 +250,16 @@ export const ShopPageContent = memo(function ShopPageContent({ initialProducts, 
           </div>
         </div>
 
+
         {paginatedProducts.length > 0 ? (
           <div className="space-y-12">
+            {/* Product count badge */}
+            <div className="flex items-center justify-between mb-2">
+              <span className="inline-flex items-center gap-1.5 bg-surface-container border border-outline-variant/30 text-on-surface-variant text-xs font-semibold px-3 py-1.5 rounded-full">
+                <span className="material-symbols-outlined text-[14px] text-primary">inventory_2</span>
+                {sortedProducts.length} منتج
+              </span>
+            </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-gutter">
               {paginatedProducts.map((product, index) => (
                 <ProductCard
