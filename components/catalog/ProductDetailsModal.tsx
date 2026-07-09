@@ -22,14 +22,6 @@ export const ProductDetailsModal = memo(function ProductDetailsModal({ product, 
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [selectedColor, setSelectedColor] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (product.has_colors) {
-      setSelectedColor('أسود');
-    } else {
-      setSelectedColor(null);
-    }
-  }, [product.has_colors]);
-
   const images = useMemo(() => {
     return [product.image_url, product.image_url_2, product.image_url_3].filter(Boolean) as string[];
   }, [product.image_url, product.image_url_2, product.image_url_3]);
@@ -242,6 +234,17 @@ export const ProductDetailsModal = memo(function ProductDetailsModal({ product, 
                 اللون المطلوب <span className="text-electro-red font-bold">*</span>
               </h3>
               <div className="flex flex-wrap gap-2">
+                <button
+                  onClick={() => setSelectedColor(null)}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-semibold cursor-pointer transition-all duration-200 ${
+                    selectedColor === null
+                      ? 'border-primary bg-primary/5 text-primary ring-2 ring-primary/10 font-bold'
+                      : 'border-outline-variant/60 hover:border-gray-400 text-on-surface-variant'
+                  }`}
+                >
+                  <span className="material-symbols-outlined text-[16px] select-none">palette</span>
+                  <span>كل الألوان</span>
+                </button>
                 {(product.colors && product.colors.length > 0 ? product.colors : ALL_COLORS.map(c => c.name)).map((colorName) => {
                   const hex = getColorHex(colorName);
                   return (
