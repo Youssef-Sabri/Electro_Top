@@ -110,7 +110,7 @@ export function ConfirmationClient() {
   return (
     <div className="max-w-3xl mx-auto text-center py-12 px-margin-mobile md:px-margin-desktop font-tajawal">
       <div className="mb-8 flex justify-center">
-        <div className="w-20 h-20 bg-green-50 rounded-full flex items-center justify-center border border-green-150">
+        <div className="w-20 h-20 bg-green-50 rounded-full flex items-center justify-center">
           <span
             className="material-symbols-outlined text-5xl text-green-600 select-none"
             style={{ fontVariationSettings: "'FILL' 1" }}
