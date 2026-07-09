@@ -22,6 +22,12 @@ export const ProductDetailsModal = memo(function ProductDetailsModal({ product, 
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [selectedColor, setSelectedColor] = useState<string | null>(null);
 
+  useEffect(() => {
+    setSelectedColor(null);
+    setQuantity(1);
+    setCurrentImageIndex(0);
+  }, [product]);
+
   const images = useMemo(() => {
     return [product.image_url, product.image_url_2, product.image_url_3].filter(Boolean) as string[];
   }, [product.image_url, product.image_url_2, product.image_url_3]);
@@ -111,84 +117,100 @@ export const ProductDetailsModal = memo(function ProductDetailsModal({ product, 
         className="relative w-full max-w-2xl bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col md:flex-row max-h-[82vh] md:h-[500px] border border-outline-variant/20"
         style={{ animation: 'modalSlideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards' }}
       >
-        <div className="relative w-full md:w-5/12 h-[200px] md:h-full bg-white flex-shrink-0 border-e border-outline-variant/10">
-          {images.length > 1 ? (
-            <div
-              onPointerDown={handlePointerDown}
-              onPointerUp={handlePointerUp}
-              className="relative w-full h-full group touch-pan-y cursor-grab active:cursor-grabbing select-none"
-            >
-              <div className="relative w-full h-full overflow-hidden">
-                {images.map((imgUrl, index) => (
-                  <div
+        <div className="relative w-full md:w-5/12 h-[260px] md:h-full bg-white flex-shrink-0 border-e border-outline-variant/10 flex flex-col p-4 justify-between">
+          <div className="relative w-full flex-grow h-[180px] md:h-[350px]">
+            {images.length > 1 ? (
+              <div
+                onPointerDown={handlePointerDown}
+                onPointerUp={handlePointerUp}
+                className="relative w-full h-full group touch-pan-y cursor-grab active:cursor-grabbing select-none"
+              >
+                <div className="relative w-full h-full overflow-hidden">
+                  {images.map((imgUrl, index) => (
+                    <div
+                      key={imgUrl}
+                      className={`absolute inset-0 transition-opacity duration-300 ease-in-out ${
+                        index === currentImageIndex ? 'opacity-100 z-10' : 'opacity-0 z-0 pointer-events-none'
+                      }`}
+                    >
+                      <Image
+                        src={imgUrl}
+                        alt={`${product.name} - ${index + 1}`}
+                        fill
+                        className="object-contain pointer-events-none select-none"
+                        sizes="(max-width: 768px) 100vw, 40vw"
+                        quality={85}
+                        priority={index === 0}
+                        draggable={false}
+                      />
+                    </div>
+                  ))}
+                </div>
+
+                {/* Navigation Arrows */}
+                <button
+                  onClick={handlePrevImage}
+                  className="absolute left-1 top-1/2 -translate-y-1/2 z-20 bg-black/25 hover:bg-black/45 text-white rounded-full p-1.5 transition active:scale-95 shadow flex items-center justify-center opacity-0 group-hover:opacity-100"
+                  aria-label="Previous image"
+                >
+                  <svg className="w-4 h-4 rtl:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
+                  </svg>
+                </button>
+                <button
+                  onClick={handleNextImage}
+                  className="absolute right-1 top-1/2 -translate-y-1/2 z-20 bg-black/25 hover:bg-black/45 text-white rounded-full p-1.5 transition active:scale-95 shadow flex items-center justify-center opacity-0 group-hover:opacity-100"
+                  aria-label="Next image"
+                >
+                  <svg className="w-4 h-4 rtl:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
+              </div>
+            ) : (
+              <div className="relative w-full h-full">
+                <Image
+                  src={product.image_url}
+                  alt={product.name}
+                  fill
+                  className="object-contain pointer-events-none select-none"
+                  sizes="(max-width: 768px) 100vw, 40vw"
+                  quality={85}
+                  priority
+                  draggable={false}
+                />
+              </div>
+            )}
+          </div>
+
+          {/* Interactive Thumbnails */}
+          {images.length > 1 && (
+            <div className="flex gap-2 justify-center mt-3 overflow-x-auto py-1 w-full select-none scrollbar-hide">
+              {images.map((imgUrl, index) => {
+                const isActive = index === currentImageIndex;
+                return (
+                  <button
                     key={imgUrl}
-                    className={`absolute inset-0 transition-opacity duration-300 ease-in-out ${
-                      index === currentImageIndex ? 'opacity-100 z-10' : 'opacity-0 z-0 pointer-events-none'
+                    type="button"
+                    onClick={() => setCurrentImageIndex(index)}
+                    className={`relative w-11 h-11 rounded-lg border-2 overflow-hidden transition-all duration-200 cursor-pointer bg-white flex-shrink-0 ${
+                      isActive ? 'border-primary scale-105 shadow-sm' : 'border-outline-variant/40 hover:border-gray-400'
                     }`}
                   >
                     <Image
                       src={imgUrl}
-                      alt={`${product.name} - ${index + 1}`}
+                      alt={`عرض مصغر ${index + 1}`}
                       fill
-                      className="object-contain p-4 pointer-events-none select-none"
-                      sizes="(max-width: 768px) 100vw, 40vw"
-                      quality={85}
-                      priority={index === 0}
-                      draggable={false}
+                      className="object-contain p-0.5"
+                      sizes="44px"
+                      quality={60}
                     />
-                  </div>
-                ))}
-              </div>
-
-              {/* Navigation Arrows */}
-              <button
-                onClick={handlePrevImage}
-                className="absolute left-2 top-1/2 -translate-y-1/2 z-20 bg-black/35 hover:bg-black/50 text-white rounded-full p-2 transition active:scale-95 shadow-md flex items-center justify-center opacity-0 group-hover:opacity-100"
-                aria-label="Previous image"
-              >
-                <svg className="w-5 h-5 rtl:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
-                </svg>
-              </button>
-              <button
-                onClick={handleNextImage}
-                className="absolute right-2 top-1/2 -translate-y-1/2 z-20 bg-black/35 hover:bg-black/50 text-white rounded-full p-2 transition active:scale-95 shadow-md flex items-center justify-center opacity-0 group-hover:opacity-100"
-                aria-label="Next image"
-              >
-                <svg className="w-5 h-5 rtl:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
-                </svg>
-              </button>
-
-              {/* Indicator Dots - Glass Pill Design */}
-              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 flex gap-2 items-center justify-center bg-black/10 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/10 shadow-sm">
-                {images.map((_, index) => (
-                  <button
-                    key={index}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setCurrentImageIndex(index);
-                    }}
-                    className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${
-                      index === currentImageIndex ? 'bg-primary w-3.5' : 'bg-gray-400/60 hover:bg-gray-400'
-                    }`}
-                    aria-label={`Go to slide ${index + 1}`}
-                  />
-                ))}
-              </div>
+                  </button>
+                );
+              })}
             </div>
-          ) : (
-            <Image
-              src={product.image_url}
-              alt={product.name}
-              fill
-              className="object-contain p-4 pointer-events-none select-none"
-              sizes="(max-width: 768px) 100vw, 40vw"
-              quality={85}
-              priority
-              draggable={false}
-            />
           )}
+
           {product.stock <= 0 && (
             <div className="absolute inset-0 bg-black/40 flex items-center justify-center backdrop-blur-[1px] z-30">
               <span className="bg-electro-red text-white font-tajawal font-bold px-6 py-2.5 rounded-md uppercase tracking-wider text-sm shadow-md">
@@ -231,38 +253,45 @@ export const ProductDetailsModal = memo(function ProductDetailsModal({ product, 
 
           {product.has_colors && (
             <div className="mb-5 border-t border-b border-gray-100 py-3.5 select-none text-start">
-              <h3 className="font-semibold text-on-surface text-[12.5px] uppercase tracking-wider mb-2 font-tajawal">
-                اللون المطلوب <span className="text-electro-red font-bold">*</span>
+              <h3 className="font-bold text-on-surface text-[13px] mb-3 font-tajawal flex items-center gap-1.5">
+                <span>اللون:</span>
+                <span className="text-primary font-extrabold">{selectedColor || 'كل الألوان'}</span>
+                <span className="text-electro-red font-bold">*</span>
               </h3>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-3">
                 <button
+                  type="button"
                   onClick={() => setSelectedColor(null)}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-semibold cursor-pointer transition-all duration-200 ${
+                  className={`w-8 h-8 rounded-full border transition-all duration-200 cursor-pointer flex items-center justify-center bg-surface-container-low ${
                     selectedColor === null
-                      ? 'border-primary bg-primary/5 text-primary ring-2 ring-primary/10 font-bold'
-                      : 'border-outline-variant/60 hover:border-gray-400 text-on-surface-variant'
+                      ? 'border-primary ring-2 ring-offset-2 ring-primary scale-110'
+                      : 'border-gray-300 hover:border-gray-400 hover:scale-105'
                   }`}
+                  title="كل الألوان"
+                  aria-label="كل الألوان"
                 >
-                  <span className="material-symbols-outlined text-[16px] select-none">palette</span>
-                  <span>كل الألوان</span>
+                  <span className="material-symbols-outlined text-[16px] text-on-surface-variant select-none">palette</span>
                 </button>
                 {(product.colors && product.colors.length > 0 ? product.colors : ALL_COLORS.map(c => c.name)).map((colorName) => {
                   const hex = getColorHex(colorName);
+                  const isSelected = selectedColor === colorName;
                   return (
                     <button
                       key={colorName}
+                      type="button"
                       onClick={() => setSelectedColor(colorName)}
-                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-semibold cursor-pointer transition-all duration-200 ${
-                        selectedColor === colorName
-                          ? 'border-primary bg-primary/5 text-primary ring-2 ring-primary/10 font-bold'
-                          : 'border-outline-variant/60 hover:border-gray-400 text-on-surface-variant'
+                      className={`w-8 h-8 rounded-full border transition-all duration-200 cursor-pointer relative flex items-center justify-center ${
+                        isSelected
+                          ? 'border-primary ring-2 ring-offset-2 ring-primary scale-110'
+                          : 'border-gray-300 hover:border-gray-400 hover:scale-105'
                       }`}
+                      title={colorName}
+                      aria-label={`اختر لون ${colorName}`}
                     >
                       <span 
-                        className="w-3.5 h-3.5 rounded-full border border-gray-300 shadow-sm shrink-0" 
+                        className="absolute inset-0.5 rounded-full border border-black/5" 
                         style={{ background: hex }} 
                       />
-                      <span>{colorName}</span>
                     </button>
                   );
                 })}

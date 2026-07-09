@@ -135,6 +135,30 @@ export async function proxy(request: NextRequest) {
       const url = new URL('/admin', request.url)
       return NextResponse.redirect(url)
     }
+
+    // Inactivity timeout: expire session after 1h of no requests
+    const lastActivity = request.cookies.get('admin-last-activity')?.value
+    const now = Date.now()
+
+    if (lastActivity) {
+      const elapsed = now - parseInt(lastActivity, 10)
+      if (elapsed > 3600_000) {
+        await supabase.auth.signOut()
+        if (pathname.startsWith('/api/admin/')) {
+          return NextResponse.json({ error: 'Session expired' }, { status: 401 })
+        }
+        const url = new URL('/admin', request.url)
+        return NextResponse.redirect(url)
+      }
+    }
+
+    response.cookies.set('admin-last-activity', String(now), {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'lax',
+      path: '/',
+      maxAge: 86_400,
+    })
   }
 
   response.headers.set('x-nonce', nonce)
