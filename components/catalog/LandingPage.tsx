@@ -1,10 +1,124 @@
 'use client';
 
-import { memo, useEffect, useMemo } from 'react';
+import { memo, useEffect, useMemo, useState, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useProducts } from '@/hooks/useProducts';
 import type { Product } from '@/types';
+
+interface CategorySlideshowCardProps {
+  category: string;
+  products: Product[];
+  productCount: number;
+}
+
+export function CategorySlideshowCard({ category, products, productCount }: CategorySlideshowCardProps) {
+  const images = useMemo(() => {
+    const urls = products
+      .map((p) => {
+        if (!p.image_url) return null;
+        // If it's a placeholder, append the product name to generate a unique image with custom text
+        if (p.image_url.includes('placehold.co')) {
+          return `${p.image_url}?text=${encodeURIComponent(p.name)}`;
+        }
+        return p.image_url;
+      })
+      .filter((url): url is string => !!url);
+    return Array.from(new Set(urls));
+  }, [products]);
+
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [nextIndex, setNextIndex] = useState<number | null>(null);
+  const [fade, setFade] = useState(true);
+
+  useEffect(() => {
+    if (images.length <= 1) return;
+
+    const interval = setInterval(() => {
+      const nextIdx = (currentIndex + 1) % images.length;
+      setNextIndex(nextIdx);
+      setFade(false);
+
+      const timeout = setTimeout(() => {
+        setCurrentIndex(nextIdx);
+        setNextIndex(null);
+        setFade(true);
+      }, 600); // Crossfade transition time
+
+      return () => clearTimeout(timeout);
+    }, 4000); // Cycle every 4 seconds
+
+    return () => clearInterval(interval);
+  }, [currentIndex, images]);
+
+  const currentImg = images[currentIndex];
+  const nextImg = nextIndex !== null ? images[nextIndex] : null;
+
+  return (
+    <Link
+      href={`/shop?category=${encodeURIComponent(category)}`}
+      className="group relative h-[380px] rounded-2xl overflow-hidden shadow-md transition-all duration-500 hover:scale-[1.02] hover:shadow-xl border border-outline-variant/10 w-full block bg-white"
+    >
+      <div className="absolute inset-0 w-full h-full p-8 select-none pointer-events-none bg-white flex items-center justify-center">
+        {currentImg && (
+          <div 
+            className="absolute inset-0 p-8 transition-all duration-700 ease-in-out flex items-center justify-center"
+            style={{
+              opacity: fade ? 1 : 0,
+              transform: fade ? 'scale(1)' : 'scale(0.95)'
+            }}
+          >
+            <Image
+              src={currentImg}
+              alt={`${category} - ${currentIndex}`}
+              fill
+              className="object-contain p-8 group-hover:scale-105 transition-transform duration-500"
+              sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+              quality={70}
+              priority
+            />
+          </div>
+        )}
+        {nextImg && (
+          <div 
+            className="absolute inset-0 p-8 transition-all duration-700 ease-in-out flex items-center justify-center"
+            style={{
+              opacity: fade ? 0 : 1,
+              transform: fade ? 'scale(0.95)' : 'scale(1)'
+            }}
+          >
+            <Image
+              src={nextImg}
+              alt={`${category} - ${nextIndex}`}
+              fill
+              className="object-contain p-8 group-hover:scale-105 transition-transform duration-500"
+              sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+              quality={70}
+            />
+          </div>
+        )}
+        {!currentImg && (
+          <div className="absolute inset-0 bg-gradient-to-br from-on-background via-on-background/90 to-on-background/70" />
+        )}
+      </div>
+
+      <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/45 to-transparent flex flex-col justify-end p-6 text-start z-10">
+        <h3 className="font-headline-md text-white font-bold text-[20px]">{category}</h3>
+        {productCount > 0 && (
+          <span className="text-white/60 text-xs mt-1 font-medium">
+            {productCount} منتج
+          </span>
+        )}
+        <p className="text-white/70 text-xs mt-1.5 leading-relaxed">
+          استكشف مجموعتنا الممتازة من {category}.
+        </p>
+        <span className="mt-4 text-electro-gold text-xs font-bold uppercase tracking-wider flex items-center gap-1 group-hover:gap-2 transition-all duration-300 justify-start">
+          تصفح المجموعة <span className="material-symbols-outlined text-xs rotate-180">arrow_forward</span>
+        </span>
+      </div>
+    </Link>
+  );
+}
 
 interface LandingPageProps {
   initialCategories?: string[];
@@ -24,21 +138,19 @@ export const LandingPage = memo(function LandingPage({ initialCategories = [], i
 
   const activeCategories = useMemo(() => {
     return (categories || [])
-      .filter((cat) => cat.toLowerCase() !== 'all' && cat.toLowerCase() !== 'all categories')
-      .slice(0, 3);
+      .filter((cat) => cat.toLowerCase() !== 'all' && cat.toLowerCase() !== 'all categories');
   }, [categories]);
 
   const activeProds = products.length > 0 ? products : initialProducts;
 
-  const categoryImages = useMemo(() => {
-    const images: Record<string, string | null> = {};
+  const categoryProducts = useMemo(() => {
+    const mapping: Record<string, Product[]> = {};
     activeCategories.forEach((category) => {
-      const product = activeProds.find(
-        (p) => p.category === category && p.image_url && p.is_active
+      mapping[category] = activeProds.filter(
+        (p) => p.category === category && p.is_active
       );
-      images[category] = product?.image_url ?? null;
     });
-    return images;
+    return mapping;
   }, [activeCategories, activeProds]);
 
   const categoryCounts = useMemo(() => {
@@ -48,6 +160,37 @@ export const LandingPage = memo(function LandingPage({ initialCategories = [], i
     });
     return counts;
   }, [activeCategories, activeProds]);
+
+  const [shiftOffset, setShiftOffset] = useState(0);
+  const [fadeCategories, setFadeCategories] = useState(true);
+
+  useEffect(() => {
+    if (activeCategories.length <= 3) return;
+
+    const interval = setInterval(() => {
+      setFadeCategories(false); // Start fading out cards before shifting category contents
+      
+      const timeout = setTimeout(() => {
+        setShiftOffset((prev) => (prev + 1) % activeCategories.length);
+        setFadeCategories(true); // Fade back in once content updates
+      }, 500);
+
+      return () => clearTimeout(timeout);
+    }, 6000); // Shift to show next categories every 6 seconds
+
+    return () => clearInterval(interval);
+  }, [activeCategories.length]);
+
+  const displayedCategories = useMemo(() => {
+    if (activeCategories.length <= 3) return activeCategories;
+    
+    const list: string[] = [];
+    for (let i = 0; i < 3; i++) {
+      const idx = (shiftOffset + i) % activeCategories.length;
+      list.push(activeCategories[idx]);
+    }
+    return list;
+  }, [activeCategories, shiftOffset]);
 
 
   return (
@@ -97,46 +240,23 @@ export const LandingPage = memo(function LandingPage({ initialCategories = [], i
           <div className="w-16 h-1 bg-primary rounded-full mx-auto"></div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-          {activeCategories.map((category) => {
-            const imageUrl = categoryImages[category];
-
-            return (
-              <Link
-                key={category}
-                href={`/shop?category=${encodeURIComponent(category)}`}
-                className="group relative h-[380px] rounded-2xl overflow-hidden shadow-md transition-all duration-300 hover:scale-[1.02] hover:shadow-xl border border-outline-variant/10"
-              >
-                {imageUrl ? (
-                  <Image
-                    src={imageUrl}
-                    alt={`${category} - مجموعة`}
-                    fill
-                    className="object-cover group-hover:scale-105 group-active:scale-105 transition-transform duration-500"
-                    sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                    quality={70}
-                    priority
-                  />
-                ) : (
-                  <div className="absolute inset-0 bg-gradient-to-br from-on-background via-on-background/90 to-on-background/70" />
-                )}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent flex flex-col justify-end p-6 text-start">
-                  <h3 className="font-headline-md text-white font-bold text-[20px]">{category}</h3>
-                  {categoryCounts[category] != null && categoryCounts[category] > 0 && (
-                    <span className="text-white/60 text-xs mt-1 font-medium">
-                      {categoryCounts[category]} منتج
-                    </span>
-                  )}
-                  <p className="text-white/70 text-xs mt-1.5 leading-relaxed">
-                    استكشف مجموعتنا الممتازة من {category}.
-                  </p>
-                  <span className="mt-4 text-electro-gold text-xs font-bold uppercase tracking-wider flex items-center gap-1 group-hover:gap-2 transition-all duration-300 justify-start">
-                    تصفح المجموعة <span className="material-symbols-outlined text-xs rotate-180">arrow_forward</span>
-                  </span>
-                </div>
-              </Link>
-            );
-          })}
+        {/* Exactly 3 Visual Card Slots: side-by-side horizontally scrollable on mobile, 3-column grid on desktop */}
+        <div 
+          className="flex overflow-x-auto pb-6 scrollbar-hide -mx-margin-mobile px-margin-mobile md:mx-0 md:px-0 md:pb-0 md:overflow-visible md:grid md:grid-cols-3 gap-6 md:gap-8 transition-all duration-500 ease-in-out snap-x snap-mandatory"
+          style={{
+            opacity: fadeCategories ? 1 : 0,
+            transform: fadeCategories ? 'translateY(0) scale(1)' : 'translateY(4px) scale(0.995)'
+          }}
+        >
+          {displayedCategories.map((category) => (
+            <div key={category} className="shrink-0 w-[82vw] sm:w-[340px] md:w-full snap-center">
+              <CategorySlideshowCard
+                category={category}
+                products={categoryProducts[category] || []}
+                productCount={categoryCounts[category] || 0}
+              />
+            </div>
+          ))}
         </div>
       </section>
 
@@ -148,35 +268,44 @@ export const LandingPage = memo(function LandingPage({ initialCategories = [], i
             <div className="w-16 h-1 bg-primary rounded-full mx-auto"></div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-            <div className="bg-white p-8 rounded-xl shadow-sm border border-outline-variant/30 flex flex-col items-center text-center">
-              <div className="w-16 h-16 rounded-full bg-primary/5 flex items-center justify-center text-primary mb-6">
-                <span className="material-symbols-outlined text-[32px]">local_shipping</span>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 text-start md:text-center">
+            {/* Card 1 */}
+            <div className="bg-white p-6 md:p-8 rounded-2xl border border-outline-variant/30 hover:border-primary/20 shadow-sm hover:shadow-xl hover:scale-[1.01] transition-all duration-300 flex flex-row md:flex-col items-center md:items-center gap-5 md:gap-6 group cursor-default">
+              <div className="w-14 h-14 md:w-16 md:h-16 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 group-hover:from-primary group-hover:to-brand-red-dark group-hover:text-white flex items-center justify-center text-primary shrink-0 transition-all duration-350 shadow-inner">
+                <span className="material-symbols-outlined text-[28px] md:text-[32px]">local_shipping</span>
               </div>
-              <h3 className="font-headline-md text-[18px] text-on-background font-bold mb-2">توصيل سريع إلى موقعك</h3>
-              <p className="text-on-surface-variant text-xs leading-relaxed">
-                نوصل طلباتك بسرعة وأمان إلى المشاريع، المصانع، الشركات، والمنازل داخل الإسكندرية وجميع محافظات مصر.
-              </p>
+              <div className="flex flex-col">
+                <h3 className="font-headline-md text-[16px] md:text-[18px] text-on-background font-bold mb-1 md:mb-2 group-hover:text-primary transition-colors duration-200">توصيل سريع إلى موقعك</h3>
+                <p className="text-on-surface-variant text-[13px] leading-relaxed">
+                  نوصل طلباتك بسرعة وأمان إلى المشاريع، المصانع، الشركات، والمنازل داخل الإسكندرية وجميع محافظات مصر.
+                </p>
+              </div>
             </div>
 
-            <div className="bg-white p-8 rounded-xl shadow-sm border border-outline-variant/30 flex flex-col items-center text-center">
-              <div className="w-16 h-16 rounded-full bg-primary/5 flex items-center justify-center text-primary mb-6">
-                <span className="material-symbols-outlined text-[32px]">workspace_premium</span>
+            {/* Card 2 */}
+            <div className="bg-white p-6 md:p-8 rounded-2xl border border-outline-variant/30 hover:border-primary/20 shadow-sm hover:shadow-xl hover:scale-[1.01] transition-all duration-300 flex flex-row md:flex-col items-center md:items-center gap-5 md:gap-6 group cursor-default">
+              <div className="w-14 h-14 md:w-16 md:h-16 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 group-hover:from-primary group-hover:to-brand-red-dark group-hover:text-white flex items-center justify-center text-primary shrink-0 transition-all duration-350 shadow-inner">
+                <span className="material-symbols-outlined text-[28px] md:text-[32px]">workspace_premium</span>
               </div>
-              <h3 className="font-headline-md text-[18px] text-on-background font-bold mb-2">منتجات أصلية بضمان الجودة</h3>
-              <p className="text-on-surface-variant text-xs leading-relaxed">
-                نعمل كموزعين معتمدين لأشهر العلامات التجارية مثل السويدي، شنايدر، ABB، سيمنس، هيميل، وجيوبس، لضمان أعلى مستويات الجودة والأمان.
-              </p>
+              <div className="flex flex-col">
+                <h3 className="font-headline-md text-[16px] md:text-[18px] text-on-background font-bold mb-1 md:mb-2 group-hover:text-primary transition-colors duration-200">منتجات أصلية بضمان الجودة</h3>
+                <p className="text-on-surface-variant text-[13px] leading-relaxed">
+                  نعمل كموزعين معتمدين لأشهر العلامات التجارية مثل السويدي، شنايدر، ABB، سيمنس، هيميل، وجيوبس، لضمان أعلى مستويات الجودة والأمان.
+                </p>
+              </div>
             </div>
 
-            <div className="bg-white p-8 rounded-xl shadow-sm border border-outline-variant/30 flex flex-col items-center text-center">
-              <div className="w-16 h-16 rounded-full bg-primary/5 flex items-center justify-center text-primary mb-6">
-                <span className="material-symbols-outlined text-[32px]">payments</span>
+            {/* Card 3 */}
+            <div className="bg-white p-6 md:p-8 rounded-2xl border border-outline-variant/30 hover:border-primary/20 shadow-sm hover:shadow-xl hover:scale-[1.01] transition-all duration-300 flex flex-row md:flex-col items-center md:items-center gap-5 md:gap-6 group cursor-default">
+              <div className="w-14 h-14 md:w-16 md:h-16 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 group-hover:from-primary group-hover:to-brand-red-dark group-hover:text-white flex items-center justify-center text-primary shrink-0 transition-all duration-350 shadow-inner">
+                <span className="material-symbols-outlined text-[28px] md:text-[32px]">payments</span>
               </div>
-              <h3 className="font-headline-md text-[18px] text-on-background font-bold mb-2">أفضل الأسعار</h3>
-              <p className="text-on-surface-variant text-xs leading-relaxed">
-                دون المساومة على الجودة نوفر أسعارًا تنافسية للجملة والتجزئة على الأسلاك، الكابلات، القواطع، ولوحات التوزيع، مع أفضل قيمة مقابل السعر.
-              </p>
+              <div className="flex flex-col">
+                <h3 className="font-headline-md text-[16px] md:text-[18px] text-on-background font-bold mb-1 md:mb-2 group-hover:text-primary transition-colors duration-200">أفضل الأسعار</h3>
+                <p className="text-on-surface-variant text-[13px] leading-relaxed">
+                  دون المساومة على الجودة نوفر أسعارًا تنافسية للجملة والتجزئة على الأسلاك، الكابلات، القواطع، ولوحات التوزيع، مع أفضل قيمة مقابل السعر.
+                </p>
+              </div>
             </div>
           </div>
         </div>
