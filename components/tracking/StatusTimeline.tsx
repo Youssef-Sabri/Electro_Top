@@ -50,7 +50,7 @@ export const StatusTimeline = memo(function StatusTimeline({ currentStatus, stat
       : null;
 
     return (
-      <div className="bg-red-50 border border-error/30 rounded-xl p-8 flex items-start gap-4 font-tajawal text-start shadow-sm mb-12">
+      <div className="bg-error/10 border border-error/30 rounded-xl p-8 flex items-start gap-4 font-tajawal text-start shadow-sm mb-12">
         <span className="material-symbols-outlined text-4xl text-error select-none shrink-0">
           cancel
         </span>
@@ -62,7 +62,7 @@ export const StatusTimeline = memo(function StatusTimeline({ currentStatus, stat
             تم رفض هذا الطلب من قبل إدارة الموقع. إذا كان لديك أي استفسار بخصوص هذا القرار، يرجى التواصل مع الدعم الفني وتزويدهم برقم التتبع.
           </p>
           {declinedTime && (
-            <p className="text-xs text-gray-500 font-semibold pt-1">
+            <p className="text-xs text-on-surface-variant font-semibold pt-1">
               تاريخ الرفض: {declinedTime}
             </p>
           )}

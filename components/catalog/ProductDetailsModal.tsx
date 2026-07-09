@@ -344,7 +344,7 @@ export const ProductDetailsModal = memo(function ProductDetailsModal({ product, 
                 product.stock <= 0 || (product.has_colors && selectedColor === null)
                   ? 'bg-surface-container-low text-on-surface-variant/50 cursor-not-allowed shadow-none'
                   : isAdded
-                    ? 'bg-green-600 text-white hover:bg-green-700'
+                    ? 'bg-[var(--color-status-delivered)] text-white hover:bg-[var(--color-status-delivered)]/90'
                     : 'bg-[#CA202B] hover:bg-[#b01b24] text-white active:scale-[0.98]'
               }`}
             >

@@ -110,9 +110,9 @@ export function ConfirmationClient() {
   return (
     <div className="max-w-3xl mx-auto text-center py-12 px-margin-mobile md:px-margin-desktop font-tajawal">
       <div className="mb-8 flex justify-center">
-        <div className="w-20 h-20 bg-green-50 rounded-full flex items-center justify-center">
+        <div className="w-20 h-20 bg-[var(--color-status-delivered)]/10 rounded-full flex items-center justify-center">
           <span
-            className="material-symbols-outlined text-5xl text-green-600 select-none"
+            className="material-symbols-outlined text-5xl text-[var(--color-status-delivered)] select-none"
             style={{ fontVariationSettings: "'FILL' 1" }}
           >
             check_circle
@@ -252,7 +252,7 @@ export function ConfirmationClient() {
             </div>
             <div className="flex justify-between text-xs text-on-surface-variant font-semibold">
               <span>التوصيل</span>
-              <span className="text-green-600 font-bold">مجاني</span>
+              <span className="text-[var(--color-status-delivered)] font-bold">مجاني</span>
             </div>
 
             <div className="flex justify-between items-center pt-3 border-t border-outline-variant/30 mt-1">

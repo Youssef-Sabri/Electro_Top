@@ -25,7 +25,7 @@ function ToastComponent({ message, type = 'success', onClose, duration = 3000 }:
   }, [duration]);
 
   const bgColors = {
-    success: 'bg-green-600 text-white shadow-green-600/20',
+    success: 'bg-[var(--color-status-delivered)] text-white shadow-[var(--color-status-delivered)]/20',
     error: 'bg-electro-red text-white shadow-electro-red/20',
   };
 

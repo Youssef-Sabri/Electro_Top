@@ -78,7 +78,7 @@ export function CartClient() {
               </div>
               <div className="flex justify-between text-sm text-on-surface-variant font-semibold">
                 <span>الشحن والتوصيل</span>
-                <span className="text-green-600 font-bold">مجاني</span>
+                <span className="text-[var(--color-status-delivered)] font-bold">مجاني</span>
               </div>
               
               <div className="pt-4 border-t border-outline-variant/20 flex justify-between items-end">

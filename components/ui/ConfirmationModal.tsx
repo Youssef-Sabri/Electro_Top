@@ -46,7 +46,7 @@ export const ConfirmationModal = memo(function ConfirmationModal({
           <div
             className={`w-12 h-12 rounded-full flex items-center justify-center shrink-0 ${
               isDestructive
-                ? 'bg-red-50 text-red-600 border border-red-100'
+                ? 'bg-error/10 text-error border border-error/20'
                 : 'bg-primary/5 text-primary border border-primary/10'
             }`}
           >

@@ -416,7 +416,7 @@ export function CheckoutForm() {
           {formData.payment_method === 'instapay' && (
             <div className="space-y-2 pt-2">
               <label className="text-sm text-on-surface block font-bold">
-                لقطة شاشة تحويل إنستاباي <span className="text-red-500 font-bold">*</span>{' '}
+                لقطة شاشة تحويل إنستاباي <span className="text-error font-bold">*</span>{' '}
                 <span className="text-on-surface-variant font-medium text-xs">(إيصال التحويل - الحد الأقصى 5 ميجابايت، يضغط تلقائياً)</span>
               </label>
               <div className="flex items-center gap-3">
@@ -445,7 +445,7 @@ export function CheckoutForm() {
                 )}
               </div>
               {imageState.compressionInfo && !errors.instapay_screenshot && (
-                <p className="text-[10px] text-green-600 font-semibold flex items-center gap-1">
+                <p className="text-[10px] text-[var(--color-status-delivered)] font-semibold flex items-center gap-1">
                   <span className="material-symbols-outlined text-sm select-none">check_circle</span>
                   {imageState.compressionInfo}
                 </p>

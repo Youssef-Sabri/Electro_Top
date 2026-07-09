@@ -840,7 +840,7 @@ export const InventoryClient = memo(function InventoryClient() {
                   <label className="font-label-md text-on-surface block font-bold">اسم المنتج</label>
                   <input
                     className={`w-full border rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary/10 focus:border-primary transition-all bg-white text-on-background font-body-md ${
-                      formErrors.name ? 'border-error ring-1 ring-error/20' : 'border-gray-300'
+                      formErrors.name ? 'border-error ring-1 ring-error/20' : 'border-outline-variant'
                     }`}
                     name="name"
                     placeholder="مثال: شنايدر Easy9 قاطع ثلاثي 16 أمبير"
@@ -881,7 +881,7 @@ export const InventoryClient = memo(function InventoryClient() {
                     )}
                   </div>
                   {compressionInfo && !formErrors.image_url && (
-                    <p className="text-[11px] text-green-600 font-medium flex items-center gap-1 mt-1">
+                    <p className="text-[11px] text-[var(--color-status-delivered)] font-medium flex items-center gap-1 mt-1">
                       <span className="material-symbols-outlined text-sm select-none">check_circle</span>
                       {compressionInfo}
                     </p>
@@ -971,7 +971,7 @@ export const InventoryClient = memo(function InventoryClient() {
                   <label className="font-label-md text-on-surface block font-bold">السعر (ج.م)</label>
                   <input
                     className={`w-full border rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary/10 focus:border-primary transition-all bg-white text-on-background font-body-md ${
-                      formErrors.price ? 'border-error ring-1 ring-error/20' : 'border-gray-300'
+                      formErrors.price ? 'border-error ring-1 ring-error/20' : 'border-outline-variant'
                     }`}
                     name="price"
                     type="number"
@@ -989,7 +989,7 @@ export const InventoryClient = memo(function InventoryClient() {
                   <label className="font-label-md text-on-surface block font-bold">الكمية المتوفرة</label>
                   <input
                     className={`w-full border rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary/10 focus:border-primary transition-all bg-white text-on-background font-body-md ${
-                      formErrors.stock ? 'border-error ring-1 ring-error/20' : 'border-gray-300'
+                      formErrors.stock ? 'border-error ring-1 ring-error/20' : 'border-outline-variant'
                     }`}
                     name="stock"
                     type="number"
@@ -1028,7 +1028,7 @@ export const InventoryClient = memo(function InventoryClient() {
                 <label className="font-label-md text-on-surface block font-bold">الوصف</label>
                 <textarea
                   className={`w-full border rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary/10 focus:border-primary transition-all bg-white text-on-background font-body-md h-24 ${
-                    formErrors.description ? 'border-error ring-1 ring-error/20' : 'border-gray-300'
+                    formErrors.description ? 'border-error ring-1 ring-error/20' : 'border-outline-variant'
                   }`}
                   name="description"
                   placeholder="أدخل المواصفات الفنية، الماركة، عدد الأقطاب، شدة التيار، سعة القطع، أو مقاس السلك..."
@@ -1095,11 +1095,11 @@ export const InventoryClient = memo(function InventoryClient() {
                           className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-semibold cursor-pointer transition-all duration-200 ${
                             isSelected
                               ? 'border-primary bg-primary/5 text-primary ring-2 ring-primary/10 font-bold'
-                              : 'border-outline-variant/60 hover:border-gray-400 text-on-surface-variant'
+                              : 'border-outline-variant/60 hover:border-outline text-on-surface-variant'
                           }`}
                         >
                           <span
-                            className="w-3.5 h-3.5 rounded-full border border-gray-300 shadow-sm shrink-0"
+                            className="w-3.5 h-3.5 rounded-full border border-outline-variant shadow-sm shrink-0"
                             style={{ background: color.hex, borderColor: color.name === 'أبيض' ? '#D1D5DB' : undefined }}
                           />
                           <span>{color.name}</span>

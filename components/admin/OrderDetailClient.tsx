@@ -381,8 +381,8 @@ export const OrderDetailClient = memo(function OrderDetailClient({ id }: OrderDe
                               {product ? product.name : 'عنصر غير معروف'}
                             </p>
                             {item.selected_color && (
-                              <span className="inline-flex items-center gap-1.5 bg-gray-50 border border-gray-200 text-gray-700 text-[11px] font-bold px-2.5 py-0.5 mt-1 rounded">
-                                <span className="w-2 h-2 rounded-full border border-gray-300" style={{
+                              <span className="inline-flex items-center gap-1.5 bg-surface-container-low border border-outline-variant text-on-surface-variant text-[11px] font-bold px-2.5 py-0.5 mt-1 rounded">
+                                <span className="w-2 h-2 rounded-full border border-outline-variant" style={{
                                   background: getColorHex(item.selected_color)
                                 }} />
                                 اللون: {item.selected_color}

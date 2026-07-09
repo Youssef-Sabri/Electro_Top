@@ -14,7 +14,7 @@ export default function ConfirmationPage() {
       <Suspense fallback={
         <div className="flex flex-col items-center justify-center py-20 font-tajawal">
           <Spinner className="h-10 w-10 mb-4" />
-          <p className="text-gray-500 text-sm">جاري تحميل تفاصيل تأكيد الطلب...</p>
+          <p className="text-on-surface-variant text-sm">جاري تحميل تفاصيل تأكيد الطلب...</p>
         </div>
       }>
         <ConfirmationClient />

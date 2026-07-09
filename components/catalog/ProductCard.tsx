@@ -102,7 +102,7 @@ export const ProductCard = React.memo(function ProductCard({ product, onOpenDeta
               isOutOfStock
                 ? 'bg-surface-container-low text-on-surface-variant/40 border-outline-variant/30 cursor-not-allowed'
                 : isAdded
-                  ? 'bg-green-600 text-white border-green-600'
+                  ? 'bg-[var(--color-status-delivered)] text-white border-[var(--color-status-delivered)]'
                   : 'bg-primary text-on-primary border-transparent hover:bg-primary-container hover:shadow-md active:scale-[0.92]'
             }`}
             aria-label="إضافة إلى السلة"

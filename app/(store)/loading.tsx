@@ -5,7 +5,7 @@ export default function StoreLoading() {
     <div className="min-h-screen flex items-center justify-center font-tajawal bg-white">
       <div className="flex flex-col items-center">
         <Spinner className="h-10 w-10 mb-4" />
-        <p className="text-gray-500 text-sm">جاري تحميل المتجر...</p>
+        <p className="text-on-surface-variant text-sm">جاري تحميل المتجر...</p>
       </div>
     </div>
   );

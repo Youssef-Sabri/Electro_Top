@@ -264,7 +264,7 @@ export const OrdersLedger = memo(function OrdersLedger() {
                             ? 'bg-green-50 text-green-700 border border-green-200'
                             : order.payment_method === 'instapay'
                               ? 'bg-blue-50 text-blue-700 border border-blue-200'
-                              : 'bg-gray-50 text-gray-500 border border-gray-200'
+                              : 'bg-surface-container-low text-on-surface-variant border border-outline-variant'
                         }`}>
                           <span className="material-symbols-outlined text-[14px] select-none">
                             {order.payment_method === 'cod' ? 'payments' : order.payment_method === 'instapay' ? 'account_balance_wallet' : 'help'}

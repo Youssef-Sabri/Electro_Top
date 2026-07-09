@@ -43,7 +43,7 @@ export const CustomDropdown = memo(function CustomDropdown({ options, value, onC
         onClick={() => setIsOpen(!isOpen)}
         aria-haspopup="listbox"
         aria-expanded={isOpen}
-        className="w-full flex justify-between items-center bg-white border border-gray-300 rounded-lg px-4 py-2 text-sm font-semibold text-on-surface hover:border-primary focus:border-primary outline-none transition-all duration-200 cursor-pointer shadow-sm"
+        className="w-full flex justify-between items-center bg-white border border-outline-variant rounded-lg px-4 py-2 text-sm font-semibold text-on-surface hover:border-primary focus:border-primary outline-none transition-all duration-200 cursor-pointer shadow-sm"
       >
         <span>
           {labelPrefix ? <span className="text-on-surface-variant/70 font-normal mr-1">{labelPrefix}</span> : null}

@@ -72,7 +72,7 @@ export const PasswordConfirmModal = memo(function PasswordConfirmModal({
         style={{ animation: 'modalAppear 0.2s ease-out forwards' }}
       >
         <div className="flex items-start gap-4 mb-5">
-          <div className="w-12 h-12 rounded-full bg-red-50 text-red-600 border border-red-100 flex items-center justify-center shrink-0">
+          <div className="w-12 h-12 rounded-full bg-error/10 text-error border border-error/20 flex items-center justify-center shrink-0">
             <span className="material-symbols-outlined text-[26px] select-none">lock</span>
           </div>
           <div className="flex-grow space-y-2">

@@ -34,13 +34,13 @@ export function TrackingDetailClient({ id }: TrackingDetailClientProps) {
       case 'Pending Review':
         return { dot: 'bg-yellow-400', text: 'text-yellow-700 bg-yellow-50 border-yellow-200' };
       case 'Accepted':
-        return { dot: 'bg-blue-500', text: 'text-blue-700 bg-blue-50 border-blue-200' };
+        return { dot: 'bg-[var(--color-status-accepted)]', text: 'text-[var(--color-status-accepted)] bg-[var(--color-status-accepted)]/10 border-[var(--color-status-accepted)]/30' };
       case 'Processing':
         return { dot: 'bg-purple-500', text: 'text-purple-700 bg-purple-50 border-purple-200' };
       case 'Delivered':
-        return { dot: 'bg-green-500', text: 'text-green-700 bg-green-55/10 border-green-200' };
+        return { dot: 'bg-[var(--color-status-delivered)]', text: 'text-[var(--color-status-delivered)] bg-[var(--color-status-delivered)]/10 border-[var(--color-status-delivered)]/30' };
       case 'Declined':
-        return { dot: 'bg-red-500', text: 'text-red-700 bg-red-55/10 border-red-200' };
+        return { dot: 'bg-[var(--color-status-declined)]', text: 'text-[var(--color-status-declined)] bg-[var(--color-status-declined)]/10 border-[var(--color-status-declined)]/30' };
       default:
         return { dot: 'bg-on-surface-variant/50', text: 'text-on-surface bg-surface-container-low border-outline-variant' };
     }
@@ -78,7 +78,7 @@ export function TrackingDetailClient({ id }: TrackingDetailClientProps) {
       <div className="max-w-md mx-auto px-margin-mobile py-16 text-center font-tajawal space-y-6">
         <div className="bg-white p-8 border border-outline-variant/40 rounded-2xl shadow-sm text-start space-y-6">
           <div className="mb-4 flex justify-center">
-            <div className="w-16 h-16 bg-amber-50 rounded-full flex items-center justify-center border border-amber-250 text-amber-600">
+            <div className="w-16 h-16 bg-error/10 rounded-full flex items-center justify-center border border-error/20 text-error">
               <span className="material-symbols-outlined text-4xl select-none">warning</span>
             </div>
           </div>
