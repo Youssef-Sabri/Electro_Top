@@ -9,7 +9,7 @@ const nextConfig: NextConfig = {
   compress: true,
   reactStrictMode: true,
   poweredByHeader: false,
-  allowedDevOrigins: isDev ? ['192.168.1.13', 'localhost:3000'] : [],
+  allowedDevOrigins: isDev ? ['192.168.1.15', 'localhost:3000'] : [],
   experimental: {
     optimizePackageImports: ['@supabase/supabase-js'],
   },
@@ -24,7 +24,12 @@ const nextConfig: NextConfig = {
         hostname: supabaseHost,
         pathname: '/storage/v1/object/public/**',
       },
-      ...(isDev
+      {
+      protocol: 'https' as const,
+      hostname: 'placehold.co',
+      pathname: '/**',
+    },
+    ...(isDev
         ? [
             {
               protocol: 'http' as const,
