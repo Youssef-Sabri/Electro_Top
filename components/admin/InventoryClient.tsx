@@ -276,6 +276,9 @@ export const InventoryClient = memo(function InventoryClient() {
   const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, checked } = e.target;
     setFormData((prev) => ({ ...prev, [name]: checked }));
+    if (name === 'has_colors' && !checked && formErrors.colors) {
+      setFormErrors((prev) => ({ ...prev, colors: undefined }));
+    }
   };
 
   const handleCloseModal = () => {
@@ -1149,6 +1152,9 @@ export const InventoryClient = memo(function InventoryClient() {
                                 ? (prev.colors ?? []).filter((c) => c !== color.name)
                                 : [...(prev.colors ?? []), color.name],
                             }));
+                            if (formErrors.colors) {
+                              setFormErrors((prev) => ({ ...prev, colors: undefined }));
+                            }
                           }}
                           className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-semibold cursor-pointer transition-all duration-200 ${
                             isSelected
@@ -1165,6 +1171,9 @@ export const InventoryClient = memo(function InventoryClient() {
                       );
                     })}
                   </div>
+                  {formErrors.colors && (
+                    <p className="text-xs text-error font-medium mt-2">{formErrors.colors}</p>
+                  )}
                 </div>
               )}
 

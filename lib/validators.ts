@@ -28,7 +28,7 @@ export const checkoutSchema = z.object({
 
 export type CheckoutFormData = z.infer<typeof checkoutSchema>;
 
-export const productFormSchema = z.object({
+const productFormBase = z.object({
   name: z.string().min(2, 'يجب أن يكون الاسم حرفين على الأقل'),
   description: z.string().min(10, 'يجب أن يكون الوصف 10 أحرف على الأقل').max(2000, 'الوصف يجب ألا يتجاوز 2000 حرف'),
   price: z.number({ message: 'السعر مطلوب' }).min(0.01, 'يجب أن يكون السعر أكبر من 0'),
@@ -41,6 +41,18 @@ export const productFormSchema = z.object({
   has_colors: z.boolean().optional(),
   colors: z.array(z.string()).optional(),
 });
+
+export const productFormSchema = productFormBase.refine((data) => {
+  if (data.has_colors && (!data.colors || data.colors.length === 0)) {
+    return false;
+  }
+  return true;
+}, {
+  message: 'يجب اختيار لون واحد على الأقل عند تفعيل خاصية الألوان',
+  path: ['colors'],
+});
+
+export const productFormPartialSchema = productFormBase.partial();
 
 export const SAFE_FILENAME_RE = /^receipt-[a-z0-9]+\.(jpg|jpeg|png|webp|heic|heif|gif)$/i;
 

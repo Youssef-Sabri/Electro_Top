@@ -1,13 +1,13 @@
 import { NextResponse } from 'next/server'
 import { createSupabaseAdminClient } from '@/lib/supabase-server'
 import { requireAdminGuard } from '@/lib/admin-guard'
-import { productFormSchema } from '@/lib/validators'
+import { productFormPartialSchema } from '@/lib/validators'
 import { deleteStorageFile } from '@/lib/file-utils'
 import { TABLES, STORAGE_BUCKETS } from '@/lib/db-constants'
 import { parseJsonBody } from '@/lib/parse-json'
 import { devLog } from '@/lib/dev-log'
 
-const ALLOWED_UPDATE_FIELDS = ['name', 'description', 'price', 'stock', 'image_url', 'image_url_2', 'image_url_3', 'is_active', 'category'] as const
+const ALLOWED_UPDATE_FIELDS = ['name', 'description', 'price', 'stock', 'image_url', 'image_url_2', 'image_url_3', 'is_active', 'category', 'has_colors', 'colors'] as const
 
 export async function PATCH(
   request: Request,
@@ -30,7 +30,7 @@ export async function PATCH(
   }
 
   // Parse and validate PATCH data against partial productFormSchema
-  const validation = productFormSchema.partial().safeParse(allowed)
+  const validation = productFormPartialSchema.safeParse(allowed)
   if (!validation.success) {
     return NextResponse.json({ error: 'Validation failed', fieldErrors: validation.error.flatten().fieldErrors }, { status: 400 })
   }
