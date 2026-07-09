@@ -242,7 +242,7 @@ export const LandingPage = memo(function LandingPage({ initialCategories = [], i
       </section>
 
       {/* Why Choose Us */}
-      <section className="bg-surface-container/50 py-24 border-y border-outline-variant/20">
+      <section className="bg-surface-container py-24 border-y border-outline-variant/20">
         <div className="max-w-max-width mx-auto px-margin-mobile md:px-margin-desktop text-center">
           <div className="max-w-lg mx-auto mb-16">
             <span className="text-primary font-bold text-xs uppercase tracking-widest">لماذا تختارنا</span>
@@ -252,40 +252,40 @@ export const LandingPage = memo(function LandingPage({ initialCategories = [], i
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 text-start md:text-center">
             {/* Card 1 */}
-            <div className="bg-white p-8 rounded-2xl border border-outline-variant/30 hover:border-primary/20 shadow-sm hover:shadow-md transition-all duration-300 flex flex-col items-center gap-6 group cursor-default">
-              <div className="w-16 h-16 rounded-2xl bg-primary/5 group-hover:bg-primary text-primary group-hover:text-white flex items-center justify-center transition-all duration-300">
-                <span className="material-symbols-outlined text-[32px]">local_shipping</span>
+            <div className="bg-white p-6 md:p-8 rounded-2xl border border-outline-variant/30 hover:border-primary/20 shadow-sm hover:shadow-xl hover:scale-[1.01] transition-all duration-300 flex flex-row md:flex-col items-center md:items-center gap-5 md:gap-6 group cursor-default">
+              <div className="w-14 h-14 md:w-16 md:h-16 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 group-hover:from-primary group-hover:to-brand-red-dark group-hover:text-white flex items-center justify-center text-primary shrink-0 transition-all duration-350 shadow-inner">
+                <span className="material-symbols-outlined text-[28px] md:text-[32px]">local_shipping</span>
               </div>
-              <div className="flex flex-col gap-2">
-                <h3 className="font-headline-md text-[18px] text-on-background font-bold group-hover:text-primary transition-colors duration-200">توصيل سريع إلى موقعك</h3>
-                <p className="text-on-surface-variant text-sm leading-relaxed">
+              <div className="flex flex-col">
+                <h3 className="font-headline-md text-[16px] md:text-[18px] text-on-background font-bold mb-1 md:mb-2 group-hover:text-primary transition-colors duration-200">توصيل سريع إلى موقعك</h3>
+                <p className="text-on-surface-variant text-[13px] leading-relaxed">
                   نوصل طلباتك بسرعة وأمان إلى المشاريع، المصانع، الشركات، والمنازل داخل الإسكندرية وجميع محافظات مصر.
                 </p>
               </div>
             </div>
 
             {/* Card 2 */}
-            <div className="bg-white p-8 rounded-2xl border border-outline-variant/30 hover:border-primary/20 shadow-sm hover:shadow-md transition-all duration-300 flex flex-col items-center gap-6 group cursor-default">
-              <div className="w-16 h-16 rounded-2xl bg-primary/5 group-hover:bg-primary text-primary group-hover:text-white flex items-center justify-center transition-all duration-300">
-                <span className="material-symbols-outlined text-[32px]">workspace_premium</span>
+            <div className="bg-white p-6 md:p-8 rounded-2xl border border-outline-variant/30 hover:border-primary/20 shadow-sm hover:shadow-xl hover:scale-[1.01] transition-all duration-300 flex flex-row md:flex-col items-center md:items-center gap-5 md:gap-6 group cursor-default">
+              <div className="w-14 h-14 md:w-16 md:h-16 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 group-hover:from-primary group-hover:to-brand-red-dark group-hover:text-white flex items-center justify-center text-primary shrink-0 transition-all duration-350 shadow-inner">
+                <span className="material-symbols-outlined text-[28px] md:text-[32px]">workspace_premium</span>
               </div>
-              <div className="flex flex-col gap-2">
-                <h3 className="font-headline-md text-[18px] text-on-background font-bold group-hover:text-primary transition-colors duration-200">منتجات أصلية بضمان الجودة</h3>
-                <p className="text-on-surface-variant text-sm leading-relaxed">
-                  نعمل كموزعين معتمدين لأشهر العلامات التجارية مثل السويدي، شنايدر، ABB، سيمنس، هيميل، فينوس، وجيويس لضمان أعلى مستويات الجودة والأمان.
+              <div className="flex flex-col">
+                <h3 className="font-headline-md text-[16px] md:text-[18px] text-on-background font-bold mb-1 md:mb-2 group-hover:text-primary transition-colors duration-200">منتجات أصلية بضمان الجودة</h3>
+                <p className="text-on-surface-variant text-[13px] leading-relaxed">
+                  نعمل كموزعين معتمدين لأشهر العلامات التجارية مثل السويدي، شنايدر، ABB، سيمنس، هيميل، وجيوبس، لضمان أعلى مستويات الجودة والأمان.
                 </p>
               </div>
             </div>
 
             {/* Card 3 */}
-            <div className="bg-white p-8 rounded-2xl border border-outline-variant/30 hover:border-primary/20 shadow-sm hover:shadow-md transition-all duration-300 flex flex-col items-center gap-6 group cursor-default">
-              <div className="w-16 h-16 rounded-2xl bg-primary/5 group-hover:bg-primary text-primary group-hover:text-white flex items-center justify-center transition-all duration-300">
-                <span className="material-symbols-outlined text-[32px]">payments</span>
+            <div className="bg-white p-6 md:p-8 rounded-2xl border border-outline-variant/30 hover:border-primary/20 shadow-sm hover:shadow-xl hover:scale-[1.01] transition-all duration-300 flex flex-row md:flex-col items-center md:items-center gap-5 md:gap-6 group cursor-default">
+              <div className="w-14 h-14 md:w-16 md:h-16 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 group-hover:from-primary group-hover:to-brand-red-dark group-hover:text-white flex items-center justify-center text-primary shrink-0 transition-all duration-350 shadow-inner">
+                <span className="material-symbols-outlined text-[28px] md:text-[32px]">payments</span>
               </div>
-              <div className="flex flex-col gap-2">
-                <h3 className="font-headline-md text-[18px] text-on-background font-bold group-hover:text-primary transition-colors duration-200">أفضل الأسعار التنافسية</h3>
-                <p className="text-on-surface-variant text-sm leading-relaxed">
-                  نوفر أسعاراً تنافسية جداً للجملة والتجزئة على الأسلاك، الكابلات، القواطع، ولوحات التوزيع، مع تقديم أفضل قيمة مقابل السعر.
+              <div className="flex flex-col">
+                <h3 className="font-headline-md text-[16px] md:text-[18px] text-on-background font-bold mb-1 md:mb-2 group-hover:text-primary transition-colors duration-200">أفضل الأسعار</h3>
+                <p className="text-on-surface-variant text-[13px] leading-relaxed">
+                  دون المساومة على الجودة نوفر أسعارًا تنافسية للجملة والتجزئة على الأسلاك، الكابلات، القواطع، ولوحات التوزيع، مع أفضل قيمة مقابل السعر.
                 </p>
               </div>
             </div>
