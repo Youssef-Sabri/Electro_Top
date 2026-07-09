@@ -261,9 +261,9 @@ export const OrdersLedger = memo(function OrdersLedger() {
                       <td className="px-6 py-4 font-body-md text-body-md text-on-surface text-start">
                         <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold ${
                           order.payment_method === 'cod'
-                            ? 'bg-green-50 text-green-700 border border-green-200'
+                            ? 'bg-[var(--color-status-delivered)]/10 text-[var(--color-status-delivered)] border-[var(--color-status-delivered)]/30'
                             : order.payment_method === 'instapay'
-                              ? 'bg-blue-50 text-blue-700 border border-blue-200'
+                              ? 'bg-[var(--color-status-accepted)]/10 text-[var(--color-status-accepted)] border-[var(--color-status-accepted)]/30'
                               : 'bg-surface-container-low text-on-surface-variant border border-outline-variant'
                         }`}>
                           <span className="material-symbols-outlined text-[14px] select-none">

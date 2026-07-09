@@ -160,19 +160,19 @@ export const DashboardClient = memo(function DashboardClient() {
           <h3 className="font-headline-md text-headline-md font-bold text-on-surface">حالة شحن وتوصيل الطلبات</h3>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             <div className="bg-surface p-4 rounded-lg text-center border border-outline-variant/10">
-              <p className="text-2xl font-black text-amber-600">{stats.pendingCount}</p>
+              <p className="text-2xl font-black text-[var(--color-status-pending)]">{stats.pendingCount}</p>
               <p className="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant mt-1">قيد المراجعة</p>
             </div>
             <div className="bg-surface p-4 rounded-lg text-center border border-outline-variant/10">
-              <p className="text-2xl font-black text-blue-600">{stats.processingCount}</p>
+              <p className="text-2xl font-black text-[var(--color-status-accepted)]">{stats.processingCount}</p>
               <p className="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant mt-1">قيد التحضير</p>
             </div>
             <div className="bg-surface p-4 rounded-lg text-center border border-outline-variant/10">
-              <p className="text-2xl font-black text-green-600">{stats.deliveredCount}</p>
+              <p className="text-2xl font-black text-[var(--color-status-delivered)]">{stats.deliveredCount}</p>
               <p className="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant mt-1">تم التوصيل</p>
             </div>
             <div className="bg-surface p-4 rounded-lg text-center border border-outline-variant/10">
-              <p className="text-2xl font-black text-red-600">{stats.declinedCount}</p>
+              <p className="text-2xl font-black text-[var(--color-status-declined)]">{stats.declinedCount}</p>
               <p className="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant mt-1">مرفوض</p>
             </div>
           </div>
@@ -183,24 +183,24 @@ export const DashboardClient = memo(function DashboardClient() {
           <div className="space-y-4">
             <div className="flex justify-between items-center">
               <div className="flex items-center gap-2">
-                <span className="w-2.5 h-2.5 rounded-full bg-red-500"></span>
+                <span className="w-2.5 h-2.5 rounded-full bg-error"></span>
                 <span className="text-body-md text-on-surface font-medium">نفد من المخزون</span>
               </div>
-              <span className="bg-red-50 text-red-700 px-2.5 py-1 rounded text-xs font-bold">{stats.outOfStockCount}</span>
+              <span className="bg-error/10 text-error px-2.5 py-1 rounded text-xs font-bold">{stats.outOfStockCount}</span>
             </div>
             <div className="flex justify-between items-center">
               <div className="flex items-center gap-2">
-                <span className="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
+                <span className="w-2.5 h-2.5 rounded-full bg-[var(--color-status-pending)]"></span>
                 <span className="text-body-md text-on-surface font-medium">مخزون منخفض (≤5)</span>
               </div>
-              <span className="bg-amber-50 text-amber-700 px-2.5 py-1 rounded text-xs font-bold">{stats.lowStockCount}</span>
+              <span className="bg-[var(--color-status-pending)]/10 text-[var(--color-status-pending)] px-2.5 py-1 rounded text-xs font-bold">{stats.lowStockCount}</span>
             </div>
             <div className="flex justify-between items-center">
               <div className="flex items-center gap-2">
-                <span className="w-2.5 h-2.5 rounded-full bg-green-500"></span>
+                <span className="w-2.5 h-2.5 rounded-full bg-[var(--color-status-delivered)]"></span>
                 <span className="text-body-md text-on-surface font-medium">مخزون جيد (&gt;5)</span>
               </div>
-              <span className="bg-green-50 text-green-700 px-2.5 py-1 rounded text-xs font-bold">
+              <span className="bg-[var(--color-status-delivered)]/10 text-[var(--color-status-delivered)] px-2.5 py-1 rounded text-xs font-bold">
                 {Math.max(0, stats.totalProductsCount - stats.outOfStockCount - stats.lowStockCount)}
               </span>
             </div>
