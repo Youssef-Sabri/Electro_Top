@@ -74,7 +74,7 @@ export async function POST(request: NextRequest) {
 
   // Verify the authenticated user has the admin role in their app_metadata
   if (user.app_metadata?.role !== 'admin') {
-    await supabaseClientWithCookies.auth.signOut();
+    await supabaseClientWithCookies.auth.signOut({ scope: 'local' });
     return NextResponse.json({
       error: 'فشل تسجيل الدخول. تحقق من البريد الإلكتروني وكلمة المرور.',
       attempts: undefined,

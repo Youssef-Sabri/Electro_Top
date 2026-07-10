@@ -49,7 +49,7 @@ export default function AdminClientLayout({ children, initialAuthState }: AdminC
           if (res.ok) {
             setIsAuthenticated(true);
           } else {
-            await supabase.auth.signOut();
+            await supabase.auth.signOut({ scope: 'local' });
             setIsAuthenticated(false);
           }
         }
@@ -70,7 +70,7 @@ export default function AdminClientLayout({ children, initialAuthState }: AdminC
             if (res.ok) {
               setIsAuthenticated(true);
             } else {
-              await supabase.auth.signOut();
+              await supabase.auth.signOut({ scope: 'local' });
               setIsAuthenticated(false);
             }
           }
@@ -360,7 +360,7 @@ export default function AdminClientLayout({ children, initialAuthState }: AdminC
           <div className="px-4 py-2">
             <button
               onClick={async () => {
-                await supabase.auth.signOut();
+                await supabase.auth.signOut({ scope: 'local' });
                 window.location.href = '/admin';
               }}
               className="w-full flex items-center justify-center gap-2 bg-primary text-on-primary py-2 px-4 rounded-lg font-label-md text-label-md hover:opacity-90 transition-opacity text-center cursor-pointer font-semibold uppercase tracking-wider border-0"

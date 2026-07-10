@@ -149,7 +149,7 @@ export async function proxy(request: NextRequest) {
     if (lastActivity) {
       const elapsed = now - parseInt(lastActivity, 10)
       if (elapsed > 3600_000) {
-        await supabase.auth.signOut()
+        await supabase.auth.signOut({ scope: 'local' })
         if (pathname.startsWith('/api/admin/')) {
           const errResp = NextResponse.json({ error: 'Session expired' }, { status: 401 })
           response.cookies.getAll().forEach((c) => errResp.cookies.set(c))
