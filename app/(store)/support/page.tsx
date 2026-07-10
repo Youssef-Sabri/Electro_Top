@@ -106,7 +106,7 @@ export default function SupportPage() {
             
             <div className="space-y-4">
               {/* WhatsApp Row */}
-              <div className="bg-white border border-outline-variant/40 rounded-2xl p-5 flex items-center justify-between gap-4 hover:shadow-md transition-shadow">
+              <div className="bg-white border border-outline-variant/40 rounded-2xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:shadow-md transition-shadow">
                 <div className="flex items-center gap-3">
                   <div className="w-12 h-12 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
                     <svg className="w-6 h-6 fill-current" viewBox="0 0 24 24">
@@ -118,7 +118,7 @@ export default function SupportPage() {
                     <p className="text-[11px] text-on-surface-variant font-medium">الرد سريع وخلال دقائق</p>
                   </div>
                 </div>
-                <div className="flex flex-col gap-1.5 shrink-0">
+                <div className="flex flex-row sm:flex-col gap-2 sm:gap-1.5 shrink-0 w-full sm:w-auto justify-start sm:justify-center">
                   {whatsappNumbers.map((number, index) => (
                     <a
                       key={index}
@@ -135,7 +135,7 @@ export default function SupportPage() {
               </div>
 
               {/* Call Row */}
-              <div className="bg-white border border-outline-variant/40 rounded-2xl p-5 flex items-center justify-between gap-4 hover:shadow-md transition-shadow">
+              <div className="bg-white border border-outline-variant/40 rounded-2xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:shadow-md transition-shadow">
                 <div className="flex items-center gap-3">
                   <div className="w-12 h-12 rounded-full bg-primary/5 text-primary flex items-center justify-center shrink-0">
                     <span className="material-symbols-outlined text-[24px]">phone_in_talk</span>
@@ -145,7 +145,7 @@ export default function SupportPage() {
                     <p className="text-[11px] text-on-surface-variant font-medium">متاح خلال ساعات العمل الرسمية</p>
                   </div>
                 </div>
-                <div className="flex flex-col gap-1.5 shrink-0">
+                <div className="flex flex-row sm:flex-col gap-2 sm:gap-1.5 shrink-0 w-full sm:w-auto justify-start sm:justify-center">
                   {phoneNumbers.map((number, index) => (
                     <a
                       key={index}
@@ -161,7 +161,7 @@ export default function SupportPage() {
 
               {/* Email Row */}
               {supportEmail && (
-                <div className="bg-white border border-outline-variant/40 rounded-2xl p-5 flex items-center justify-between gap-4 hover:shadow-md transition-shadow">
+                <div className="bg-white border border-outline-variant/40 rounded-2xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:shadow-md transition-shadow">
                   <div className="flex items-center gap-3">
                     <div className="w-12 h-12 rounded-full bg-cyan-50 text-cyan-600 flex items-center justify-center shrink-0">
                       <span className="material-symbols-outlined text-[24px]">mail</span>
@@ -173,7 +173,7 @@ export default function SupportPage() {
                   </div>
                   <a
                     href={`mailto:${supportEmail}`}
-                    className="bg-cyan-600 hover:bg-cyan-700 active:scale-[0.97] text-white w-28 py-2 rounded-xl font-bold flex items-center justify-center gap-1 transition-all cursor-pointer text-xs shrink-0"
+                    className="bg-cyan-600 hover:bg-cyan-700 active:scale-[0.97] text-white w-28 py-2 rounded-xl font-bold flex items-center justify-center gap-1 transition-all cursor-pointer text-xs shrink-0 self-start sm:self-auto"
                   >
                     <span className="material-symbols-outlined text-[15px]">mail</span>
                     <span>مراسلة</span>
@@ -182,7 +182,7 @@ export default function SupportPage() {
               )}
 
               {/* Facebook Row */}
-              <div className="bg-white border border-outline-variant/40 rounded-2xl p-5 flex items-center justify-between gap-4 hover:shadow-md transition-shadow">
+              <div className="bg-white border border-outline-variant/40 rounded-2xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:shadow-md transition-shadow">
                 <div className="flex items-center gap-3">
                   <div className="w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
                     <svg className="w-6 h-6 fill-current" viewBox="0 0 24 24">
@@ -198,7 +198,7 @@ export default function SupportPage() {
                   href={facebookUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="bg-blue-600 hover:bg-blue-700 active:scale-[0.97] text-white w-28 py-2 rounded-xl font-bold flex items-center justify-center gap-1 transition-all cursor-pointer text-xs shrink-0"
+                  className="bg-blue-600 hover:bg-blue-700 active:scale-[0.97] text-white w-28 py-2 rounded-xl font-bold flex items-center justify-center gap-1 transition-all cursor-pointer text-xs shrink-0 self-start sm:self-auto"
                 >
                   <span className="material-symbols-outlined text-[15px]">public</span>
                   <span>زيارة</span>
