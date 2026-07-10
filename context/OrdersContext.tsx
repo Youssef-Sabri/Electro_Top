@@ -152,7 +152,15 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
           orderIds.length > 0
             ? supabase.from(TABLES.orderStatusHistory).select(STATUS_HISTORY_SELECT_FIELDS).in('order_id', orderIds)
             : { data: [] as OrderStatusHistory[], error: null },
-          fetch('/api/admin/order-counts').then(async res => ({ data: await res.json(), error: res.ok ? null : 'Failed' })),
+          fetch('/api/admin/order-counts').then(async res => {
+            if (!res.ok) return { data: [] as { status: string; count: number }[], error: 'Failed' };
+            try {
+              const data = await res.json();
+              return { data: Array.isArray(data) ? data : [], error: null };
+            } catch {
+              return { data: [] as { status: string; count: number }[], error: 'Failed' };
+            }
+          }),
         ]);
 
       setOrders(oData || []);
@@ -161,7 +169,7 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
       setTotalPages(oCount ? Math.ceil(oCount / PAGE_SIZE) : 0);
       setPage(pageNum);
 
-      const countRows: { status: string; count: number }[] = statusesResult.data || [];
+      const countRows: { status: string; count: number }[] = Array.isArray(statusesResult.data) ? statusesResult.data : [];
       const countMap = new Map(countRows.map(r => [r.status, r.count]));
       setGlobalCounts({
         totalCount: countRows.reduce((sum, r) => sum + r.count, 0),

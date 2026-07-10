@@ -93,6 +93,15 @@ export async function proxy(request: NextRequest) {
   if (pathname === '/admin' || pathname === '/api/admin/login') {
     response.headers.set('x-nonce', nonce)
     response.headers.set('Content-Security-Policy', buildCsp(nonce, supabaseHost))
+    if (pathname === '/api/admin/login' && request.method === 'POST') {
+      response.cookies.set('admin-last-activity', String(Date.now()), {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        path: '/',
+        maxAge: 86_400,
+      })
+    }
     return response
   }
  
@@ -113,8 +122,8 @@ export async function proxy(request: NextRequest) {
             headers: requestHeaders,
           }
         })
-        cookiesToSet.forEach((c) => {
-          response.cookies.set(c)
+        cookiesToSet.forEach(({ name, value, options }) => {
+          response.cookies.set({ name, value, ...options })
         })
       },
     })
