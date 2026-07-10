@@ -1,10 +1,9 @@
-import { createServerClient } from '@supabase/ssr'
+import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { createClient } from '@supabase/supabase-js'
 
 type CookieMethods = {
-  get(name: string): string | undefined
-  set(name: string, value: string, options: Record<string, unknown>): void
-  remove(name: string, options: Record<string, unknown>): void
+  getAll(): { name: string; value: string }[] | Promise<{ name: string; value: string }[]>
+  setAll(cookiesToSet: { name: string; value: string; options: CookieOptions }[]): void | Promise<void>
 }
 
 export function createSupabaseServerClient(cookieMethods: CookieMethods) {
@@ -19,14 +18,11 @@ export function createSupabaseServerClient(cookieMethods: CookieMethods) {
     supabaseKey,
     {
       cookies: {
-        get(name: string) {
-          return cookieMethods.get(name)
+        getAll() {
+          return cookieMethods.getAll()
         },
-        set(name: string, value: string, options: Record<string, unknown>) {
-          cookieMethods.set(name, value, options)
-        },
-        remove(name: string, options: Record<string, unknown>) {
-          cookieMethods.remove(name, options)
+        setAll(cookiesToSet) {
+          return cookieMethods.setAll(cookiesToSet)
         },
       },
     }

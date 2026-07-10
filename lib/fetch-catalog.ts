@@ -5,9 +5,8 @@ import type { Product } from '@/types';
 // Server-safe Supabase client for public reads (no auth cookies needed)
 function createPublicClient() {
   return createSupabaseServerClient({
-    get() { return undefined },
-    set() {},
-    remove() {},
+    getAll() { return [] },
+    setAll() {},
   });
 }
 

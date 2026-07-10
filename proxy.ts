@@ -99,11 +99,13 @@ export async function proxy(request: NextRequest) {
   // Only check admin auth for admin routes
   if (isAdminRoute) {
     const supabase = createSupabaseServerClient({
-      get(name: string) {
-        return request.cookies.get(name)?.value
+      getAll() {
+        return request.cookies.getAll()
       },
-      set(name: string, value: string, options: Record<string, unknown>) {
-        request.cookies.set(name, value)
+      setAll(cookiesToSet) {
+        cookiesToSet.forEach(({ name, value }) => {
+          request.cookies.set(name, value)
+        })
         const cookieVal = request.cookies.toString()
         requestHeaders.set('cookie', cookieVal)
         response = NextResponse.next({
@@ -111,18 +113,9 @@ export async function proxy(request: NextRequest) {
             headers: requestHeaders,
           }
         })
-        response.cookies.set(name, value, options)
-      },
-      remove(name: string, options: Record<string, unknown>) {
-        request.cookies.set(name, '')
-        const cookieVal = request.cookies.toString()
-        requestHeaders.set('cookie', cookieVal)
-        response = NextResponse.next({
-          request: {
-            headers: requestHeaders,
-          }
+        cookiesToSet.forEach(({ name, value, options }) => {
+          response.cookies.set(name, value, options)
         })
-        response.cookies.set(name, '', options)
       },
     })
 
