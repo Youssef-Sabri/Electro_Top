@@ -67,6 +67,25 @@ const nextConfig: NextConfig = {
   },
   async headers() {
     return [
+      // Prevent browsers from caching admin pages — always fetch latest from server
+      {
+        source: '/admin/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'no-store, no-cache, must-revalidate',
+          },
+        ],
+      },
+      {
+        source: '/api/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'no-store, no-cache, must-revalidate',
+          },
+        ],
+      },
       {
         source: '/(.*)',
         headers: [
