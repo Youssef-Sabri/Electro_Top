@@ -75,9 +75,9 @@ export const ShopPageContent = memo(function ShopPageContent({ initialProducts, 
     if (sortBy === 'name-asc') params.delete('sort');
     else params.set('sort', sortBy);
 
-    const nextUrl = `?${params.toString()}`;
-    if (nextUrl !== window.location.search) {
-      router.replace(nextUrl, { scroll: false });
+    const nextUrl = `${window.location.pathname}?${params.toString()}`;
+    if (`?${params.toString()}` !== window.location.search) {
+      window.history.replaceState(null, '', nextUrl);
     }
   }, [category, debouncedSearch, hideOutOfStock, sortBy, router]);
 
