@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { revalidatePath } from 'next/cache'
 import { createSupabaseAdminClient } from '@/lib/supabase-server'
 import { requireAdminGuard } from '@/lib/admin-guard'
 import { productFormSchema } from '@/lib/validators'
@@ -32,6 +33,9 @@ export async function POST(request: Request) {
   if (insertError) {
     return NextResponse.json({ error: insertError.message || 'Failed to add product' }, { status: 500 })
   }
+
+  revalidatePath('/')
+  revalidatePath('/shop')
 
   return NextResponse.json({ success: true, product: newProduct })
 }
@@ -67,6 +71,9 @@ export async function DELETE(request: Request) {
   }
 
   await clearStorageBucket(clearClient, STORAGE_BUCKETS.productImages)
+
+  revalidatePath('/')
+  revalidatePath('/shop')
 
   return NextResponse.json({ success: true })
 }

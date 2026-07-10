@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { revalidatePath } from 'next/cache'
 import { createSupabaseAdminClient } from '@/lib/supabase-server'
 import { requireAdminGuard } from '@/lib/admin-guard'
 import { productFormPartialSchema } from '@/lib/validators'
@@ -74,6 +75,9 @@ export async function PATCH(
     }
   }
 
+  revalidatePath('/')
+  revalidatePath('/shop')
+
   return NextResponse.json({ success: true })
 }
 
@@ -116,6 +120,9 @@ export async function DELETE(
       await deleteStorageFile(adminClient, STORAGE_BUCKETS.productImages, url)
     }
   }
+
+  revalidatePath('/')
+  revalidatePath('/shop')
 
   return NextResponse.json({ success: true })
 }

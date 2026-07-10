@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { revalidatePath } from 'next/cache'
 import { requireAdminGuard } from '@/lib/admin-guard'
 import { TABLES } from '@/lib/db-constants'
 import { categorySchema } from '@/lib/validators'
@@ -29,6 +30,9 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'فشل إضافة الفئة. يرجى المحاولة مرة أخرى.' }, { status: 500 })
   }
 
+  revalidatePath('/')
+  revalidatePath('/shop')
+
   return NextResponse.json({ success: true, name: trimmedName })
 }
 
@@ -55,6 +59,9 @@ export async function DELETE(request: Request) {
     devLog('Delete category error:', deleteError)
     return NextResponse.json({ error: 'فشل حذف الفئة. يرجى المحاولة مرة أخرى.' }, { status: 500 })
   }
+
+  revalidatePath('/')
+  revalidatePath('/shop')
 
   return NextResponse.json({ success: true })
 }
