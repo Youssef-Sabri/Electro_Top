@@ -189,7 +189,7 @@ export const OrdersLedger = memo(function OrdersLedger() {
 
       <div className="bg-surface-container-lowest rounded-xl border border-outline-variant/30 shadow-sm overflow-hidden text-start">
         <div className="overflow-x-auto">
-          <table className="w-full text-start border-collapse">
+          <table className="hidden md:table w-full text-start border-collapse">
             <thead>
               <tr className="bg-surface-container-low border-b border-outline-variant/30 select-none text-start">
                 <th className="px-6 py-4 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider text-start">
@@ -302,6 +302,82 @@ export const OrdersLedger = memo(function OrdersLedger() {
               )}
             </tbody>
           </table>
+        </div>
+
+        {/* Mobile Card List (shown on mobile, hidden on desktop) */}
+        <div className="block md:hidden divide-y divide-outline-variant/10">
+          {orders.length > 0 ? (
+            orders.map((order) => {
+              const dateStr = formatOrderDate(order.created_at);
+              const orderTotal = order.total_amount;
+
+              return (
+                <div
+                  key={order.id_unique_tracking}
+                  onClick={() => handleRowClick(order.id_unique_tracking)}
+                  className="p-4 space-y-4 hover:bg-surface-container-low/50 transition-all duration-200 cursor-pointer text-start"
+                >
+                  <div className="flex justify-between items-start">
+                    <div className="flex items-center gap-3">
+                      <div className="w-9 h-9 rounded-full bg-surface-container-highest flex items-center justify-center text-primary font-bold text-sm select-none">
+                        {getInitials(order.customer_name)}
+                      </div>
+                      <div className="text-start">
+                        <h4 className="font-bold text-on-surface text-base leading-snug">{order.customer_name}</h4>
+                        <span className="text-xs text-on-surface-variant block mt-0.5">{order.phone_number}</span>
+                      </div>
+                    </div>
+                    <span className="font-bold text-secondary-fixed-dim text-sm font-mono">
+                      #{order.id_unique_tracking}
+                    </span>
+                  </div>
+
+                  <div className="flex flex-wrap gap-2 items-center justify-between">
+                    <div className="flex gap-2">
+                      <StatusBadge status={order.status} />
+                      <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
+                        order.payment_method === 'cod'
+                          ? 'bg-[var(--color-status-delivered)]/10 text-[var(--color-status-delivered)] border-[var(--color-status-delivered)]/30'
+                          : order.payment_method === 'instapay'
+                            ? 'bg-[var(--color-status-accepted)]/10 text-[var(--color-status-accepted)] border-[var(--color-status-accepted)]/30'
+                            : 'bg-surface-container-low text-on-surface-variant border border-outline-variant'
+                      }`}>
+                        {order.payment_method === 'cod' ? 'COD' : order.payment_method === 'instapay' ? 'InstaPay' : '-'}
+                      </span>
+                    </div>
+                    <span className="text-[11px] text-on-surface-variant font-medium">
+                      {dateStr}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between bg-surface-container-low/40 p-2.5 rounded-lg">
+                    <div>
+                      <span className="text-[10px] text-on-surface-variant block">الإجمالي</span>
+                      <span className="font-bold text-on-surface text-base font-mono">
+                        {formatCurrency(orderTotal)}
+                      </span>
+                    </div>
+
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setOrderToDeleteId(order.id_unique_tracking);
+                        setIsDeleteConfirmOpen(true);
+                      }}
+                      className="p-2 bg-red-50 text-red-600 hover:bg-red-100 border border-red-200 rounded-lg transition-colors cursor-pointer select-none flex items-center justify-center"
+                      title="حذف هذا الطلب"
+                    >
+                      <span className="material-symbols-outlined text-[18px]">delete</span>
+                    </button>
+                  </div>
+                </div>
+              );
+            })
+          ) : (
+            <div className="py-12 text-center text-on-surface-variant font-medium text-sm font-tajawal">
+              لا توجد أي طلبات تطابق معايير البحث بالتصفية.
+            </div>
+          )}
         </div>
 
         <PaginationControls
