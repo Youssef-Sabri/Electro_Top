@@ -145,16 +145,7 @@ export default function AdminClientLayout({ children, initialAuthState }: AdminC
         }
       } else {
         setPassword('');
-        try {
-          const verifyRes = await fetch('/api/admin/verify');
-          if (verifyRes.ok) {
-            window.location.reload();
-          } else {
-            setError('فشل التحقق من الجلسة بعد تسجيل الدخول.');
-          }
-        } catch {
-          window.location.reload();
-        }
+        window.location.reload();
       }
     } catch (err: unknown) {
       if (process.env.NODE_ENV !== 'production') console.error('Admin login error:', err);
