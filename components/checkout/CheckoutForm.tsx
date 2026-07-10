@@ -87,6 +87,7 @@ export function CheckoutForm() {
   };
 
   useEffect(() => { 
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setUiState((prev) => ({ ...prev, isHydrated: true })); 
   }, []);
 

@@ -20,7 +20,7 @@ const getDevOrigins = () => {
         }
       }
     }
-  } catch (e) {
+  } catch {
     // fallback
   }
   return ips;

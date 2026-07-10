@@ -2,6 +2,7 @@ export function validateRequestOrigin(request: Request): boolean {
   const origin = request.headers.get('origin')
   const referer = request.headers.get('referer')
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || ''
+  const vercelUrl = process.env.VERCEL_URL || ''
 
   if (!origin && !referer) {
     return false
@@ -26,11 +27,25 @@ export function validateRequestOrigin(request: Request): boolean {
     }
   }
 
-  if (!siteUrl) {
-    // Fail closed in production — never allow all origins without an explicit site URL
+  // Parse allowed hosts list
+  const allowedHosts: string[] = []
+  try {
+    if (siteUrl) {
+      const parsedHost = new URL(siteUrl).host
+      allowedHosts.push(parsedHost)
+    }
+  } catch {
+    // Ignore URL parsing errors
+  }
+  if (vercelUrl) {
+    allowedHosts.push(vercelUrl)
+  }
+
+  // Fail closed in production if no allowed host list could be resolved
+  if (allowedHosts.length === 0) {
     if (process.env.NODE_ENV === 'production') return false
 
-    // In development, allow only localhost origins so the dev server works without the var set
+    // In development fallback, allow localhost
     const check = origin || referer || ''
     try {
       const host = new URL(check).hostname
@@ -41,16 +56,20 @@ export function validateRequestOrigin(request: Request): boolean {
   }
 
   try {
-    const allowedHost = new URL(siteUrl).host
+    const checkHost = (host: string) => {
+      return allowedHosts.some((allowed) => {
+        return host === allowed || host === `www.${allowed}` || `www.${host}` === allowed
+      })
+    }
 
     if (origin) {
       const originHost = new URL(origin).host
-      return originHost === allowedHost || originHost === `www.${allowedHost}` || `www.${originHost}` === allowedHost
+      return checkHost(originHost)
     }
 
     if (referer) {
       const refererHost = new URL(referer).host
-      return refererHost === allowedHost || refererHost === `www.${allowedHost}` || `www.${refererHost}` === allowedHost
+      return checkHost(refererHost)
     }
   } catch {
     return false
