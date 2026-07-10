@@ -60,7 +60,7 @@ export const OrderDetailClient = memo(function OrderDetailClient({ id }: OrderDe
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [signedScreenshotUrl, setSignedScreenshotUrl] = useState<string | null>(null);
   const printTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const { phone: phoneNumbers } = getSupportEnv();
+  const { phone: phoneNumbers, email: supportEmail } = getSupportEnv();
   const primaryPhone = phoneNumbers[0] || '';
   const secondaryPhone = phoneNumbers[1] || '';
 
@@ -637,7 +637,8 @@ export const OrderDetailClient = memo(function OrderDetailClient({ id }: OrderDe
               <div style={{ fontSize: '11pt', color: '#666', marginTop: '1mm', lineHeight: 1.6 }}>
                 توريدات كهربائية — 21 شارع السبع بنات، المنشية، الإسكندرية<br/>
                 <span dir="ltr">{primaryPhone}</span>
-                {secondaryPhone && <><br/><span dir="ltr">{secondaryPhone}</span></>}
+                {secondaryPhone && <> / <span dir="ltr">{secondaryPhone}</span></>}
+                {supportEmail && <><br/><span>البريد الإلكتروني: {supportEmail}</span></>}
               </div>
             </div>
             <div style={{ textAlign: 'left' }}>
@@ -733,7 +734,7 @@ export const OrderDetailClient = memo(function OrderDetailClient({ id }: OrderDe
              </div>
             <div style={{ textAlign: 'center', fontSize: '11pt', color: '#888', borderTop: '1.5px solid #ddd', marginTop: '3mm', paddingTop: '3mm' }}>
               <div style={{ fontWeight: 600 }}>شكراً لاختياركم إلكترو توب!</div>
-              <div>للاستفسارات والدعم: <span dir="ltr">{primaryPhone}</span>{secondaryPhone && <span> / <span dir="ltr">{secondaryPhone}</span></span>}</div>
+              <div>للاستفسارات والدعم: <span dir="ltr">{primaryPhone}</span>{secondaryPhone && <span> / <span dir="ltr">{secondaryPhone}</span></span>}{supportEmail && <span> | {supportEmail}</span>}</div>
             </div>
           </div>
         </div>

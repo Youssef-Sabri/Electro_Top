@@ -4,7 +4,7 @@ import { memo } from 'react';
 import { getSupportEnv } from '@/lib/env-utils';
 
 export const Footer = memo(function Footer() {
-  const { whatsapp: whatsappNumbers, phone: phoneNumbers, facebook: facebookUrl } = getSupportEnv();
+  const { whatsapp: whatsappNumbers, phone: phoneNumbers, facebook: facebookUrl, email: supportEmail } = getSupportEnv();
 
   return (
     <footer className="bg-on-background text-secondary-fixed w-full border-t border-surface-variant/10 font-tajawal">
@@ -48,33 +48,74 @@ export const Footer = memo(function Footer() {
         </div>
 
         {/* Column 2: Contact & Support */}
-        <div className="space-y-4">
+        <div className="space-y-5">
           <h4 className="text-secondary-fixed font-bold text-sm tracking-wide border-b border-surface-variant/10 pb-2 w-fit">
             الاتصال والدعم
           </h4>
-          <div className="flex flex-col gap-3.5 text-sm">
-            {phoneNumbers.map((number, index) => (
-              <a
-                key={index}
-                href={`tel:${number}`}
-                className="flex items-center gap-2 text-surface-variant hover:text-secondary-fixed transition-colors font-medium"
-              >
-                <span className="material-symbols-outlined text-[20px] text-primary">phone</span>
-                <span dir="ltr">{number} {phoneNumbers.length > 1 && `(${index + 1})`}</span>
-              </a>
-            ))}
-            {whatsappNumbers.map((number, index) => (
-              <a
-                key={index}
-                href={`https://wa.me/${number}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-2 text-surface-variant hover:text-secondary-fixed transition-colors font-medium"
-              >
-                <span className="material-symbols-outlined text-[20px] text-[#25D366]">chat</span>
-                <span>مراسلتنا عبر واتساب {whatsappNumbers.length > 1 && `(${index + 1})`}</span>
-              </a>
-            ))}
+          <div className="flex flex-col gap-4 text-sm">
+            {/* Phone numbers row */}
+            <div className="flex items-start gap-3">
+              <div className="w-8 h-8 rounded-lg bg-primary/15 flex items-center justify-center text-primary shrink-0">
+                <span className="material-symbols-outlined text-[18px]">phone</span>
+              </div>
+              <div className="space-y-0.5">
+                <span className="block text-[10px] text-surface-variant/50 font-bold uppercase tracking-wider">اتصل بنا</span>
+                <div className="flex flex-col gap-0.5">
+                  {phoneNumbers.map((number, index) => (
+                    <a
+                      key={index}
+                      href={`tel:${number}`}
+                      className="text-surface-variant hover:text-secondary-fixed transition-colors font-mono font-medium block"
+                      dir="ltr"
+                    >
+                      {number}
+                    </a>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* WhatsApp numbers row */}
+            <div className="flex items-start gap-3">
+              <div className="w-8 h-8 rounded-lg bg-[#25D366]/15 flex items-center justify-center text-[#25D366] shrink-0">
+                <span className="material-symbols-outlined text-[18px]">chat</span>
+              </div>
+              <div className="space-y-0.5">
+                <span className="block text-[10px] text-surface-variant/50 font-bold uppercase tracking-wider">مراسلتنا واتساب</span>
+                <div className="flex flex-col gap-0.5">
+                  {whatsappNumbers.map((number, index) => (
+                    <a
+                      key={index}
+                      href={`https://wa.me/${number}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-surface-variant hover:text-secondary-fixed transition-colors font-medium block"
+                    >
+                      مراسلة الدعم {whatsappNumbers.length > 1 && `(${index + 1})`}
+                    </a>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Email address row */}
+            {supportEmail && (
+              <div className="flex items-start gap-3">
+                <div className="w-8 h-8 rounded-lg bg-cyan-400/15 flex items-center justify-center text-cyan-400 shrink-0">
+                  <span className="material-symbols-outlined text-[18px]">mail</span>
+                </div>
+                <div className="space-y-0.5">
+                  <span className="block text-[10px] text-surface-variant/50 font-bold uppercase tracking-wider">البريد الإلكتروني</span>
+                  <a
+                    href={`mailto:${supportEmail}`}
+                    className="text-surface-variant hover:text-secondary-fixed transition-colors font-mono font-medium block"
+                    dir="ltr"
+                  >
+                    {supportEmail}
+                  </a>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 

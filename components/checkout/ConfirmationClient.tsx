@@ -16,7 +16,7 @@ export function ConfirmationClient() {
 
   const { order, items, loading } = useOrderTracking(orderId);
   const { getProductsMap } = useProducts();
-  const { whatsapp: whatsappNumbers } = getSupportEnv();
+  const { whatsapp: whatsappNumbers, phone: phoneNumbers, email: supportEmail } = getSupportEnv();
 
   const productsById = getProductsMap();
   
@@ -150,27 +150,49 @@ export function ConfirmationClient() {
         )}
       </div>
 
-      <div className="max-w-md mx-auto mb-12 space-y-4">
+      <div className="max-w-md mx-auto mb-12 space-y-4 text-center">
         <p className="text-xs font-bold text-on-surface leading-relaxed">
           🚨 <span className="text-primary font-extrabold">يرجى نسخ رقم التتبع الخاص بك أو التقاط لقطة شاشة</span> لهذه الصفحة لتتمكن من تتبع طلبك لاحقاً.
         </p>
-         <p className="text-[11px] text-on-surface-variant leading-relaxed">
-           إذا كان لديك أي استفسار أو واجهت أي مشكلة، يمكنك التواصل معنا مباشرة عبر واتساب:
-         </p>
-         <div className="flex flex-wrap justify-center gap-3">
-           {whatsappNumbers.map((number, index) => (
-             <a
-               key={index}
-               href={`https://wa.me/${number}`}
-               target="_blank"
-               rel="noopener noreferrer"
-               className="inline-flex items-center gap-1.5 bg-[#25D366] text-white px-6 py-2.5 rounded-full text-xs hover:brightness-105 active:scale-95 transition-all shadow-sm font-bold"
-             >
-               <span className="material-symbols-outlined text-[18px]">chat</span>
-               تواصل معنا واتساب {whatsappNumbers.length > 1 && `(${index + 1})`}
-             </a>
-           ))}
-         </div>
+        
+        <div className="pt-2">
+          <p className="text-[11px] text-on-surface-variant font-medium mb-3">
+            لأي استفسار أو واجهت مشكلة، تواصل معنا مباشرة:
+          </p>
+          <div className="flex flex-wrap items-center justify-center gap-2.5">
+            {whatsappNumbers.map((number, index) => (
+              <a
+                key={index}
+                href={`https://wa.me/${number}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 px-3.5 py-1.5 rounded-full text-xs font-bold transition-all border border-emerald-200/40 active:scale-95"
+              >
+                <span className="material-symbols-outlined text-[16px] text-emerald-600">chat</span>
+                <span>واتساب {whatsappNumbers.length > 1 && `(${index + 1})`}</span>
+              </a>
+            ))}
+            {phoneNumbers.map((number, index) => (
+              <a
+                key={index}
+                href={`tel:${number}`}
+                className="inline-flex items-center gap-1.5 bg-red-50 hover:bg-red-100 text-primary px-3.5 py-1.5 rounded-full text-xs font-bold transition-all border border-red-200/40 active:scale-95"
+              >
+                <span className="material-symbols-outlined text-[16px]">phone</span>
+                <span>اتصال {phoneNumbers.length > 1 && `(${index + 1})`}</span>
+              </a>
+            ))}
+            {supportEmail && (
+              <a
+                href={`mailto:${supportEmail}`}
+                className="inline-flex items-center gap-1.5 bg-cyan-50 hover:bg-cyan-100 text-cyan-700 px-3.5 py-1.5 rounded-full text-xs font-bold transition-all border border-cyan-200/40 active:scale-95"
+              >
+                <span className="material-symbols-outlined text-[16px] text-cyan-600">mail</span>
+                <span>البريد الإلكتروني</span>
+              </a>
+            )}
+          </div>
+        </div>
       </div>
 
       {/* Invoice details */}

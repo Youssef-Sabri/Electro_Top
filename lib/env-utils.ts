@@ -11,5 +11,6 @@ export function getSupportEnv() {
       process.env.NEXT_PUBLIC_SUPPORT_PHONE_2,
     ].filter((val): val is string => Boolean(val)),
     facebook: process.env.NEXT_PUBLIC_SUPPORT_FACEBOOK || '',
+    email: process.env.NEXT_PUBLIC_SUPPORT_EMAIL || '',
   }
 }

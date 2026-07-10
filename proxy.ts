@@ -123,10 +123,14 @@ export async function proxy(request: NextRequest) {
 
     if (error || !user || user.app_metadata?.role !== 'admin') {
       if (pathname.startsWith('/api/admin/')) {
-        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+        const errResp = NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+        response.cookies.getAll().forEach((c) => errResp.cookies.set(c))
+        return errResp
       }
       const url = new URL('/admin', request.url)
-      return NextResponse.redirect(url)
+      const redirectResp = NextResponse.redirect(url)
+      response.cookies.getAll().forEach((c) => redirectResp.cookies.set(c))
+      return redirectResp
     }
 
     // Inactivity timeout: expire session after 1h of no requests
@@ -138,10 +142,14 @@ export async function proxy(request: NextRequest) {
       if (elapsed > 3600_000) {
         await supabase.auth.signOut()
         if (pathname.startsWith('/api/admin/')) {
-          return NextResponse.json({ error: 'Session expired' }, { status: 401 })
+          const errResp = NextResponse.json({ error: 'Session expired' }, { status: 401 })
+          response.cookies.getAll().forEach((c) => errResp.cookies.set(c))
+          return errResp
         }
         const url = new URL('/admin', request.url)
-        return NextResponse.redirect(url)
+        const redirectResp = NextResponse.redirect(url)
+        response.cookies.getAll().forEach((c) => redirectResp.cookies.set(c))
+        return redirectResp
       }
     }
 

@@ -13,6 +13,7 @@ const jsonLdEnvSchema = z.object({
   siteUrl: z.union([z.string().url(), z.literal('')]).default(''),
   supportPhone1: z.string().optional().default(''),
   supportPhone2: z.string().optional().default(''),
+  supportEmail: z.string().optional().default(''),
 });
 
 type JsonLdEnv = z.infer<typeof jsonLdEnvSchema>;
@@ -22,6 +23,7 @@ function getJsonLdEnv(): JsonLdEnv {
     siteUrl: process.env.NEXT_PUBLIC_SITE_URL || '',
     supportPhone1: process.env.NEXT_PUBLIC_SUPPORT_PHONE_1 || '',
     supportPhone2: process.env.NEXT_PUBLIC_SUPPORT_PHONE_2 || '',
+    supportEmail: process.env.NEXT_PUBLIC_SUPPORT_EMAIL || '',
   });
 }
 
@@ -108,6 +110,7 @@ export default async function RootLayout({
                     description: 'الموزع المعتمد لمنتجات السويدي، شنايدر، سيمنز، هيميل، جيويس، وشينت. مستلزمات كهربائية ممتازة مع إمكانية الدفع كزائر وتتبع الطلبات.',
                     url: env.siteUrl,
                     telephone: [env.supportPhone1, env.supportPhone2].filter(Boolean),
+                    email: env.supportEmail || undefined,
                     areaServed: 'EG',
                     hasOfferCatalog: {
                       '@type': 'OfferCatalog',
