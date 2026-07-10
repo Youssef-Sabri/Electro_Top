@@ -69,11 +69,23 @@
 
 }
 
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
 body {
   background: var(--color-background);
   color: var(--color-on-surface);
   font-family: var(--font-tajawal), sans-serif;
   -webkit-font-smoothing: antialiased;
+}
+
+/* Prevent auto-zooming on input focus on iOS/mobile devices */
+@media (max-width: 640px) {
+  input, select, textarea {
+    font-size: 16px !important;
+  }
 }
 
 /* Material symbols styles */
