@@ -147,7 +147,7 @@ export async function proxy(request: NextRequest) {
 
     response.cookies.set('admin-last-activity', String(now), {
       httpOnly: true,
-      secure: true,
+      secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
       path: '/',
       maxAge: 86_400,
