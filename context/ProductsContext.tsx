@@ -1,6 +1,7 @@
 'use client';
 
 import { createContext, useState, useEffect, useMemo, useCallback, useRef, ReactNode } from 'react';
+import { usePathname } from 'next/navigation';
 import type { Product } from '@/types';
 import type { Session } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
@@ -30,6 +31,7 @@ export const ProductsContext = createContext<ProductsContextType | undefined>(un
 
 
 export function ProductsProvider({ children }: { children: ReactNode }) {
+  const pathname = usePathname();
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
@@ -139,29 +141,33 @@ export function ProductsProvider({ children }: { children: ReactNode }) {
       }
     }
 
-    // Products WebSocket is admin-only (gated by session) to avoid one WebSocket per visitor.
-    // For customers, products refresh on tab focus (visibility change) — no polling.
+    // Products WebSocket is admin-only (gated by session and admin route) to avoid unnecessary WebSockets on storefront.
+    const isAdminRoute = pathname?.startsWith('/admin');
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      if (session) {
+      if (session && isAdminRoute) {
         await subscribe(session);
       } else {
         unsubscribe();
       }
     });
 
-    // Immediately subscribe if a session already exists
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
-        hasFetchedRef.current = false;
-        loadData(true);
-        subscribe(session);
-      }
-    });
+    // Immediately subscribe if a session already exists and we are on an admin route
+    if (isAdminRoute) {
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        if (session) {
+          hasFetchedRef.current = false;
+          loadData(true);
+          subscribe(session);
+        }
+      });
+    }
 
     const handleVisibility = async () => {
       if (document.visibilityState === 'visible') {
+        if (!isAdminRoute) return;
         const { data: { session } } = await supabase.auth.getSession();
-        // Only trigger visibility-based refresh for administrators with active sessions
+        // Only trigger visibility-based refresh for administrators with active sessions on admin pages
         if (session) {
           hasFetchedRef.current = false;
           loadData(true);
@@ -179,7 +185,7 @@ export function ProductsProvider({ children }: { children: ReactNode }) {
       unsubscribe();
       subscription.unsubscribe();
     };
-  }, [loadData]);
+  }, [loadData, pathname]);
 
   const refreshProducts = useCallback(async () => {
     await loadData();

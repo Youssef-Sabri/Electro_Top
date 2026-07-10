@@ -1,6 +1,7 @@
 'use client';
 
 import { createContext, useState, useEffect, useMemo, useCallback, useRef, ReactNode } from 'react';
+import { usePathname } from 'next/navigation';
 import type { Order, OrderItem, OrderStatusHistory, OrderStatus } from '@/types';
 import type { Session } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
@@ -49,6 +50,7 @@ export interface OrdersContextType {
 export const OrdersContext = createContext<OrdersContextType | undefined>(undefined);
 
 export function OrdersProvider({ children }: { children: ReactNode }) {
+  const pathname = usePathname();
   const [orders, setOrders] = useState<Order[]>([]);
   const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
   const [statusHistory, setStatusHistory] = useState<OrderStatusHistory[]>([]);
@@ -313,8 +315,10 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
       }
     }
 
+    const isAdminRoute = pathname?.startsWith('/admin');
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      if (session) {
+      if (session && isAdminRoute) {
         await loadData(0, filtersRef.current);
         await subscribe(session);
       } else {
@@ -329,6 +333,7 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
 
     const handleVisibility = async () => {
       if (document.visibilityState === 'visible') {
+        if (!isAdminRoute) return;
         const { data: { session } } = await supabase.auth.getSession();
         if (session) {
           await subscribe(session);
@@ -345,7 +350,7 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
       unsubscribe();
       subscription.unsubscribe();
     };
-  }, [loadData]);
+  }, [loadData, pathname]);
 
   const getOrderById = useCallback((id: string) => {
     return ordersMapRef.current.get(normalizeTrackingId(id));
