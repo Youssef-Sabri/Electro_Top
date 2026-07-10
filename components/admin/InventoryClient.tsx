@@ -509,16 +509,16 @@ export const InventoryClient = memo(function InventoryClient() {
         </div>
       )}
 
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <div className="flex flex-col lg:flex-row lg:flex-wrap justify-between items-start lg:items-center gap-4 w-full">
         <div>
           <h1 className="font-headline-lg text-headline-lg font-bold text-on-surface">
             إدارة المخزون
           </h1>
-          <p className="text-on-surface-variant text-sm mt-1">
+          <p className="text-on-surface-variant text-sm mt-1 max-w-xl">
             قم بإنشاء وتعديل وتغيير ظهور وتحديث مخزون المنتجات في كتالوج المتجر الإلكتروني.
           </p>
         </div>
-        <div className="flex items-center gap-3 w-full sm:w-auto flex-wrap">
+        <div className="flex items-center gap-3 w-full lg:w-auto flex-wrap">
           <button
             onClick={handleExportCSV}
             className="flex items-center gap-1.5 px-5 py-3 bg-primary/10 text-primary border border-primary/20 rounded-lg hover:bg-primary/20 transition-all font-semibold text-xs cursor-pointer select-none h-fit w-fit uppercase tracking-wider font-bold"
@@ -545,51 +545,55 @@ export const InventoryClient = memo(function InventoryClient() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="bg-surface-container-lowest border border-outline-variant/30 rounded-xl p-6 shadow-sm flex items-center justify-between">
-          <div>
-            <p className="text-on-surface-variant text-xs uppercase tracking-wider font-semibold">إجمالي المنتجات</p>
-            <h3 className="font-display-lg text-display-lg font-extrabold text-on-surface mt-1">{metrics.total}</h3>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4 gap-6">
+        <div className="bg-surface-container-lowest border border-outline-variant/30 rounded-xl p-6 shadow-sm space-y-2">
+          <div className="flex justify-between items-center text-on-surface-variant">
+            <span className="font-label-md text-label-md font-semibold uppercase tracking-wider">إجمالي المنتجات</span>
+            <span className="material-symbols-outlined text-on-surface-variant bg-surface-container-low p-2 rounded-lg text-[20px]">inventory_2</span>
           </div>
-          <div className="w-12 h-12 rounded-lg bg-surface-container-low flex items-center justify-center text-on-surface-variant">
-            <span className="material-symbols-outlined text-[28px]">inventory_2</span>
-          </div>
+          <h2 className="text-[28px] font-extrabold text-on-surface tracking-tight mt-1">
+            {metrics.total}
+          </h2>
+          <p className="text-xs text-on-surface-variant mt-1">جميع المنتجات بالكتالوج</p>
         </div>
 
-        <div className="bg-surface-container-lowest border border-outline-variant/30 rounded-xl p-6 shadow-sm flex items-center justify-between">
-          <div>
-            <p className="text-on-surface-variant text-xs uppercase tracking-wider font-semibold">الكتالوج النشط</p>
-            <h3 className="font-display-lg text-display-lg font-extrabold text-green-600 mt-1">{metrics.active}</h3>
+        <div className="bg-surface-container-lowest border border-outline-variant/30 rounded-xl p-6 shadow-sm space-y-2">
+          <div className="flex justify-between items-center text-on-surface-variant">
+            <span className="font-label-md text-label-md font-semibold uppercase tracking-wider">الكتالوج النشط</span>
+            <span className="material-symbols-outlined text-green-600 bg-green-50 p-2 rounded-lg text-[20px]">visibility</span>
           </div>
-          <div className="w-12 h-12 rounded-lg bg-green-50 flex items-center justify-center text-green-600">
-            <span className="material-symbols-outlined text-[28px]">visibility</span>
-          </div>
+          <h2 className="text-[28px] font-extrabold text-on-surface tracking-tight mt-1">
+            {metrics.active}
+          </h2>
+          <p className="text-xs text-on-surface-variant mt-1">المنتجات المعروضة للمشترين</p>
         </div>
 
-        <div className="bg-surface-container-lowest border border-outline-variant/30 rounded-xl p-6 shadow-sm flex items-center justify-between">
-          <div>
-            <p className="text-on-surface-variant text-xs uppercase tracking-wider font-semibold">نفد من المخزون</p>
-            <h3 className={`font-display-lg text-display-lg font-extrabold mt-1 ${metrics.outOfStock > 0 ? 'text-primary' : 'text-on-surface'}`}>{metrics.outOfStock}</h3>
+        <div className="bg-surface-container-lowest border border-outline-variant/30 rounded-xl p-6 shadow-sm space-y-2">
+          <div className="flex justify-between items-center text-on-surface-variant">
+            <span className="font-label-md text-label-md font-semibold uppercase tracking-wider">نفد من المخزون</span>
+            <span className="material-symbols-outlined text-primary bg-red-50 p-2 rounded-lg text-[20px]">warning</span>
           </div>
-          <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${metrics.outOfStock > 0 ? 'bg-red-50 text-primary' : 'bg-surface-container-low text-on-surface-variant'}`}>
-            <span className="material-symbols-outlined text-[28px]">warning</span>
-          </div>
+          <h2 className={`text-[28px] font-extrabold tracking-tight mt-1 ${metrics.outOfStock > 0 ? 'text-primary' : 'text-on-surface'}`}>
+            {metrics.outOfStock}
+          </h2>
+          <p className="text-xs text-on-surface-variant mt-1">منتجات تحتاج لإعادة التعبئة</p>
         </div>
 
-        <div className="bg-surface-container-lowest border border-outline-variant/30 rounded-xl p-6 shadow-sm flex items-center justify-between">
-          <div>
-            <p className="text-on-surface-variant text-xs uppercase tracking-wider font-semibold">إجمالي وحدات المخزون</p>
-            <h3 className="font-display-lg text-display-lg font-extrabold text-secondary mt-1">{metrics.totalStock}</h3>
+        <div className="bg-surface-container-lowest border border-outline-variant/30 rounded-xl p-6 shadow-sm space-y-2">
+          <div className="flex justify-between items-center text-on-surface-variant">
+            <span className="font-label-md text-label-md font-semibold uppercase tracking-wider">إجمالي وحدات المخزون</span>
+            <span className="material-symbols-outlined text-secondary bg-yellow-50 p-2 rounded-lg text-[20px]">widgets</span>
           </div>
-          <div className="w-12 h-12 rounded-lg bg-yellow-50 flex items-center justify-center text-secondary">
-            <span className="material-symbols-outlined text-[28px]">widgets</span>
-          </div>
+          <h2 className="text-[28px] font-extrabold text-on-surface tracking-tight mt-1">
+            {metrics.totalStock}
+          </h2>
+          <p className="text-xs text-on-surface-variant mt-1">عدد قطع المخزون المتاحة</p>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+      <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-stretch">
         
-        <div className="lg:col-span-8 bg-surface-container-lowest border border-outline-variant/30 rounded-xl p-6 shadow-sm flex flex-col justify-start space-y-5">
+        <div className="xl:col-span-8 bg-surface-container-lowest border border-outline-variant/30 rounded-xl p-6 shadow-sm flex flex-col justify-start space-y-5">
           <div className="flex items-center gap-3 border-b border-outline-variant/10 pb-3">
             <span className="material-symbols-outlined text-primary text-[24px]">search</span>
             <h4 className="font-bold text-sm text-on-surface">البحث والتصفية في الكتالوج</h4>
@@ -650,7 +654,7 @@ export const InventoryClient = memo(function InventoryClient() {
           </div>
         </div>
 
-        <div className="lg:col-span-4 bg-surface-container-lowest border border-outline-variant/30 rounded-xl p-6 shadow-sm flex flex-col justify-between space-y-6">
+        <div className="xl:col-span-4 bg-surface-container-lowest border border-outline-variant/30 rounded-xl p-6 shadow-sm flex flex-col justify-between space-y-6">
           <div className="flex items-center gap-3 border-b border-outline-variant/10 pb-3">
             <span className="material-symbols-outlined text-primary text-[24px]">category</span>
             <h4 className="font-bold text-sm text-on-surface">إدارة الفئات</h4>
@@ -699,7 +703,7 @@ export const InventoryClient = memo(function InventoryClient() {
 
       <div className="bg-surface-container-lowest border border-outline-variant/30 rounded-xl overflow-hidden shadow-sm">
         <div className="overflow-x-auto">
-          <table className="hidden md:table w-full text-start border-collapse">
+          <table className="hidden lg:table w-full text-start border-collapse">
             <thead>
               <tr className="bg-surface-container-low border-b border-outline-variant/20 text-on-surface-variant font-bold text-xs uppercase tracking-wider text-start">
                 <th className="py-4 px-6 text-start">الصورة</th>
@@ -810,7 +814,7 @@ export const InventoryClient = memo(function InventoryClient() {
         </div>
 
         {/* Mobile Card List (shown on mobile, hidden on desktop) */}
-        <div className="block md:hidden divide-y divide-outline-variant/10">
+        <div className="block lg:hidden divide-y divide-outline-variant/10">
           {filteredProducts.length > 0 ? (
             paginatedProducts.map((product) => (
               <div key={product.id} className="p-4 space-y-4 hover:bg-surface-container-low/30 transition-colors">

@@ -76,7 +76,7 @@ export const Navbar = memo(function Navbar() {
       <nav className={`w-full bg-white/95 backdrop-blur-md border-b border-outline-variant/20 transition-all duration-300 ${isScrolled ? 'shadow-md' : 'shadow-sm'}`}>
         
         {/* Tier 2: Logo, Search Bar, Icons */}
-        <div className="max-w-max-width mx-auto flex items-center justify-between px-margin-desktop py-4 gap-6">
+        <div className="max-w-max-width mx-auto flex items-center justify-between px-margin-mobile md:px-margin-desktop py-4 gap-6">
           
           {/* Logo */}
           <Link href="/" className="flex items-center gap-3 hover:opacity-90 transition-opacity shrink-0">

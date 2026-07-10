@@ -103,7 +103,7 @@ export const DashboardClient = memo(function DashboardClient() {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">
         <div className="bg-white border border-outline-variant/30 rounded-xl p-6 shadow-sm space-y-2">
           <div className="flex justify-between items-center text-on-surface-variant">
             <span className="font-label-md text-label-md font-semibold uppercase tracking-wider">إجمالي الإيرادات</span>
@@ -155,8 +155,8 @@ export const DashboardClient = memo(function DashboardClient() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="bg-white border border-outline-variant/30 rounded-xl p-6 shadow-sm lg:col-span-2 space-y-6">
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+        <div className="bg-white border border-outline-variant/30 rounded-xl p-6 shadow-sm xl:col-span-2 space-y-6">
           <h3 className="font-headline-md text-headline-md font-bold text-on-surface">حالة شحن وتوصيل الطلبات</h3>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             <div className="bg-surface p-4 rounded-lg text-center border border-outline-variant/10">
@@ -208,7 +208,7 @@ export const DashboardClient = memo(function DashboardClient() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
         <div className="bg-white border border-outline-variant/30 rounded-xl p-6 shadow-sm space-y-6">
           <h3 className="font-headline-md text-headline-md font-bold text-on-surface">حجم مبيعات الفئات</h3>
           <div className="space-y-4 max-h-[320px] overflow-y-auto pe-2">
@@ -235,7 +235,7 @@ export const DashboardClient = memo(function DashboardClient() {
           </div>
         </div>
 
-        <div className="bg-white border border-outline-variant/30 rounded-xl p-6 shadow-sm lg:col-span-2 space-y-6">
+        <div className="bg-white border border-outline-variant/30 rounded-xl p-6 shadow-sm xl:col-span-2 space-y-6">
           <h3 className="font-headline-md text-headline-md font-bold text-on-surface">الطلبات الواردة مؤخراً</h3>
           <div className="overflow-x-auto">
             <table className="w-full text-start">

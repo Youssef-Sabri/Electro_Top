@@ -137,59 +137,55 @@ export const OrdersLedger = memo(function OrdersLedger() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-gutter text-start">
-        <div className="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant/30 electro-card">
-          <p className="text-on-surface-variant font-label-md text-label-md uppercase tracking-wider mb-1">
-            إجمالي الطلبات
-          </p>
-          <h3 className="text-secondary-fixed-dim font-headline-md text-headline-md font-bold">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-gutter text-start">
+        <div className="bg-surface-container-lowest border border-outline-variant/30 rounded-xl p-6 shadow-sm space-y-2">
+          <div className="flex justify-between items-center text-on-surface-variant">
+            <span className="font-label-md text-label-md font-semibold uppercase tracking-wider">إجمالي الطلبات</span>
+            <span className="material-symbols-outlined text-purple-600 bg-purple-50 p-2 rounded-lg text-[20px]">shopping_bag</span>
+          </div>
+          <h2 className="text-[28px] font-extrabold text-on-surface tracking-tight mt-1">
             {metrics.totalCount}
-          </h3>
-          <div className="mt-2 text-green-600 font-label-sm text-label-sm flex items-center gap-1 select-none">
-            <span className="material-symbols-outlined text-sm">inventory</span> سجلات نشطة في النظام
-          </div>
+          </h2>
+          <p className="text-xs text-on-surface-variant mt-1">سجلات نشطة في النظام</p>
         </div>
 
-        <div className="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant/30 electro-card">
-          <p className="text-on-surface-variant font-label-md text-label-md uppercase tracking-wider mb-1">
-            قيد المراجعة
-          </p>
-          <h3 className="text-on-surface font-headline-md text-headline-md font-bold">
+        <div className="bg-surface-container-lowest border border-outline-variant/30 rounded-xl p-6 shadow-sm space-y-2">
+          <div className="flex justify-between items-center text-on-surface-variant">
+            <span className="font-label-md text-label-md font-semibold uppercase tracking-wider">قيد المراجعة</span>
+            <span className="material-symbols-outlined text-amber-600 bg-amber-50 p-2 rounded-lg text-[20px]">notifications_active</span>
+          </div>
+          <h2 className="text-[28px] font-extrabold text-on-surface tracking-tight mt-1">
             {metrics.pendingCount}
-          </h3>
-          <div className="mt-2 text-primary font-label-sm text-label-sm flex items-center gap-1 select-none">
-            <span className="material-symbols-outlined text-sm">notifications_active</span> بحاجة لاتخاذ إجراء
-          </div>
+          </h2>
+          <p className="text-xs text-primary mt-1 font-semibold">⚠️ بحاجة لاتخاذ إجراء</p>
         </div>
 
-        <div className="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant/30 electro-card">
-          <p className="text-on-surface-variant font-label-md text-label-md uppercase tracking-wider mb-1">
-            قيد التحضير
-          </p>
-          <h3 className="text-on-surface font-headline-md text-headline-md font-bold">
+        <div className="bg-surface-container-lowest border border-outline-variant/30 rounded-xl p-6 shadow-sm space-y-2">
+          <div className="flex justify-between items-center text-on-surface-variant">
+            <span className="font-label-md text-label-md font-semibold uppercase tracking-wider">قيد التحضير</span>
+            <span className="material-symbols-outlined text-blue-600 bg-blue-50 p-2 rounded-lg text-[20px]">bolt</span>
+          </div>
+          <h2 className="text-[28px] font-extrabold text-on-surface tracking-tight mt-1">
             {metrics.activeFulfillmentCount}
-          </h3>
-          <div className="mt-2 text-secondary-fixed-dim font-label-sm text-label-sm flex items-center gap-1 select-none">
-            <span className="material-symbols-outlined text-sm">bolt</span> في مسار التحضير حالياً
-          </div>
+          </h2>
+          <p className="text-xs text-on-surface-variant mt-1">في مسار التحضير حالياً</p>
         </div>
 
-        <div className="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant/30 electro-card">
-          <p className="text-on-surface-variant font-label-md text-label-md uppercase tracking-wider mb-1">
-            الطلبات المكتملة
-          </p>
-          <h3 className="text-on-surface font-headline-md text-headline-md font-bold">
-            {metrics.completedCount}
-          </h3>
-          <div className="mt-2 text-on-surface-variant font-label-sm text-label-sm">
-            تم توصيلها بنجاح للعملاء
+        <div className="bg-surface-container-lowest border border-outline-variant/30 rounded-xl p-6 shadow-sm space-y-2">
+          <div className="flex justify-between items-center text-on-surface-variant">
+            <span className="font-label-md text-label-md font-semibold uppercase tracking-wider">الطلبات المكتملة</span>
+            <span className="material-symbols-outlined text-green-600 bg-green-50 p-2 rounded-lg text-[20px]">task_alt</span>
           </div>
+          <h2 className="text-[28px] font-extrabold text-on-surface tracking-tight mt-1">
+            {metrics.completedCount}
+          </h2>
+          <p className="text-xs text-on-surface-variant mt-1">تم توصيلها بنجاح للعملاء</p>
         </div>
       </div>
 
       <div className="bg-surface-container-lowest rounded-xl border border-outline-variant/30 shadow-sm overflow-hidden text-start">
         <div className="overflow-x-auto">
-          <table className="hidden md:table w-full text-start border-collapse">
+          <table className="hidden lg:table w-full text-start border-collapse">
             <thead>
               <tr className="bg-surface-container-low border-b border-outline-variant/30 select-none text-start">
                 <th className="px-6 py-4 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider text-start">
@@ -305,7 +301,7 @@ export const OrdersLedger = memo(function OrdersLedger() {
         </div>
 
         {/* Mobile Card List (shown on mobile, hidden on desktop) */}
-        <div className="block md:hidden divide-y divide-outline-variant/10">
+        <div className="block lg:hidden divide-y divide-outline-variant/10">
           {orders.length > 0 ? (
             orders.map((order) => {
               const dateStr = formatOrderDate(order.created_at);

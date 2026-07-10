@@ -274,9 +274,9 @@ export default function AdminClientLayout({ children, initialAuthState }: AdminC
 
   // Render full dashboard layout if authenticated
   return (
-    <div className="min-h-screen bg-surface flex flex-col md:flex-row font-tajawal text-on-surface">
+    <div className="min-h-screen bg-surface flex flex-col xl:flex-row font-tajawal text-on-surface overflow-x-hidden max-w-full">
       {/* Mobile Top Header */}
-      <header className="md:hidden fixed top-0 left-0 right-0 h-16 bg-on-background text-white flex items-center justify-between px-6 z-50 shadow-md select-none print:hidden">
+      <header className="xl:hidden fixed top-0 left-0 right-0 h-16 bg-on-background text-white flex items-center justify-between px-6 z-50 shadow-md select-none print:hidden">
         <div className="flex items-center gap-3">
           <button
             onClick={() => setIsSidebarOpen(!isSidebarOpen)}
@@ -295,13 +295,13 @@ export default function AdminClientLayout({ children, initialAuthState }: AdminC
       {isSidebarOpen && (
         <div
           onClick={() => setIsSidebarOpen(false)}
-          className="md:hidden fixed inset-0 bg-black/60 z-30 backdrop-blur-sm print:hidden"
+          className="xl:hidden fixed inset-0 bg-black/60 z-30 backdrop-blur-sm print:hidden"
         />
       )}
 
       {/* Side Navbar */}
       <aside
-        className={`fixed right-0 top-0 bottom-0 h-screen w-64 bg-on-background flex flex-col pt-20 pb-6 md:py-6 shadow-xl z-40 transition-transform duration-300 md:translate-x-0 print:hidden ${
+        className={`fixed right-0 top-0 bottom-0 h-screen w-64 bg-on-background flex flex-col pt-20 pb-6 xl:py-6 shadow-xl z-40 transition-transform duration-300 xl:translate-x-0 print:hidden ${
           isSidebarOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
       >
@@ -380,8 +380,8 @@ export default function AdminClientLayout({ children, initialAuthState }: AdminC
       </aside>
 
       {/* Main Content Area */}
-      <div className="flex-grow min-h-screen ps-0 md:ps-64 pt-16 md:pt-0 print:ps-0 print:pt-0 print:min-h-0">
-        <main className="p-margin-mobile md:p-margin-desktop min-h-screen text-start print:p-0 print:min-h-0">
+      <div className="flex-grow min-h-screen ps-0 xl:ps-64 pt-16 xl:pt-0 print:ps-0 print:pt-0 print:min-h-0 min-w-0">
+        <main className="p-margin-mobile md:p-margin-desktop min-h-screen text-start print:p-0 print:min-h-0 w-full min-w-0">
           <ErrorBoundary>{children}</ErrorBoundary>
         </main>
       </div>
