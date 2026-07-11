@@ -144,6 +144,7 @@ export const ProductDetailsModal = memo(function ProductDetailsModal({ product, 
                         quality={85}
                         priority={index === 0}
                         draggable={false}
+                        unoptimized
                       />
                     </div>
                   ))}
@@ -180,6 +181,7 @@ export const ProductDetailsModal = memo(function ProductDetailsModal({ product, 
                   quality={85}
                   priority
                   draggable={false}
+                  unoptimized
                 />
               </div>
             )}
