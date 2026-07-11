@@ -145,21 +145,28 @@ export async function proxy(request: NextRequest) {
     // Inactivity timeout: expire session after 1h of no requests
     const lastActivity = request.cookies.get('admin-last-activity')?.value
     const now = Date.now()
- 
-    if (lastActivity) {
+    let isExpired = false
+
+    if (!lastActivity) {
+      isExpired = true
+    } else {
       const elapsed = now - parseInt(lastActivity, 10)
       if (elapsed > 3600_000) {
-        await supabase.auth.signOut({ scope: 'local' })
-        if (pathname.startsWith('/api/admin/')) {
-          const errResp = NextResponse.json({ error: 'Session expired' }, { status: 401 })
-          response.cookies.getAll().forEach((c) => errResp.cookies.set(c))
-          return errResp
-        }
-        const url = new URL('/admin', request.url)
-        const redirectResp = NextResponse.redirect(url)
-        response.cookies.getAll().forEach((c) => redirectResp.cookies.set(c))
-        return redirectResp
+        isExpired = true
       }
+    }
+
+    if (isExpired) {
+      await supabase.auth.signOut({ scope: 'local' })
+      if (pathname.startsWith('/api/admin/')) {
+        const errResp = NextResponse.json({ error: 'Session expired' }, { status: 401 })
+        response.cookies.getAll().forEach((c) => errResp.cookies.set(c))
+        return errResp
+      }
+      const url = new URL('/admin', request.url)
+      const redirectResp = NextResponse.redirect(url)
+      response.cookies.getAll().forEach((c) => redirectResp.cookies.set(c))
+      return redirectResp
     }
  
     response.cookies.set('admin-last-activity', String(now), {
