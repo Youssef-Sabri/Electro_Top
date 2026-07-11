@@ -118,6 +118,17 @@ export const ProductDetailsModal = memo(function ProductDetailsModal({ product, 
         className="relative w-full max-w-2xl bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col md:flex-row max-h-[85vh] md:h-[500px] border border-outline-variant/10"
         style={{ animation: 'modalSlideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards' }}
       >
+        {/* Close button at the top header of the modal */}
+        <button
+          onClick={onClose}
+          className="absolute top-4 left-4 z-50 flex items-center justify-center w-9 h-9 bg-surface-container-low/80 hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface backdrop-blur-md rounded-full border border-outline-variant/30 shadow-sm transition-all duration-300 hover:rotate-90 active:scale-90 cursor-pointer"
+          aria-label="إغلاق النافذة"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+
         {/* Left Side: Images */}
         <div className="relative w-full md:w-5/12 h-[310px] md:h-full bg-white flex-shrink-0 border-e border-outline-variant/10 flex flex-col p-5 justify-between">
           <div className="relative w-full flex-grow h-[180px] md:h-[350px]">
@@ -218,17 +229,10 @@ export const ProductDetailsModal = memo(function ProductDetailsModal({ product, 
  
         {/* Right Side: Details & Actions */}
         <div className="p-6 flex flex-col flex-grow overflow-y-auto h-[calc(85vh-260px)] md:h-full text-start font-tajawal bg-white">
-          <div className="flex justify-between items-start mb-4">
+          <div className="mb-4">
             <h2 className="font-bold text-[20px] md:text-[22px] text-on-surface leading-snug">
               {product.name}
             </h2>
-            <button
-              onClick={onClose}
-              className="p-1.5 rounded-full text-on-surface-variant/50 hover:bg-surface-container-low hover:text-on-surface transition-colors cursor-pointer shrink-0"
-              aria-label="إغلاق النافذة"
-            >
-              <span className="material-symbols-outlined text-[24px] select-none">close</span>
-            </button>
           </div>
  
           <div className="flex flex-wrap items-center gap-3 mb-5 text-sm">

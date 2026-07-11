@@ -49,6 +49,11 @@ const nextConfig: NextConfig = {
       hostname: 'placehold.co',
       pathname: '/**',
     },
+    {
+      protocol: 'https' as const,
+      hostname: 'images.unsplash.com',
+      pathname: '/**',
+    },
     ...(isDev
         ? [
             {
