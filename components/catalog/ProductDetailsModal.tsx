@@ -127,28 +127,20 @@ export const ProductDetailsModal = memo(function ProductDetailsModal({ product, 
                 onPointerUp={handlePointerUp}
                 className="relative w-full h-full group touch-pan-y cursor-grab active:cursor-grabbing select-none"
               >
-                <div className="relative w-full h-full overflow-hidden">
-                  {images.map((imgUrl, index) => (
-                    <div
-                      key={imgUrl}
-                      className={`absolute inset-0 transition-opacity duration-300 ease-in-out ${
-                        index === currentImageIndex ? 'opacity-100 z-10' : 'opacity-0 z-0 pointer-events-none'
-                      }`}
-                    >
-                      <Image
-                        src={imgUrl}
-                        alt={`${product.name} - ${index + 1}`}
-                        fill
-                        className="object-contain pointer-events-none select-none"
-                        sizes="(max-width: 768px) 100vw, 40vw"
-                        quality={85}
-                        priority={index === 0}
-                        draggable={false}
-                        unoptimized
-                      />
-                    </div>
-                  ))}
-                </div>
+                  <div className="relative w-full h-full overflow-hidden">
+                    <Image
+                      key={images[currentImageIndex]}
+                      src={images[currentImageIndex]}
+                      alt={`${product.name} - ${currentImageIndex + 1}`}
+                      fill
+                      className="object-contain select-none"
+                      sizes="(max-width: 768px) 100vw, 40vw"
+                      quality={85}
+                      priority
+                      draggable={false}
+                      unoptimized
+                    />
+                  </div>
 
                 {/* Navigation Arrows */}
                 <button
@@ -176,7 +168,7 @@ export const ProductDetailsModal = memo(function ProductDetailsModal({ product, 
                   src={product.image_url}
                   alt={product.name}
                   fill
-                  className="object-contain pointer-events-none select-none"
+                  className="object-contain select-none"
                   sizes="(max-width: 768px) 100vw, 40vw"
                   quality={85}
                   priority
