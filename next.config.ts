@@ -44,18 +44,18 @@ const nextConfig: NextConfig = {
         hostname: supabaseHost,
         pathname: '/storage/v1/object/public/**',
       },
-      {
-      protocol: 'https' as const,
-      hostname: 'placehold.co',
-      pathname: '/**',
-    },
-    {
-      protocol: 'https' as const,
-      hostname: 'images.unsplash.com',
-      pathname: '/**',
-    },
     ...(isDev
         ? [
+            {
+              protocol: 'https' as const,
+              hostname: 'placehold.co',
+              pathname: '/**',
+            },
+            {
+              protocol: 'https' as const,
+              hostname: 'images.unsplash.com',
+              pathname: '/**',
+            },
             {
               protocol: 'http' as const,
               hostname: 'localhost',

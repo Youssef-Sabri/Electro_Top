@@ -26,14 +26,15 @@ function buildCsp(nonce: string, supabaseHost: string): string {
   const evalSrc = isDev ? " 'unsafe-eval'" : ""
  
   const scriptSrc = `script-src 'self' 'nonce-${nonce}'${evalSrc}`
- 
+  const devImgSrc = isDev ? " https://images.unsplash.com https://placehold.co" : ""
+
   return [
     `default-src 'self'`,
     scriptSrc,
     `worker-src 'self' blob:`,
     `style-src 'self' 'unsafe-inline' https://fonts.googleapis.com`,
     `font-src 'self' https://fonts.gstatic.com`,
-    `img-src 'self' data: blob: https://${supabaseHost}`,
+    `img-src 'self' data: blob: https://${supabaseHost}${devImgSrc}`,
     `connect-src 'self' https://${supabaseHost} wss://${supabaseHost}`,
     `frame-src 'none'`,
     `object-src 'none'`,
