@@ -157,7 +157,6 @@ export default function AdminClientLayout({ children, initialAuthState }: AdminC
 
   const isOrdersActive = pathname?.startsWith('/admin/orders');
 
-  // Email/Password gate view if not authenticated
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen bg-on-background flex items-center justify-center p-4 font-tajawal text-white">
@@ -272,7 +271,6 @@ export default function AdminClientLayout({ children, initialAuthState }: AdminC
     );
   }
 
-  // Render full dashboard layout if authenticated
   return (
     <div className="min-h-screen bg-surface flex flex-col xl:flex-row font-tajawal text-on-surface overflow-x-hidden max-w-full">
       {/* Mobile Top Header */}
