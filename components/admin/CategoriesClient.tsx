@@ -1,7 +1,10 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { PaginationControls } from '@/components/ui/PaginationControls';
+import { useCategoryHierarchy } from '@/hooks/useCategoryHierarchy';
+import { ConfirmationModal } from '@/components/ui/ConfirmationModal';
+import { Toast } from '@/components/ui/Toast';
 
 interface CategoryHierarchyItem {
   name: string;
@@ -10,42 +13,56 @@ interface CategoryHierarchyItem {
 }
 
 export function CategoriesClient() {
-  const [hierarchy, setHierarchy] = useState<CategoryHierarchyItem[]>([]);
+  const { hierarchy, refresh: refreshHierarchy } = useCategoryHierarchy();
+
   const [searchQuery, setSearchQuery] = useState('');
   const [newMainCatName, setNewMainCatName] = useState('');
   const [newSubCatNames, setNewSubCatNames] = useState<Record<string, string>>({});
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
-  // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 6;
 
-  const showToast = (msg: string) => {
-    setToastMessage(msg);
-    setTimeout(() => setToastMessage(null), 3000);
-  };
+  const [confirmModal, setConfirmModal] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    confirmLabel?: string;
+    cancelLabel?: string;
+    isDestructive?: boolean;
+    onConfirm: () => void;
+  }>({
+    isOpen: false,
+    title: '',
+    message: '',
+    onConfirm: () => {},
+  });
+
+  const [renameModal, setRenameModal] = useState<{
+    isOpen: boolean;
+    oldName: string;
+    newName: string;
+    type: 'main' | 'sub';
+    parentName?: string;
+  }>({
+    isOpen: false,
+    oldName: '',
+    newName: '',
+    type: 'main',
+  });
+  const renameInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    let active = true;
-    async function load() {
-      try {
-        const res = await fetch('/api/category-hierarchy');
-        if (res.ok) {
-          const data = await res.json();
-          if (active) setHierarchy(data);
-        }
-      } catch (e) {
-        console.error('Failed to load category hierarchy:', e);
-      }
+    if (renameModal.isOpen && renameInputRef.current) {
+      renameInputRef.current.focus();
+      renameInputRef.current.select();
     }
-    load();
-    return () => {
-      active = false;
-    };
-  }, []);
+  }, [renameModal.isOpen]);
 
-
+  const showToast = (msg: string) => {
+    setToastMessage(msg);
+  };
 
   const saveHierarchy = async (updated: CategoryHierarchyItem[], successMsg: string) => {
     try {
@@ -55,14 +72,73 @@ export function CategoriesClient() {
         body: JSON.stringify(updated),
       });
       if (!res.ok) throw new Error('Save failed');
-      setHierarchy(updated);
+      await refreshHierarchy();
       showToast(successMsg);
     } catch {
-      showToast('فشل حفظ هيكل الأقسام.');
+      showToast('فشل حفظ هيكل الأقسام. يرجى المحاولة مرة أخرى.');
+      refreshHierarchy();
     }
   };
 
-  const handleAddMainCategory = async (e: React.FormEvent) => {
+  const handleRenameSubmit = () => {
+    const { oldName, newName, type, parentName } = renameModal;
+    const trimmed = newName.trim();
+    if (!trimmed || trimmed === oldName) {
+      setRenameModal(prev => ({ ...prev, isOpen: false }));
+      return;
+    }
+
+    if (type === 'main') {
+      if (hierarchy.some(g => g.name === trimmed && g.name !== oldName)) {
+        showToast(`القسم الرئيسي "${trimmed}" موجود بالفعل.`);
+        return;
+      }
+      setConfirmModal({
+        isOpen: true,
+        title: 'تعديل اسم القسم الرئيسي',
+        message: `هل أنت متأكد من تغيير اسم القسم من "${oldName}" إلى "${trimmed}"؟ سيتم تحديث جميع المنتجات المرتبطة.`,
+        confirmLabel: 'نعم، عدّل الاسم',
+        cancelLabel: 'إلغاء',
+        onConfirm: async () => {
+          setConfirmModal(prev => ({ ...prev, isOpen: false }));
+          setRenameModal(prev => ({ ...prev, isOpen: false }));
+          const updated = hierarchy.map(g => {
+            if (g.name === oldName) return { ...g, name: trimmed };
+            return g;
+          });
+          await saveHierarchy(updated, `تم تغيير اسم القسم من "${oldName}" إلى "${trimmed}".`);
+        },
+      });
+    } else {
+      const existsElsewhere = hierarchy.some(g =>
+        g.name === trimmed || (g.name !== parentName && g.subcategories.includes(trimmed))
+      );
+      if (existsElsewhere) {
+        showToast(`الفئة "${trimmed}" موجودة بالفعل كقسم رئيسي أو فئة فرعية.`);
+        return;
+      }
+      setConfirmModal({
+        isOpen: true,
+        title: 'تعديل اسم الفئة الفرعية',
+        message: `هل أنت متأكد من تغيير اسم الفئة من "${oldName}" إلى "${trimmed}"؟ سيتم تحديث جميع المنتجات المرتبطة.`,
+        confirmLabel: 'نعم، عدّل الاسم',
+        cancelLabel: 'إلغاء',
+        onConfirm: async () => {
+          setConfirmModal(prev => ({ ...prev, isOpen: false }));
+          setRenameModal(prev => ({ ...prev, isOpen: false }));
+          const updated = hierarchy.map(g => {
+            if (g.name === parentName) {
+              return { ...g, subcategories: g.subcategories.map(s => s === oldName ? trimmed : s) };
+            }
+            return g;
+          });
+          await saveHierarchy(updated, `تم تغيير اسم الفئة من "${oldName}" إلى "${trimmed}".`);
+        },
+      });
+    }
+  };
+
+  const handleAddMainCategory = (e: React.FormEvent) => {
     e.preventDefault();
     const name = newMainCatName.trim();
     if (!name) return;
@@ -70,49 +146,87 @@ export function CategoriesClient() {
       showToast(`القسم الرئيسي "${name}" موجود بالفعل.`);
       return;
     }
-    const updated = [...hierarchy, { name, subcategories: [] }];
-    await saveHierarchy(updated, `تم إنشاء القسم الرئيسي "${name}" بنجاح.`);
-    setNewMainCatName('');
+    setConfirmModal({
+      isOpen: true,
+      title: 'إضافة قسم رئيسي',
+      message: `هل أنت متأكد من إضافة القسم الرئيسي "${name}"؟`,
+      confirmLabel: 'نعم، أضف القسم',
+      cancelLabel: 'إلغاء',
+      onConfirm: async () => {
+        setConfirmModal(prev => ({ ...prev, isOpen: false }));
+        const updated = [...hierarchy, { name, subcategories: [] }];
+        await saveHierarchy(updated, `تم إنشاء القسم الرئيسي "${name}" بنجاح.`);
+        setNewMainCatName('');
+      },
+    });
   };
 
-  const handleDeleteMainCategory = async (name: string) => {
-    if (!window.confirm(`هل أنت متأكد من حذف القسم الرئيسي "${name}"؟ سيتم فك ارتباط الفئات الفرعية التابعة له.`)) return;
-    const updated = hierarchy.filter(g => g.name !== name);
-    await saveHierarchy(updated, `تم حذف القسم الرئيسي "${name}" بنجاح.`);
+  const handleDeleteMainCategory = (name: string) => {
+    setConfirmModal({
+      isOpen: true,
+      title: 'حذف القسم الرئيسي',
+      message: `هل أنت متأكد من حذف القسم الرئيسي "${name}"؟ سيتم فك ارتباط الفئات الفرعية التابعة له.`,
+      confirmLabel: 'نعم، احذف القسم',
+      cancelLabel: 'إلغاء',
+      isDestructive: true,
+      onConfirm: async () => {
+        setConfirmModal(prev => ({ ...prev, isOpen: false }));
+        const updated = hierarchy.filter(g => g.name !== name);
+        await saveHierarchy(updated, `تم حذف القسم الرئيسي "${name}" بنجاح.`);
+      },
+    });
   };
 
-  const handleAddSubcategory = async (e: React.FormEvent, parentName: string) => {
+  const handleAddSubcategory = (e: React.FormEvent, parentName: string) => {
     e.preventDefault();
     const subName = (newSubCatNames[parentName] || '').trim();
     if (!subName) return;
 
-    // Check if subcategory already exists anywhere
     const exists = hierarchy.some(g => g.name === subName || g.subcategories.includes(subName));
     if (exists) {
       showToast(`الفئة "${subName}" موجودة بالفعل كقسم رئيسي أو فئة فرعية.`);
       return;
     }
 
-    const updated = hierarchy.map(g => {
-      if (g.name === parentName) {
-        return { ...g, subcategories: [...g.subcategories, subName] };
-      }
-      return g;
+    setConfirmModal({
+      isOpen: true,
+      title: 'إضافة فئة فرعية',
+      message: `هل أنت متأكد من إضافة الفئة الفرعية "${subName}" إلى "${parentName}"؟`,
+      confirmLabel: 'نعم، أضف الفئة',
+      cancelLabel: 'إلغاء',
+      onConfirm: async () => {
+        setConfirmModal(prev => ({ ...prev, isOpen: false }));
+        const updated = hierarchy.map(g => {
+          if (g.name === parentName) {
+            return { ...g, subcategories: [...g.subcategories, subName] };
+          }
+          return g;
+        });
+        await saveHierarchy(updated, `تمت إضافة الفئة الفرعية "${subName}" إلى "${parentName}".`);
+        setNewSubCatNames(prev => ({ ...prev, [parentName]: '' }));
+      },
     });
-
-    await saveHierarchy(updated, `تمت إضافة الفئة الفرعية "${subName}" إلى "${parentName}".`);
-    setNewSubCatNames(prev => ({ ...prev, [parentName]: '' }));
   };
 
-  const handleDeleteSubcategory = async (subName: string, parentName: string) => {
-    if (!window.confirm(`هل أنت متأكد من حذف الفئة الفرعية "${subName}"؟`)) return;
-    const updated = hierarchy.map(g => {
-      if (g.name === parentName) {
-        return { ...g, subcategories: g.subcategories.filter(s => s !== subName) };
-      }
-      return g;
+  const handleDeleteSubcategory = (subName: string, parentName: string) => {
+    setConfirmModal({
+      isOpen: true,
+      title: 'حذف الفئة الفرعية',
+      message: `هل أنت متأكد من حذف الفئة الفرعية "${subName}" من "${parentName}"؟`,
+      confirmLabel: 'نعم، احذف الفئة',
+      cancelLabel: 'إلغاء',
+      isDestructive: true,
+      onConfirm: async () => {
+        setConfirmModal(prev => ({ ...prev, isOpen: false }));
+        const updated = hierarchy.map(g => {
+          if (g.name === parentName) {
+            return { ...g, subcategories: g.subcategories.filter(s => s !== subName) };
+          }
+          return g;
+        });
+        await saveHierarchy(updated, `تم حذف الفئة الفرعية "${subName}" بنجاح.`);
+      },
     });
-    await saveHierarchy(updated, `تم حذف الفئة الفرعية "${subName}" بنجاح.`);
   };
 
   const toggleGroup = (name: string) => {
@@ -136,7 +250,6 @@ export function CategoriesClient() {
     );
   }, [hierarchy, searchQuery]);
 
-  // Paginated hierarchy items
   const totalPages = Math.ceil(filteredHierarchy.length / itemsPerPage);
   const paginatedHierarchy = useMemo(() => {
     const start = (currentPage - 1) * itemsPerPage;
@@ -145,13 +258,9 @@ export function CategoriesClient() {
 
   return (
     <div className="space-y-6 font-tajawal">
-      
-      {/* Toast Alert */}
+
       {toastMessage && (
-        <div className="fixed bottom-5 right-5 z-50 bg-on-background border border-primary/20 text-on-primary px-5 py-3 rounded-xl shadow-2xl flex items-center gap-2 animate-[fadeInUp_0.2s_ease-out] text-xs font-bold font-sans">
-          <span className="material-symbols-outlined text-primary text-base">info</span>
-          {toastMessage}
-        </div>
+        <Toast message={toastMessage} onClose={() => setToastMessage(null)} duration={3000} />
       )}
 
       {/* Header */}
@@ -164,7 +273,7 @@ export function CategoriesClient() {
 
       {/* Main Grid Layout */}
       <div className="grid grid-cols-1 xl:grid-cols-4 gap-6 items-start">
-        
+
         {/* Creation Sidebar */}
         <div className="xl:col-span-1 space-y-6">
           <form onSubmit={handleAddMainCategory} className="space-y-4 p-5 bg-white border border-outline-variant/40 rounded-2xl shadow-sm text-start">
@@ -199,7 +308,6 @@ export function CategoriesClient() {
               <p className="text-xs font-extrabold text-on-surface-variant uppercase tracking-wider select-none">هيكل الأقسام الحالي</p>
               <span className="text-[11px] text-on-surface-variant font-bold mt-1 block">({filteredHierarchy.length} أقسام رئيسية)</span>
             </div>
-            {/* Search Categories */}
             <div className="relative w-full sm:max-w-xs">
               <input
                 type="text"
@@ -244,6 +352,14 @@ export function CategoriesClient() {
                       <div className="flex items-center gap-1.5" onClick={e => e.stopPropagation()}>
                         <button
                           type="button"
+                          onClick={() => setRenameModal({ isOpen: true, oldName: group.name, newName: group.name, type: 'main' })}
+                          className="w-8 h-8 flex items-center justify-center rounded-lg text-on-surface-variant/40 hover:bg-secondary/10 hover:text-secondary transition-all cursor-pointer border-0 bg-transparent p-0"
+                          title={`تعديل اسم القسم "${group.name}"`}
+                        >
+                          <span className="material-symbols-outlined text-[17px]">edit</span>
+                        </button>
+                        <button
+                          type="button"
                           onClick={() => handleDeleteMainCategory(group.name)}
                           className="w-8 h-8 flex items-center justify-center rounded-lg text-on-surface-variant/40 hover:bg-error/10 hover:text-error transition-all cursor-pointer border-0 bg-transparent p-0"
                           title={`حذف القسم الرئيسي "${group.name}"`}
@@ -265,15 +381,22 @@ export function CategoriesClient() {
                     {/* Expanded Body */}
                     {isExpanded && (
                       <div className="px-5 pb-5 pt-3 bg-white border-t border-outline-variant/20 space-y-4 text-start">
-                        {/* Subcategories list */}
                         <div className="flex flex-wrap gap-2 pt-2">
                           {subCount > 0 ? (
                             group.subcategories.map((sub: string) => (
                               <div
                                 key={sub}
-                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-bold bg-surface-container-low text-on-surface border border-outline-variant hover:border-primary/30 transition-colors shadow-sm"
+                                className="flex items-center gap-1 px-3 py-1.5 rounded-full text-[10px] font-bold bg-surface-container-low text-on-surface border border-outline-variant hover:border-primary/30 transition-colors shadow-sm"
                               >
                                 <span>{sub}</span>
+                                <button
+                                  type="button"
+                                  onClick={() => setRenameModal({ isOpen: true, oldName: sub, newName: sub, type: 'sub', parentName: group.name })}
+                                  className="text-on-surface-variant/40 hover:text-secondary transition-colors cursor-pointer flex items-center border-0 bg-transparent p-0"
+                                  title={`تعديل اسم الفئة "${sub}"`}
+                                >
+                                  <span className="material-symbols-outlined text-[11px]">edit</span>
+                                </button>
                                 <button
                                   type="button"
                                   onClick={() => handleDeleteSubcategory(sub, group.name)}
@@ -289,7 +412,6 @@ export function CategoriesClient() {
                           )}
                         </div>
 
-                        {/* Add Subcategory Form */}
                         <form
                           onSubmit={(e) => handleAddSubcategory(e, group.name)}
                           className="flex gap-2 pt-4 border-t border-outline-variant/20 max-w-md text-start"
@@ -324,7 +446,6 @@ export function CategoriesClient() {
             )}
           </div>
 
-          {/* Pagination Controls */}
           <PaginationControls
             currentPage={currentPage}
             totalPages={totalPages}
@@ -334,6 +455,62 @@ export function CategoriesClient() {
 
       </div>
 
+      <ConfirmationModal
+        isOpen={confirmModal.isOpen}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        confirmLabel={confirmModal.confirmLabel}
+        cancelLabel={confirmModal.cancelLabel || 'إلغاء'}
+        isDestructive={confirmModal.isDestructive}
+        onConfirm={confirmModal.onConfirm}
+        onCancel={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
+      />
+
+      {/* Rename Modal */}
+      {renameModal.isOpen && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="bg-white border border-outline-variant/20 w-full max-w-md rounded-xl shadow-2xl overflow-hidden animate-[modalAppear_0.25s_ease-out]">
+            <div className="bg-on-background text-white p-5 flex justify-between items-center">
+              <h3 className="font-headline-sm text-headline-sm font-bold">
+                {renameModal.type === 'main' ? 'تعديل اسم القسم الرئيسي' : 'تعديل اسم الفئة الفرعية'}
+              </h3>
+              <button
+                onClick={() => setRenameModal(prev => ({ ...prev, isOpen: false }))}
+                className="text-white/70 hover:text-white transition-colors cursor-pointer flex items-center"
+              >
+                <span className="material-symbols-outlined text-[22px]">close</span>
+              </button>
+            </div>
+            <div className="p-6 space-y-4">
+              <div className="space-y-1.5 text-start">
+                <label className="text-[10px] font-bold text-on-surface-variant">الاسم الجديد</label>
+                <input
+                  ref={renameInputRef}
+                  type="text"
+                  value={renameModal.newName}
+                  onChange={(e) => setRenameModal(prev => ({ ...prev, newName: e.target.value }))}
+                  onKeyDown={(e) => { if (e.key === 'Enter') handleRenameSubmit(); }}
+                  className="w-full bg-surface-container-lowest border border-outline-variant rounded-xl px-3.5 py-2.5 text-xs font-bold focus:ring-2 focus:ring-primary/10 focus:border-primary outline-none transition-all text-on-surface text-right"
+                />
+              </div>
+            </div>
+            <div className="bg-surface-container-low p-4 flex gap-3 justify-end border-t border-outline-variant/20">
+              <button
+                onClick={() => setRenameModal(prev => ({ ...prev, isOpen: false }))}
+                className="px-5 py-2.5 rounded-lg border border-outline-variant text-on-surface-variant font-label-md text-sm hover:bg-surface-container-low transition-colors cursor-pointer"
+              >
+                إلغاء
+              </button>
+              <button
+                onClick={handleRenameSubmit}
+                className="px-6 py-2.5 rounded-lg bg-primary text-on-primary font-label-md text-sm hover:opacity-90 active:scale-[0.98] transition-all cursor-pointer font-bold"
+              >
+                حفظ التغييرات
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

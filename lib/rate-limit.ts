@@ -2,7 +2,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
 import { devLog } from '@/lib/dev-log'
 
-export interface RateLimitConfig {
+interface RateLimitConfig {
   table: string;
   countColumn: string;
   lastColumn: string;
@@ -11,7 +11,7 @@ export interface RateLimitConfig {
   windowMs: number;
 }
 
-export interface RateLimitResult {
+interface RateLimitResult {
   blocked: boolean;
   cooldown?: number;
   limit: number;

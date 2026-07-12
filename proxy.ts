@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { createSupabaseServerClient } from '@/lib/supabase-server'
 import { getSupabaseHostname } from '@/lib/supabase-url'
 import { validateRequestOrigin } from '@/lib/csrf'
+import { isAdminRole } from '@/lib/api-auth'
  
 function getExpectedHost(): string | null {
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL
@@ -131,7 +132,7 @@ export async function proxy(request: NextRequest) {
  
     const { data: { user }, error } = await supabase.auth.getUser()
  
-    if (error || !user || user.app_metadata?.role !== 'admin') {
+    if (error || !user || !isAdminRole(user.app_metadata?.role)) {
       if (pathname.startsWith('/api/admin/')) {
         const errResp = NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         response.cookies.getAll().forEach((c) => errResp.cookies.set(c))

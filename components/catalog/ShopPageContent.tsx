@@ -4,9 +4,10 @@ import { memo, useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import dynamic from 'next/dynamic';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useProducts } from '@/hooks/useProducts';
+import { useCategoryHierarchy } from '@/hooks/useCategoryHierarchy';
 import { usePagination } from '@/hooks/usePagination';
 import { ProductCard } from '@/components/catalog/ProductCard';
-import type { Product, CategoryGroup } from '@/types';
+import type { Product } from '@/types';
 import { CustomDropdown } from '@/components/ui/CustomDropdown';
 
 const ProductDetailsModal = dynamic(
@@ -24,6 +25,7 @@ interface ShopPageContentProps {
 
 export const ShopPageContent = memo(function ShopPageContent({ initialProducts, initialCategories }: ShopPageContentProps) {
   const { products: contextProducts, initializeData, isLoaded } = useProducts();
+  const { hierarchy: categoryHierarchy } = useCategoryHierarchy();
   const searchParams = useSearchParams();
   const router = useRouter();
   const isInitialSync = useRef(false);
@@ -43,23 +45,7 @@ export const ShopPageContent = memo(function ShopPageContent({ initialProducts, 
   const [hideOutOfStock, setHideOutOfStock] = useState(() => searchParams.get('hideOut') === 'true');
   const [sortBy, setSortBy] = useState<SortByType>(() => (searchParams.get('sort') as SortByType) || 'name-asc');
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-  const [categoryHierarchy, setCategoryHierarchy] = useState<CategoryGroup[]>([]);
   const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false);
-
-  useEffect(() => {
-    async function loadHierarchy() {
-      try {
-        const res = await fetch('/api/category-hierarchy');
-        if (res.ok) {
-          const data = await res.json();
-          setCategoryHierarchy(data);
-        }
-      } catch (err) {
-        console.error('Failed to load category hierarchy:', err);
-      }
-    }
-    loadHierarchy();
-  }, []);
 
   // Sync selection states when main category category state changes
   useEffect(() => {

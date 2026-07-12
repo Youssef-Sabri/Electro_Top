@@ -4,6 +4,7 @@ import { memo, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useProducts } from '@/hooks/useProducts';
+import { useCategoryHierarchy } from '@/hooks/useCategoryHierarchy';
 import type { Product } from '@/types';
 
 interface CategorySlideshowCardProps {
@@ -12,7 +13,7 @@ interface CategorySlideshowCardProps {
   productCount: number;
 }
 
-export function CategorySlideshowCard({ category, products, productCount }: CategorySlideshowCardProps) {
+function CategorySlideshowCard({ category, products, productCount }: CategorySlideshowCardProps) {
   const [shuffledImages, setShuffledImages] = useState<string[]>([]);
 
   const rawImages = useMemo(() => {
@@ -104,23 +105,13 @@ interface LandingPageProps {
 
 export const LandingPage = memo(function LandingPage({ initialCategories = [], initialProducts = [] }: LandingPageProps) {
   const { categories: contextCategories, products, initializeData, isLoaded } = useProducts();
+  const { hierarchy } = useCategoryHierarchy();
 
   useEffect(() => {
     if (!isLoaded && initialProducts.length > 0) {
       initializeData(initialProducts, initialCategories);
     }
   }, [isLoaded, initialProducts, initialCategories, initializeData]);
-
-  const [hierarchy, setHierarchy] = useState<{ name: string; subcategories: string[] }[]>([]);
-
-  useEffect(() => {
-    fetch('/api/category-hierarchy')
-      .then((res) => res.json())
-      .then((data) => {
-        if (Array.isArray(data)) setHierarchy(data);
-      })
-      .catch((err) => console.error('Failed to load category hierarchy on landing page:', err));
-  }, []);
 
   const categories = contextCategories.length > 0 ? contextCategories : initialCategories;
 

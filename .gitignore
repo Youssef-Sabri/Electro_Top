@@ -40,15 +40,12 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-supabase_setup_script_organizer.html
+supabase_setup.html
 # IDEs and editors
 .vscode/
 .idea/
 
 # cache
 .eslintcache
-/ProjectMD-files
-elsewedy_products.csv
-himel_siemens_products.csv
 /public/images/
 

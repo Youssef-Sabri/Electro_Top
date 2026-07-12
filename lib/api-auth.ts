@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server'
 import type { SupabaseClient } from '@supabase/supabase-js'
 
-const ADMIN_ROLE = 'admin' as const
+export const ADMIN_ROLE = 'admin' as const
 
-function isAdminRole(role: unknown): role is typeof ADMIN_ROLE {
+export function isAdminRole(role: unknown): role is typeof ADMIN_ROLE {
   return role === ADMIN_ROLE
 }
 

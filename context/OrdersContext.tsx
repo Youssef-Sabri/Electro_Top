@@ -13,7 +13,7 @@ function isValidOrderStatus(value: string): value is OrderStatus {
   return (VALID_ORDER_STATUSES as readonly string[]).includes(value);
 }
 
-export interface OrderFilters {
+interface OrderFilters {
   searchQuery: string;
   status: string;
 }

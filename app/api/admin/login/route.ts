@@ -6,6 +6,7 @@ import { getClientIp } from '@/lib/ip-utils'
 import { checkAndIncrementRateLimit, setRateLimitHeaders } from '@/lib/rate-limit'
 import { RATE_LIMIT_CONFIGS } from '@/lib/db-constants'
 import { parseJsonBody } from '@/lib/parse-json'
+import { isAdminRole } from '@/lib/api-auth'
 
 export async function GET(request: NextRequest) {
   const ip = getClientIp(request);
@@ -73,7 +74,7 @@ export async function POST(request: NextRequest) {
   }
 
   // Verify the authenticated user has the admin role in their app_metadata
-  if (user.app_metadata?.role !== 'admin') {
+  if (!isAdminRole(user.app_metadata?.role)) {
     await supabaseClientWithCookies.auth.signOut({ scope: 'local' });
     return NextResponse.json({
       error: 'فشل تسجيل الدخول. تحقق من البريد الإلكتروني وكلمة المرور.',

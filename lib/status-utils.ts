@@ -19,7 +19,7 @@ const HISTORY_LABELS: Record<OrderStatus, string> = {
   'Check Internal Note': 'قيد الفحص الداخلي',
 }
 
-export type StatusFilterValue = 'All' | OrderStatus;
+type StatusFilterValue = 'All' | OrderStatus;
 
 export const STATUS_OPTIONS: { value: StatusFilterValue; label: string }[] = [
   { value: 'All', label: 'الكل' },

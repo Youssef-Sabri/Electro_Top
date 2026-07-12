@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useCart } from '@/hooks/useCart';
 import { supabase } from '@/lib/supabase';
+import { isAdminRole } from '@/lib/api-auth';
 
 export const Navbar = memo(function Navbar() {
   const { itemCount } = useCart();
@@ -34,7 +35,7 @@ export const Navbar = memo(function Navbar() {
       try {
         if (session) {
           const { data: { user } } = await supabase.auth.getUser();
-          setIsAdmin(user?.app_metadata?.role === 'admin');
+          setIsAdmin(isAdminRole(user?.app_metadata?.role));
         } else {
           setIsAdmin(false);
         }

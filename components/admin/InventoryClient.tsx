@@ -3,6 +3,7 @@
 import { memo, useState, useMemo, useEffect, useDeferredValue } from 'react';
 import Image from 'next/image';
 import { useProducts } from '@/hooks/useProducts';
+import { useCategoryHierarchy } from '@/hooks/useCategoryHierarchy';
 import { usePagination } from '@/hooks/usePagination';
 import { formatCurrency } from '@/lib/format-currency';
 import { todayStamp } from '@/lib/date-utils';
@@ -20,6 +21,7 @@ import { ALL_COLORS } from '@/lib/color-palette';
 export const InventoryClient = memo(function InventoryClient() {
 
   const { products, addProduct, updateProduct, deleteProduct, clearAllProducts } = useProducts();
+  const { hierarchy } = useCategoryHierarchy();
 
   const [searchQuery, setSearchQuery] = useState('');
   const deferredSearchQuery = useDeferredValue(searchQuery);
@@ -82,33 +84,7 @@ export const InventoryClient = memo(function InventoryClient() {
     setToastMessage(msg);
   };
 
-  interface CategoryHierarchyItem {
-    name: string;
-    icon?: string;
-    subcategories: string[];
-  }
-
-  const [hierarchy, setHierarchy] = useState<CategoryHierarchyItem[]>([]);
   const [selectedMainCategory, setSelectedMainCategory] = useState('');
-
-  useEffect(() => {
-    let active = true;
-    async function load() {
-      try {
-        const res = await fetch('/api/category-hierarchy');
-        if (res.ok) {
-          const data = await res.json();
-          if (active) setHierarchy(data);
-        }
-      } catch (e) {
-        console.error('Failed to load category hierarchy:', e);
-      }
-    }
-    load();
-    return () => {
-      active = false;
-    };
-  }, []);
 
 
 
@@ -1078,7 +1054,7 @@ export const InventoryClient = memo(function InventoryClient() {
                     value={selectedMainCategory}
                     onChange={(val) => {
                       setSelectedMainCategory(val);
-                      setFormData(prev => ({ ...prev, category: '' }));
+                      setFormData(prev => ({ ...prev, category: val }));
                       if (formErrors.category) {
                         setFormErrors(prev => ({ ...prev, category: undefined }));
                       }
