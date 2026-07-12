@@ -13,39 +13,42 @@ interface CategorySlideshowCardProps {
 }
 
 export function CategorySlideshowCard({ category, products, productCount }: CategorySlideshowCardProps) {
-  const images = useMemo(() => {
+  const [shuffledImages, setShuffledImages] = useState<string[]>([]);
+
+  const rawImages = useMemo(() => {
     const urls = products
-      .map((p) => {
-        if (!p.image_url) return null;
-        if (p.image_url.includes('placehold.co')) {
-          return `${p.image_url}?text=${encodeURIComponent(p.name)}`;
-        }
-        return p.image_url;
-      })
+      .map((p) => p.image_url)
       .filter((url): url is string => !!url);
     return Array.from(new Set(urls));
   }, [products]);
 
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [prevImages, setPrevImages] = useState<string[]>(images);
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShuffledImages([...rawImages].sort(() => Math.random() - 0.5));
+    }, 0);
+    return () => clearTimeout(timer);
+  }, [rawImages]);
 
-  if (prevImages !== images) {
-    const boundedIndex = images.length > 0 ? Math.min(currentIndex, images.length - 1) : 0;
-    setPrevImages(images);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [prevImages, setPrevImages] = useState<string[]>(shuffledImages);
+
+  if (prevImages !== shuffledImages) {
+    const boundedIndex = shuffledImages.length > 0 ? Math.min(currentIndex, shuffledImages.length - 1) : 0;
+    setPrevImages(shuffledImages);
     setCurrentIndex(boundedIndex);
   }
 
   useEffect(() => {
-    if (images.length <= 1) return;
+    if (shuffledImages.length <= 1) return;
 
     const interval = setInterval(() => {
-      setCurrentIndex((prev) => (prev + 1) % images.length);
+      setCurrentIndex((prev) => (prev + 1) % shuffledImages.length);
     }, 3000);
 
     return () => clearInterval(interval);
-  }, [images]);
+  }, [shuffledImages]);
 
-  const currentImg = images[currentIndex];
+  const currentImg = shuffledImages[currentIndex];
 
   return (
     <Link
@@ -86,7 +89,7 @@ export function CategorySlideshowCard({ category, products, productCount }: Cate
         <p className="text-white/70 text-xs mt-2 leading-relaxed">
           استكشف مجموعتنا الممتازة من {category}.
         </p>
-        <span className="mt-4 text-[#C6B254] text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 group-hover:gap-2.5 transition-all duration-300 justify-start">
+        <span className="mt-4 text-electro-gold text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 group-hover:gap-2.5 transition-all duration-300 justify-start">
           تصفح المجموعة <span className="material-symbols-outlined text-xs rotate-180">arrow_forward</span>
         </span>
       </div>
@@ -108,32 +111,62 @@ export const LandingPage = memo(function LandingPage({ initialCategories = [], i
     }
   }, [isLoaded, initialProducts, initialCategories, initializeData]);
 
+  const [hierarchy, setHierarchy] = useState<{ name: string; subcategories: string[] }[]>([]);
+
+  useEffect(() => {
+    fetch('/api/admin/category-hierarchy')
+      .then((res) => res.json())
+      .then((data) => {
+        if (Array.isArray(data)) setHierarchy(data);
+      })
+      .catch((err) => console.error('Failed to load category hierarchy on landing page:', err));
+  }, []);
+
   const categories = contextCategories.length > 0 ? contextCategories : initialCategories;
 
   const activeCategories = useMemo(() => {
-    return (categories || [])
+    const list = (categories || [])
       .filter((cat) => cat.toLowerCase() !== 'all' && cat.toLowerCase() !== 'all categories');
-  }, [categories]);
+    
+    if (hierarchy.length > 0) {
+      const mainCatNames = hierarchy.map(h => h.name);
+      const filtered = list.filter(cat => mainCatNames.includes(cat));
+      if (filtered.length > 0) return filtered;
+    }
+    return list;
+  }, [categories, hierarchy]);
 
   const activeProds = products.length > 0 ? products : initialProducts;
 
   const categoryProducts = useMemo(() => {
     const mapping: Record<string, Product[]> = {};
     activeCategories.forEach((category) => {
+      const group = hierarchy.find(h => h.name === category);
+      const targetCategories = group 
+        ? [category, ...group.subcategories] 
+        : [category];
+
       mapping[category] = activeProds.filter(
-        (p) => p.category === category && p.is_active
+        (p) => p.category && targetCategories.includes(p.category) && p.is_active
       );
     });
     return mapping;
-  }, [activeCategories, activeProds]);
+  }, [activeCategories, activeProds, hierarchy]);
 
   const categoryCounts = useMemo(() => {
     const counts: Record<string, number> = {};
     activeCategories.forEach((category) => {
-      counts[category] = activeProds.filter((p) => p.category === category && p.is_active).length;
+      const group = hierarchy.find(h => h.name === category);
+      const targetCategories = group 
+        ? [category, ...group.subcategories] 
+        : [category];
+
+      counts[category] = activeProds.filter(
+        (p) => p.category && targetCategories.includes(p.category) && p.is_active
+      ).length;
     });
     return counts;
-  }, [activeCategories, activeProds]);
+  }, [activeCategories, activeProds, hierarchy]);
 
   const [shiftOffset, setShiftOffset] = useState(0);
   const [fadeCategories, setFadeCategories] = useState(true);
@@ -174,14 +207,13 @@ export const LandingPage = memo(function LandingPage({ initialCategories = [], i
       {/* Sleek Hero Section */}
       <section className="relative bg-on-background py-28 md:py-36 overflow-hidden hero-clip">
         {/* Glow Effects */}
-        <div className="absolute top-[-20%] right-[-10%] w-[500px] h-[500px] rounded-full bg-[#CA202B]/10 blur-3xl pointer-events-none" />
-        <div className="absolute bottom-[-10%] left-[-10%] w-[400px] h-[400px] rounded-full bg-[#CA202B]/5 blur-3xl pointer-events-none" />
+        <div className="absolute top-[-20%] right-[-10%] w-[500px] h-[500px] rounded-full bg-primary/10 blur-3xl pointer-events-none" />
+        <div className="absolute bottom-[-10%] left-[-10%] w-[400px] h-[400px] rounded-full bg-primary/5 blur-3xl pointer-events-none" />
 
         <div className="max-w-max-width mx-auto px-margin-mobile md:px-margin-desktop relative z-10">
           <div className="max-w-2xl text-start">
             <h1 className="font-display-lg text-[40px] md:text-[56px] text-white mb-6 leading-tight font-extrabold animate-fade-in-up">
-              أسلاك السويدي ومستلزمات كهربائية <span className="text-[#CA202B]">عالية الجودة</span>
-            </h1>
+              أسلاك السويدي ومستلزمات كهربائية <span className="text-primary">عالية الجودة</span></h1>
             <p className="text-surface-variant/80 text-lg mb-10 leading-relaxed max-w-2xl">
               موزعون معتمدون لدى السويدي إلكتريك، ميتسوبيشي ياباني، هيمل صيني، ABB، وفينوس. يتوفر لدينا جميع لوحات التوزيع وقواطع الحماية والكابلات ومجاري الأسلاك التركية للمشاريع السكنية والتجارية والصناعية.
             </p>
@@ -293,9 +325,8 @@ export const LandingPage = memo(function LandingPage({ initialCategories = [], i
         </div>
       </section>
 
-      {/* Ready to Energize CTA */}
       <section className="bg-on-background py-24 text-center relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-[#CA202B]/10 to-transparent pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-r from-primary/10 to-transparent pointer-events-none" />
         <div className="max-w-max-width mx-auto px-margin-mobile md:px-margin-desktop relative z-10">
           <h2 className="font-display-lg text-headline-lg text-white mb-4 font-bold">
             هل أنت مستعد لتزويد مشروعك بالطاقة؟

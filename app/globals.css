@@ -208,5 +208,23 @@ body {
   text-shadow: 0 0 12px rgba(234, 179, 8, 0.35), 0 0 4px rgba(234, 179, 8, 0.15);
 }
 
+/* Global reset to hide default browser select dropdown arrows */
+select {
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+}
+select::-ms-expand {
+  display: none !important;
+}
+/* Fade in animation */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
 
-
+/* Slide in from right (RTL sidebar) */
+@keyframes slideInRight {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}

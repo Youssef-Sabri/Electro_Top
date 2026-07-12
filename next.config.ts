@@ -40,22 +40,12 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
         // Supabase Storage CDN — locked to specific project to prevent cross-project image optimization
-        protocol: 'https',
+        protocol: 'https' as const,
         hostname: supabaseHost,
         pathname: '/storage/v1/object/public/**',
       },
-    ...(isDev
+      ...(isDev
         ? [
-            {
-              protocol: 'https' as const,
-              hostname: 'placehold.co',
-              pathname: '/**',
-            },
-            {
-              protocol: 'https' as const,
-              hostname: 'images.unsplash.com',
-              pathname: '/**',
-            },
             {
               protocol: 'http' as const,
               hostname: 'localhost',

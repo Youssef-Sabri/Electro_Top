@@ -118,7 +118,6 @@ export const ProductDetailsModal = memo(function ProductDetailsModal({ product, 
         className="relative w-full max-w-2xl bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col md:flex-row max-h-[85vh] md:h-[500px] border border-outline-variant/10"
         style={{ animation: 'modalSlideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards' }}
       >
-        {/* Close button at the top header of the modal */}
         <button
           onClick={onClose}
           className="absolute top-4 left-4 z-50 flex items-center justify-center w-9 h-9 bg-surface-container-low/80 hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface backdrop-blur-md rounded-full border border-outline-variant/30 shadow-sm transition-all duration-300 hover:rotate-90 active:scale-90 cursor-pointer"
@@ -129,10 +128,16 @@ export const ProductDetailsModal = memo(function ProductDetailsModal({ product, 
           </svg>
         </button>
 
-        {/* Left Side: Images */}
         <div className="relative w-full md:w-5/12 h-[310px] md:h-full bg-white flex-shrink-0 border-e border-outline-variant/10 flex flex-col p-5 justify-between">
           <div className="relative w-full flex-grow h-[180px] md:h-[350px]">
-            {images.length > 1 ? (
+            {images.length === 0 ? (
+              <div className="w-full h-full bg-slate-50 border border-slate-100 rounded-2xl flex flex-col items-center justify-center text-slate-400 select-none">
+                <svg className="w-12 h-12 mb-2 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                <span className="font-tajawal text-sm font-bold">لا توجد صورة للمنتج</span>
+              </div>
+            ) : images.length > 1 ? (
               <div
                 onPointerDown={handlePointerDown}
                 onPointerUp={handlePointerUp}
@@ -153,7 +158,6 @@ export const ProductDetailsModal = memo(function ProductDetailsModal({ product, 
                     />
                   </div>
 
-                {/* Navigation Arrows */}
                 <button
                   onClick={handlePrevImage}
                   className="absolute left-1 top-1/2 -translate-y-1/2 z-20 bg-black/15 hover:bg-black/35 text-white rounded-full p-1.5 transition active:scale-95 shadow flex items-center justify-center opacity-0 group-hover:opacity-100"
@@ -190,7 +194,6 @@ export const ProductDetailsModal = memo(function ProductDetailsModal({ product, 
             )}
           </div>
 
-          {/* Interactive Thumbnails */}
           {images.length > 1 && (
             <div className="flex gap-2 justify-center mt-3 overflow-x-auto py-1 w-full select-none scrollbar-hide flex-shrink-0">
               {images.map((imgUrl, index) => {
@@ -227,10 +230,9 @@ export const ProductDetailsModal = memo(function ProductDetailsModal({ product, 
           )}
         </div>
  
-        {/* Right Side: Details & Actions */}
         <div className="p-6 flex flex-col flex-grow overflow-y-auto h-[calc(85vh-260px)] md:h-full text-start font-tajawal bg-white">
           <div className="mb-4">
-            <h2 className="font-bold text-[20px] md:text-[22px] text-on-surface leading-snug">
+            <h2 className="font-bold text-[20px] md:text-[22px] text-on-surface leading-snug md:pl-16">
               {product.name}
             </h2>
           </div>
@@ -311,7 +313,6 @@ export const ProductDetailsModal = memo(function ProductDetailsModal({ product, 
             </div>
           </div>
 
-          {/* Bottom Row: Quantity + Price in Add to Cart CTA */}
           <div className="mt-auto pt-5 border-t border-outline-variant/10 flex flex-col sm:flex-row gap-4 items-stretch">
             {product.stock > 0 && (
               <div className="flex items-center border border-outline-variant/30 rounded-xl overflow-hidden shrink-0 bg-surface-container-low justify-between h-[48px] px-2.5">

@@ -7,7 +7,7 @@ import type { Session } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
 
 import { TABLES, PRODUCT_SELECT_FIELDS } from '@/lib/db-constants';
-import { categorySchema } from '@/lib/validators';
+
 import { devLog } from '@/lib/dev-log';
 
 export interface ProductsContextType {
@@ -18,8 +18,7 @@ export interface ProductsContextType {
   deleteProduct: (id: string) => void;
   getProductById: (id: string) => Product | undefined;
   getProductsMap: () => Map<string, Product>;
-  addCategory: (category: string) => void;
-  deleteCategory: (category: string) => void;
+
   clearAllProducts: (password: string) => Promise<void>;
   initializeData: (products: Product[], categories: string[]) => void;
   refreshProducts: () => Promise<void>;
@@ -280,66 +279,7 @@ export function ProductsProvider({ children }: { children: ReactNode }) {
     return productsMapRef.current;
   }, []);
 
-  const addCategory = useCallback(async (newCat: string) => {
-    const result = categorySchema.safeParse(newCat.trim());
-    if (!result.success) {
-      devLog('Invalid category name:', result.error.issues);
-      return;
-    }
-    const trimmed = result.data;
 
-    setCategories((prev) => {
-      if (prev.includes(trimmed)) return prev;
-      return [...prev, trimmed];
-    });
-
-    try {
-      const response = await fetch('/api/admin/categories', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: trimmed }),
-      });
-
-      if (!response.ok) {
-        setCategories((prev) => prev.filter((c) => c !== trimmed));
-      }
-    } catch {
-      setCategories((prev) => prev.filter((c) => c !== trimmed));
-    }
-  }, []);
-
-  const deleteCategory = useCallback(async (catToDelete: string) => {
-    const trimmed = catToDelete.trim();
-    if (!trimmed) return;
-
-    const currentCategories = categoriesRef.current;
-    const currentProducts = productsRef.current;
-
-    const oldCategories = currentCategories;
-    const oldProducts = currentProducts;
-
-    const newCategories = currentCategories.filter((c) => c !== trimmed);
-    const newProducts = currentProducts.map((p) =>
-      p.category === trimmed ? { ...p, category: null } : p
-    );
-
-    setCategories(newCategories);
-    setProducts(newProducts);
-
-    try {
-      const response = await fetch(`/api/admin/categories?name=${encodeURIComponent(trimmed)}`, {
-        method: 'DELETE',
-      });
-
-      if (!response.ok) {
-        setCategories(oldCategories);
-        setProducts(oldProducts);
-      }
-    } catch {
-      setCategories(oldCategories);
-      setProducts(oldProducts);
-    }
-  }, []);
 
   const clearAllProducts = useCallback(async (password: string) => {
     const previousProducts = productsRef.current;
@@ -376,8 +316,6 @@ export function ProductsProvider({ children }: { children: ReactNode }) {
       deleteProduct,
       getProductById,
       getProductsMap,
-      addCategory,
-      deleteCategory,
       clearAllProducts,
       initializeData,
       refreshProducts,
@@ -392,8 +330,6 @@ export function ProductsProvider({ children }: { children: ReactNode }) {
       deleteProduct,
       getProductById,
       getProductsMap,
-      addCategory,
-      deleteCategory,
       clearAllProducts,
       initializeData,
       refreshProducts,

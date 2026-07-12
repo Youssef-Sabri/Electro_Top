@@ -19,13 +19,14 @@ import { ALL_COLORS } from '@/lib/color-palette';
 
 export const InventoryClient = memo(function InventoryClient() {
 
-  const { products, addProduct, updateProduct, deleteProduct, categories, addCategory, deleteCategory, clearAllProducts } = useProducts();
+  const { products, addProduct, updateProduct, deleteProduct, clearAllProducts } = useProducts();
 
   const [searchQuery, setSearchQuery] = useState('');
   const deferredSearchQuery = useDeferredValue(searchQuery);
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
   const [stockFilter, setStockFilter] = useState<'all' | 'out' | 'low' | 'instock'>('all');
-  const [categoryFilter, setCategoryFilter] = useState('all');
+  const [selectedMainCategoryFilter, setSelectedMainCategoryFilter] = useState('all');
+  const [selectedSubCategoryFilter, setSelectedSubCategoryFilter] = useState('all');
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
@@ -57,7 +58,7 @@ export const InventoryClient = memo(function InventoryClient() {
   });
   const [formErrors, setFormErrors] = useState<Partial<Record<keyof ProductFormData, string>>>({});
 
-  const [newCategoryName, setNewCategoryName] = useState('');
+
 
   const [isClearProductsPasswordOpen, setIsClearProductsPasswordOpen] = useState(false);
 
@@ -81,51 +82,35 @@ export const InventoryClient = memo(function InventoryClient() {
     setToastMessage(msg);
   };
 
-  const handleAddCategorySubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const trimmed = newCategoryName.trim();
-    if (!trimmed) return;
-    if (categories.includes(trimmed)) {
-      showToast(`الفئة "${trimmed}" موجودة بالفعل.`);
-      return;
-    }
-    setConfirmModal({
-      isOpen: true,
-      title: 'إضافة فئة',
-      message: `هل أنت متأكد من رغبتك في إضافة الفئة الجديدة "${trimmed}"؟`,
-      confirmLabel: 'إضافة فئة',
-      cancelLabel: 'إلغاء',
-      onConfirm: () => {
-        addCategory(trimmed);
-        showToast(`تم إضافة الفئة "${trimmed}" بنجاح!`);
-        setNewCategoryName('');
-        setConfirmModal((prev) => ({ ...prev, isOpen: false }));
-      },
-    });
-  };
+  interface CategoryHierarchyItem {
+    name: string;
+    icon?: string;
+    subcategories: string[];
+  }
 
-  const handleDeleteCategory = (catToDelete: string) => {
-    if (categories.length <= 1) {
-      showToast("لا يمكن حذف آخر فئة. يجب أن توجد فئة واحدة على الأقل.");
-      return;
-    }
-    setConfirmModal({
-      isOpen: true,
-      title: 'حذف فئة',
-      message: `هل أنت متأكد من رغبتك في حذف الفئة "${catToDelete}"؟ ستصبح جميع المنتجات في هذه الفئة غير مصنفة.`,
-      confirmLabel: 'حذف فئة',
-      cancelLabel: 'إلغاء',
-      isDestructive: true,
-      onConfirm: () => {
-        deleteCategory(catToDelete);
-        showToast(`تم حذف الفئة "${catToDelete}" بنجاح!`);
-        if (categoryFilter === catToDelete) {
-          setCategoryFilter('all');
+  const [hierarchy, setHierarchy] = useState<CategoryHierarchyItem[]>([]);
+  const [selectedMainCategory, setSelectedMainCategory] = useState('');
+
+  useEffect(() => {
+    let active = true;
+    async function load() {
+      try {
+        const res = await fetch('/api/admin/category-hierarchy');
+        if (res.ok) {
+          const data = await res.json();
+          if (active) setHierarchy(data);
         }
-        setConfirmModal((prev) => ({ ...prev, isOpen: false }));
-      },
-    });
-  };
+      } catch (e) {
+        console.error('Failed to load category hierarchy:', e);
+      }
+    }
+    load();
+    return () => {
+      active = false;
+    };
+  }, []);
+
+
 
   const metrics = useMemo(() => {
     const total = products.length;
@@ -134,6 +119,18 @@ export const InventoryClient = memo(function InventoryClient() {
     const totalStock = products.reduce((acc, p) => acc + p.stock, 0);
     return { total, active, outOfStock, totalStock };
   }, [products]);
+
+  const activeFilterCategories = useMemo(() => {
+    if (selectedMainCategoryFilter === 'all') return null;
+    if (selectedSubCategoryFilter === 'all') {
+      const group = hierarchy.find(h => h.name === selectedMainCategoryFilter);
+      if (group) {
+        return [selectedMainCategoryFilter, ...(group.subcategories || [])];
+      }
+      return [selectedMainCategoryFilter];
+    }
+    return [selectedSubCategoryFilter];
+  }, [selectedMainCategoryFilter, selectedSubCategoryFilter, hierarchy]);
 
   const filteredProducts = useMemo(() => {
     return products.filter((p) => {
@@ -154,18 +151,19 @@ export const InventoryClient = memo(function InventoryClient() {
         (stockFilter === 'instock' && p.stock > 5);
 
       const matchesCategory =
-        categoryFilter === 'all' || p.category === categoryFilter;
+        !activeFilterCategories ||
+        (!!p.category && activeFilterCategories.includes(p.category));
 
       return matchesSearch && matchesStatus && matchesStock && matchesCategory;
     });
-  }, [products, deferredSearchQuery, statusFilter, stockFilter, categoryFilter]);
+  }, [products, deferredSearchQuery, statusFilter, stockFilter, activeFilterCategories]);
 
   const itemsPerPage = 10;
   const { currentPage, setCurrentPage, totalPages, paginatedItems: paginatedProducts, resetPage } = usePagination(filteredProducts, itemsPerPage);
 
   useEffect(() => {
     resetPage();
-  }, [searchQuery, statusFilter, stockFilter, categoryFilter, resetPage]);
+  }, [searchQuery, statusFilter, stockFilter, selectedMainCategoryFilter, selectedSubCategoryFilter, resetPage]);
 
   const handleExportCSV = () => {
     const headers = [
@@ -215,6 +213,7 @@ export const InventoryClient = memo(function InventoryClient() {
     setSelectedImageFile(null);
     setSelectedImageFile2(null);
     setSelectedImageFile3(null);
+    setSelectedMainCategory('');
     setFormData({
       name: '',
       description: '',
@@ -226,7 +225,7 @@ export const InventoryClient = memo(function InventoryClient() {
       is_active: true,
       has_colors: false,
       colors: [],
-      category: categories[0] || '',
+      category: '',
     });
     setFormErrors({});
     setCompressionInfo(null);
@@ -240,6 +239,14 @@ export const InventoryClient = memo(function InventoryClient() {
     setSelectedImageFile2(null);
     setSelectedImageFile3(null);
     setEditingProduct(product);
+
+    // Find parent category of this product's subcategory
+    const parentGroup = hierarchy.find(g =>
+      g.name === product.category ||
+      (g.subcategories || []).includes(product.category || '')
+    );
+    setSelectedMainCategory(parentGroup ? parentGroup.name : '');
+
     setFormData({
       name: product.name,
       description: product.description,
@@ -251,7 +258,7 @@ export const InventoryClient = memo(function InventoryClient() {
       is_active: product.is_active,
       has_colors: product.has_colors || false,
       colors: product.colors || [],
-      category: product.category || categories[0] || '',
+      category: product.category || '',
     });
     setFormErrors({});
     setCompressionInfo(null);
@@ -591,112 +598,74 @@ export const InventoryClient = memo(function InventoryClient() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-stretch">
-        
-        <div className="xl:col-span-8 bg-surface-container-lowest border border-outline-variant/30 rounded-xl p-6 shadow-sm flex flex-col justify-start space-y-5">
-          <div className="flex items-center gap-3 border-b border-outline-variant/10 pb-3">
-            <span className="material-symbols-outlined text-primary text-[24px]">search</span>
-            <h4 className="font-bold text-sm text-on-surface">البحث والتصفية في الكتالوج</h4>
-          </div>
-          
-          <div className="space-y-4">
-            {/* Search */}
-            <div className="relative w-full">
-              <input
-                className="w-full bg-surface-container-low border border-outline-variant rounded-lg pr-10 pl-4 py-2.5 text-label-md focus:ring-2 focus:ring-primary/10 focus:border-primary outline-none transition-all text-on-surface text-right"
-                placeholder="ابحث عن المنتجات بالاسم أو المعرف أو الوصف..."
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-              <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant select-none">
-                search
-              </span>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-3">
-              <CustomDropdown
-                labelPrefix="الفئة:"
-                options={[
-                  { value: 'all', label: 'جميع الفئات' },
-                  ...categories.filter(cat => {
-                    const lower = cat.trim().toLowerCase();
-                    return lower !== 'all' && lower !== 'all categories';
-                  }).map(cat => ({ value: cat, label: cat }))
-                ]}
-                value={categoryFilter}
-                onChange={(val) => setCategoryFilter(val)}
-              />
-
-              <CustomDropdown
-                labelPrefix="الحالة:"
-                options={[
-                  { value: 'all', label: 'الكل' },
-                  { value: 'active', label: 'نشط' },
-                  { value: 'inactive', label: 'غير نشط' }
-                ]}
-                value={statusFilter}
-                onChange={(val) => setStatusFilter(val as 'all' | 'active' | 'inactive')}
-              />
-
-              <CustomDropdown
-                labelPrefix="المخزون:"
-                options={[
-                  { value: 'all', label: 'جميع المستويات' },
-                  { value: 'instock', label: 'متوفر (> 5)' },
-                  { value: 'low', label: 'مخزون منخفض (1-5)' },
-                  { value: 'out', label: 'نفد من المخزون (0)' }
-                ]}
-                value={stockFilter}
-                onChange={(val) => setStockFilter(val as 'all' | 'out' | 'low' | 'instock')}
-              />
-            </div>
-          </div>
+      <div className="w-full bg-surface-container-lowest border border-outline-variant/30 rounded-xl p-6 shadow-sm flex flex-col justify-start space-y-5">
+        <div className="flex items-center gap-3 border-b border-outline-variant/10 pb-3">
+          <span className="material-symbols-outlined text-primary text-[24px]">search</span>
+          <h4 className="font-bold text-sm text-on-surface">البحث والتصفية في الكتالوج</h4>
         </div>
-
-        <div className="xl:col-span-4 bg-surface-container-lowest border border-outline-variant/30 rounded-xl p-6 shadow-sm flex flex-col justify-between space-y-6">
-          <div className="flex items-center gap-3 border-b border-outline-variant/10 pb-3">
-            <span className="material-symbols-outlined text-primary text-[24px]">category</span>
-            <h4 className="font-bold text-sm text-on-surface">إدارة الفئات</h4>
-          </div>
-          
-          <form onSubmit={handleAddCategorySubmit} className="flex gap-2">
+        
+        <div className="space-y-4">
+          {/* Search */}
+          <div className="relative w-full">
             <input
+              className="w-full bg-surface-container-low border border-outline-variant rounded-lg pr-10 pl-4 py-2.5 text-label-md focus:ring-2 focus:ring-primary/10 focus:border-primary outline-none transition-all text-on-surface text-right"
+              placeholder="ابحث عن المنتجات بالاسم أو المعرف أو الوصف..."
               type="text"
-              placeholder="فئة جديدة..."
-              value={newCategoryName}
-              onChange={(e) => setNewCategoryName(e.target.value)}
-              className="flex-grow bg-surface-container-low border border-outline-variant rounded-lg px-3 py-2.5 text-xs focus:ring-2 focus:ring-primary/10 focus:border-primary outline-none transition-all text-on-surface font-medium"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
             />
-            <button
-              type="submit"
-              className="bg-secondary text-on-secondary px-3 py-2.5 rounded-lg font-label-md text-xs hover:opacity-90 active:scale-[0.98] transition-all flex items-center gap-1 cursor-pointer font-bold shrink-0 shadow-md shadow-secondary/15"
-            >
-              <span className="material-symbols-outlined text-[14px]">add_circle</span>
-              إضافة
-            </button>
-          </form>
+            <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant select-none">
+              search
+            </span>
+          </div>
 
-          <div className="space-y-2 flex-grow">
-            <p className="text-[10px] font-semibold text-on-surface-variant uppercase select-none">الفئات الحالية</p>
-            <div className="flex flex-wrap gap-1.5 max-h-[85px] overflow-y-auto pe-1">
-              {categories.map((cat) => (
-                <div
-                  key={cat}
-                  className="flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-semibold bg-surface-container-low text-on-surface-variant border border-outline-variant/20 group hover:border-primary/30 transition-all"
-                >
-                  <span>{cat}</span>
-                  <button
-                    type="button"
-                    onClick={() => handleDeleteCategory(cat)}
-                    className="text-on-surface-variant/40 hover:text-primary transition-colors cursor-pointer flex items-center"
-                    title={`حذف الفئة "${cat}"`}
-                  >
-                    <span className="material-symbols-outlined text-[12px]">close</span>
-                  </button>
-                </div>
-              ))}
-            </div>
+          <div className="flex flex-wrap items-center gap-3">
+            <CustomDropdown
+              labelPrefix="القسم الرئيسي:"
+              options={[
+                { value: 'all', label: 'جميع الأقسام' },
+                ...hierarchy.map(g => ({ value: g.name, label: g.name }))
+              ]}
+              value={selectedMainCategoryFilter}
+              onChange={(val) => {
+                setSelectedMainCategoryFilter(val);
+                setSelectedSubCategoryFilter('all');
+              }}
+            />
+
+            <CustomDropdown
+              labelPrefix="الفئة الفرعية:"
+              options={[
+                { value: 'all', label: 'جميع الفئات الفرعية' },
+                ...(hierarchy.find(g => g.name === selectedMainCategoryFilter)?.subcategories || []).map(sub => ({ value: sub, label: sub }))
+              ]}
+              value={selectedSubCategoryFilter}
+              onChange={(val) => setSelectedSubCategoryFilter(val)}
+              disabled={selectedMainCategoryFilter === 'all'}
+            />
+
+            <CustomDropdown
+              labelPrefix="الحالة:"
+              options={[
+                { value: 'all', label: 'الكل' },
+                { value: 'active', label: 'نشط' },
+                { value: 'inactive', label: 'غير نشط' }
+              ]}
+              value={statusFilter}
+              onChange={(val) => setStatusFilter(val as 'all' | 'active' | 'inactive')}
+            />
+
+            <CustomDropdown
+              labelPrefix="المخزون:"
+              options={[
+                { value: 'all', label: 'جميع المستويات' },
+                { value: 'instock', label: 'متوفر (> 5)' },
+                { value: 'low', label: 'مخزون منخفض (1-5)' },
+                { value: 'out', label: 'نفد من المخزون (0)' }
+              ]}
+              value={stockFilter}
+              onChange={(val) => setStockFilter(val as 'all' | 'out' | 'low' | 'instock')}
+            />
           </div>
         </div>
       </div>
@@ -1099,12 +1068,31 @@ export const InventoryClient = memo(function InventoryClient() {
                   )}
                 </div>
 
-                <div className="space-y-1">
-                  <label className="font-label-md text-on-surface block font-bold">الفئة</label>
+                <div className="space-y-1 text-start">
+                  <label className="font-label-md text-on-surface block font-bold">القسم الرئيسي</label>
                   <CustomDropdown
                     options={[
-                      { value: '', label: 'غير محدد (عام)' },
-                      ...categories.map(cat => ({ value: cat, label: cat }))
+                      { value: '', label: 'اختر القسم الرئيسي' },
+                      ...hierarchy.map(g => ({ value: g.name, label: g.name }))
+                    ]}
+                    value={selectedMainCategory}
+                    onChange={(val) => {
+                      setSelectedMainCategory(val);
+                      setFormData(prev => ({ ...prev, category: '' }));
+                      if (formErrors.category) {
+                        setFormErrors(prev => ({ ...prev, category: undefined }));
+                      }
+                    }}
+                    className="w-full"
+                  />
+                </div>
+
+                <div className="space-y-1 text-start">
+                  <label className="font-label-md text-on-surface block font-bold">الفئة الفرعية</label>
+                  <CustomDropdown
+                    options={[
+                      { value: '', label: 'اختر الفئة الفرعية' },
+                      ...((hierarchy.find(g => g.name === selectedMainCategory)?.subcategories || []).map((sub: string) => ({ value: sub, label: sub })))
                     ]}
                     value={formData.category || ''}
                     onChange={(val) => {

@@ -13,9 +13,17 @@ interface CustomDropdownProps {
   onChange: (value: string) => void;
   className?: string;
   labelPrefix?: string;
+  disabled?: boolean;
 }
 
-export const CustomDropdown = memo(function CustomDropdown({ options, value, onChange, className = '', labelPrefix = '' }: CustomDropdownProps) {
+export const CustomDropdown = memo(function CustomDropdown({
+  options,
+  value,
+  onChange,
+  className = '',
+  labelPrefix = '',
+  disabled = false
+}: CustomDropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -40,16 +48,21 @@ export const CustomDropdown = memo(function CustomDropdown({ options, value, onC
     <div ref={dropdownRef} className={`relative inline-block text-left font-tajawal min-w-[160px] ${className}`}>
        <button
         type="button"
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={() => !disabled && setIsOpen(!isOpen)}
+        disabled={disabled}
         aria-haspopup="listbox"
         aria-expanded={isOpen}
-        className="w-full flex justify-between items-center bg-white border border-outline-variant rounded-lg px-4 py-2 text-sm font-semibold text-on-surface hover:border-primary focus:border-primary outline-none transition-all duration-200 cursor-pointer shadow-sm"
+        className={`w-full flex justify-between items-center bg-white border rounded-lg px-4 py-2 text-sm font-semibold transition-all duration-200 shadow-sm ${
+          disabled
+            ? 'opacity-40 border-outline-variant bg-surface-container-low cursor-not-allowed text-on-surface-variant'
+            : 'border-outline-variant text-on-surface hover:border-primary focus:border-primary cursor-pointer'
+        }`}
       >
-        <span>
-          {labelPrefix ? <span className="text-on-surface-variant/70 font-normal mr-1">{labelPrefix}</span> : null}
-          {selectedOption ? selectedOption.label : 'Select...'}
+        <span className="flex-grow text-start truncate min-w-0 pr-1 flex items-center gap-1.5">
+          {labelPrefix ? <span className="text-on-surface-variant/70 font-normal shrink-0">{labelPrefix}</span> : null}
+          <span className="truncate">{selectedOption ? selectedOption.label : 'Select...'}</span>
         </span>
-        <span className={`material-symbols-outlined text-sm text-on-surface-variant transition-transform duration-200 select-none ml-2 ${isOpen ? 'rotate-180' : ''}`}>
+        <span className={`material-symbols-outlined text-sm text-on-surface-variant transition-transform duration-200 select-none shrink-0 pl-1.5 ${isOpen ? 'rotate-180' : ''}`}>
           expand_more
         </span>
       </button>

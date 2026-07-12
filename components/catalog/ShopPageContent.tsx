@@ -6,7 +6,7 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { useProducts } from '@/hooks/useProducts';
 import { usePagination } from '@/hooks/usePagination';
 import { ProductCard } from '@/components/catalog/ProductCard';
-import type { Product } from '@/types';
+import type { Product, CategoryGroup } from '@/types';
 import { CustomDropdown } from '@/components/ui/CustomDropdown';
 
 const ProductDetailsModal = dynamic(
@@ -17,20 +17,13 @@ const ProductDetailsModal = dynamic(
 const ALL_CATEGORIES = 'All';
 type SortByType = 'name-asc' | 'price-asc' | 'price-desc';
 
-const CATEGORY_LABELS: Record<string, string> = {
-  'Circuit Protection': 'حماية الدوائر الكهربائية',
-  'Distribution Boards': 'لوحات التوزيع',
-  'Cables & Wires': 'كابلات وأسلاك',
-  'Wiring Accessories': 'إكسسوارات التوصيل',
-};
-
 interface ShopPageContentProps {
   initialProducts: Product[];
   initialCategories: string[];
 }
 
 export const ShopPageContent = memo(function ShopPageContent({ initialProducts, initialCategories }: ShopPageContentProps) {
-  const { products: contextProducts, categories: contextCategories, initializeData, isLoaded } = useProducts();
+  const { products: contextProducts, initializeData, isLoaded } = useProducts();
   const searchParams = useSearchParams();
   const router = useRouter();
   const isInitialSync = useRef(false);
@@ -42,13 +35,54 @@ export const ShopPageContent = memo(function ShopPageContent({ initialProducts, 
   }, [isLoaded, initialProducts, initialCategories, initializeData]);
 
   const products = contextProducts.length > 0 ? contextProducts : initialProducts;
-  const categories = contextCategories.length > 0 ? contextCategories : initialCategories;
 
   const [category, setCategory] = useState(() => searchParams.get('category') || ALL_CATEGORIES);
+  const [selectedMainCategory, setSelectedMainCategory] = useState(ALL_CATEGORIES);
+  const [selectedSubCategory, setSelectedSubCategory] = useState(ALL_CATEGORIES);
   const [searchInput, setSearchInput] = useState(() => searchParams.get('search') || '');
   const [hideOutOfStock, setHideOutOfStock] = useState(() => searchParams.get('hideOut') === 'true');
   const [sortBy, setSortBy] = useState<SortByType>(() => (searchParams.get('sort') as SortByType) || 'name-asc');
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [categoryHierarchy, setCategoryHierarchy] = useState<CategoryGroup[]>([]);
+  const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false);
+
+  useEffect(() => {
+    async function loadHierarchy() {
+      try {
+        const res = await fetch('/api/admin/category-hierarchy');
+        if (res.ok) {
+          const data = await res.json();
+          setCategoryHierarchy(data);
+        }
+      } catch (err) {
+        console.error('Failed to load category hierarchy:', err);
+      }
+    }
+    loadHierarchy();
+  }, []);
+
+  // Sync selection states when main category category state changes
+  useEffect(() => {
+    if (category === ALL_CATEGORIES) {
+      setSelectedMainCategory(ALL_CATEGORIES);
+      setSelectedSubCategory(ALL_CATEGORIES);
+    } else {
+      const group = categoryHierarchy.find(g => g.name === category);
+      if (group) {
+        setSelectedMainCategory(category);
+        setSelectedSubCategory(ALL_CATEGORIES);
+      } else {
+        const parent = categoryHierarchy.find(g => (g.subcategories || []).includes(category));
+        if (parent) {
+          setSelectedMainCategory(parent.name);
+          setSelectedSubCategory(category);
+        } else {
+          setSelectedMainCategory(ALL_CATEGORIES);
+          setSelectedSubCategory(ALL_CATEGORIES);
+        }
+      }
+    }
+  }, [category, categoryHierarchy]);
 
   const [debouncedSearch, setDebouncedSearch] = useState(searchInput);
   useEffect(() => {
@@ -95,60 +129,57 @@ export const ShopPageContent = memo(function ShopPageContent({ initialProducts, 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams]);
 
-  const categoriesList = useMemo(() => {
-    const cleanCats = categories.filter(cat => {
-      if (!cat) return false;
-      const lower = cat.trim().toLowerCase();
-      return lower !== 'all' && lower !== 'all categories';
-    });
-    return ['All', ...cleanCats];
-  }, [categories]);
-
   const filteredProducts = useMemo(() => {
-    return products.filter((product) => {
-      if (!product.is_active) return false;
-      if (hideOutOfStock && product.stock <= 0) return false;
+    return products.filter((p) => {
+      if (!p.is_active) return false;
+      if (hideOutOfStock && p.stock === 0) return false;
+
+      const query = debouncedSearch.trim().toLowerCase();
+      const matchesSearch =
+        !query ||
+        p.name.toLowerCase().includes(query) ||
+        p.description.toLowerCase().includes(query) ||
+        p.id.toLowerCase().includes(query);
 
       let matchesCategory = true;
-      if (category !== 'All') {
-        matchesCategory = product.category === category;
+      if (category !== ALL_CATEGORIES) {
+        const group = categoryHierarchy.find(g => g.name === category);
+        if (group) {
+          const allowed = [category, ...(group.subcategories || [])];
+          matchesCategory = !!p.category && allowed.includes(p.category);
+        } else {
+          matchesCategory = p.category === category;
+        }
       }
 
-      let matchesSearch = true;
-      if (debouncedSearch) {
-        const query = debouncedSearch.toLowerCase();
-        matchesSearch =
-          product.name.toLowerCase().includes(query) ||
-          product.description.toLowerCase().includes(query);
-      }
-
-      return matchesCategory && matchesSearch;
+      return matchesSearch && matchesCategory;
     });
-  }, [products, category, debouncedSearch, hideOutOfStock]);
+  }, [products, debouncedSearch, category, hideOutOfStock, categoryHierarchy]);
 
   const sortedProducts = useMemo(() => {
     const list = [...filteredProducts];
     if (sortBy === 'name-asc') {
-      return list.sort((a, b) => a.name.localeCompare(b.name));
+      list.sort((a, b) => a.name.localeCompare(b.name, 'ar'));
     } else if (sortBy === 'price-asc') {
-      return list.sort((a, b) => a.price - b.price);
+      list.sort((a, b) => a.price - b.price);
     } else if (sortBy === 'price-desc') {
-      return list.sort((a, b) => b.price - a.price);
+      list.sort((a, b) => b.price - a.price);
     }
     return list;
   }, [filteredProducts, sortBy]);
 
-  const itemsPerPage = 8;
-  const { currentPage, setCurrentPage, totalPages, paginatedItems: paginatedProducts, resetPage } = usePagination(sortedProducts, itemsPerPage);
+  const itemsPerPage = 12;
+  const {
+    currentPage,
+    setCurrentPage,
+    totalPages,
+    paginatedItems: paginatedProducts,
+    resetPage,
+  } = usePagination(sortedProducts, itemsPerPage);
 
   useEffect(() => {
     resetPage();
-  }, [debouncedSearch, category, hideOutOfStock, sortBy, resetPage]);
-
-  const getCategoryLabel = (cat: string) => {
-    if (cat === 'All') return 'جميع الأقسام';
-    return CATEGORY_LABELS[cat] || cat;
-  };
+  }, [category, debouncedSearch, hideOutOfStock, resetPage]);
 
   const handleClearFilters = useCallback(() => {
     setCategory(ALL_CATEGORIES);
@@ -159,9 +190,8 @@ export const ShopPageContent = memo(function ShopPageContent({ initialProducts, 
 
   return (
     <div className="min-h-screen bg-white font-tajawal text-on-surface">
-      {/* Sleek Dark Header Banner */}
       <section className="bg-on-background py-16 text-start relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-[#CA202B]/10 to-transparent pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-r from-primary/10 to-transparent pointer-events-none" />
         <div className="max-w-max-width mx-auto px-margin-mobile md:px-margin-desktop relative z-10">
           <span className="text-secondary-fixed font-bold text-xs uppercase tracking-widest">
             اكتشف كتالوج منتجاتنا
@@ -169,79 +199,54 @@ export const ShopPageContent = memo(function ShopPageContent({ initialProducts, 
           <h1 className="font-headline-lg text-[32px] md:text-[40px] text-white font-extrabold mt-2">
             المتجر
           </h1>
-          <div className="w-16 h-1 bg-[#CA202B] rounded-full mt-4"></div>
+          <div className="w-16 h-1 bg-primary rounded-full mt-4"></div>
         </div>
       </section>
 
       {/* Main Shop Container */}
       <main className="max-w-max-width mx-auto px-margin-mobile md:px-margin-desktop py-12">
         
-        {/* Category chips list (Both mobile & desktop for clean inline visual filter tabs) */}
-        <div className="flex gap-2.5 overflow-x-auto pb-4 mb-8 scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0">
-          {categoriesList.map((cat) => (
+        {/* Sleek Filter Trigger Control Bar */}
+        <div className="flex flex-wrap items-center justify-between gap-4 bg-surface-container-low border border-outline-variant/30 rounded-2xl p-4 mb-8 shadow-sm">
+          {/* Active category trace path */}
+          <div className="flex items-center gap-2 text-start">
+            <span className="material-symbols-outlined text-primary text-[18px]">shopping_bag</span>
+            <span className="font-bold text-xs text-on-surface">
+              {category === ALL_CATEGORIES ? 'جميع المنتجات' : category}
+            </span>
+            <span className="text-[10px] bg-white border border-outline-variant/30 text-on-surface-variant px-2.5 py-0.5 rounded-full font-bold">
+              {sortedProducts.length} منتج
+            </span>
+          </div>
+
+          {/* Action trigger button */}
+          <div className="flex items-center gap-3">
+            {(category !== ALL_CATEGORIES || searchInput || hideOutOfStock || sortBy !== 'name-asc') && (
+              <button
+                type="button"
+                onClick={handleClearFilters}
+                className="text-xs font-bold text-primary hover:underline cursor-pointer bg-transparent border-0 p-0"
+              >
+                إعادة تعيين
+              </button>
+            )}
+
             <button
-              key={cat}
-              onClick={() => setCategory(cat)}
-              className={`flex-shrink-0 px-5 py-2 rounded-full text-xs font-bold transition-all duration-200 border cursor-pointer ${
-                category === cat
-                  ? 'bg-primary text-on-primary border-transparent shadow-sm'
-                  : 'bg-white text-on-surface-variant border-outline-variant hover:border-primary/40 hover:text-primary'
-              }`}
+              type="button"
+              onClick={() => setIsFilterDrawerOpen(true)}
+              className="bg-primary hover:bg-primary/95 text-on-primary px-5 py-2.5 rounded-xl text-xs font-bold active:scale-[0.98] transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-md shadow-primary/15"
             >
-              {getCategoryLabel(cat)}
+              <span className="material-symbols-outlined text-[16px]">filter_list</span>
+              تصفية وتصنيف
+              {(category !== ALL_CATEGORIES || searchInput || hideOutOfStock || sortBy !== 'name-asc') && (
+                <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
+              )}
             </button>
-          ))}
-        </div>
-
-        {/* Filters Toolbar */}
-        <div className="bg-surface-container-low border border-outline-variant/40 rounded-2xl p-6 mb-10 space-y-6">
-          <div className="flex flex-col lg:flex-row gap-4 items-stretch lg:items-center justify-between">
-            
-            {/* Search Input */}
-            <div className="relative flex-grow max-w-xl text-start">
-               <input
-                 className="w-full bg-white border border-outline-variant rounded-full pr-11 pl-4 py-2.5 text-label-md focus:ring-2 focus:ring-primary/10 focus:border-primary outline-none transition-all text-on-surface text-right"
-                 placeholder="البحث عن مستلزمات كهربائية..."
-                 type="text"
-                 value={searchInput}
-                 onChange={(e) => setSearchInput(e.target.value)}
-               />
-              <span className="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-on-surface-variant select-none">
-                search
-              </span>
-            </div>
-
-            {/* Other Controls */}
-            <div className="flex flex-wrap items-center gap-6 justify-start lg:justify-end">
-              <label className="flex items-center gap-2 cursor-pointer font-bold text-sm text-on-surface select-none">
-               <input
-                 type="checkbox"
-                 checked={hideOutOfStock}
-                 onChange={(e) => setHideOutOfStock(e.target.checked)}
-                 className="w-[18px] h-[18px] rounded border-outline-variant focus:ring-primary text-primary accent-primary cursor-pointer"
-               />
-                إخفاء غير المتوفر
-              </label>
-
-              <div className="flex items-center gap-2">
-               <CustomDropdown
-                 labelPrefix="ترتيب حسب:"
-                 options={[
-                   { value: 'name-asc', label: 'أبجدي (أ - ي)' },
-                   { value: 'price-asc', label: 'السعر: من الأقل للأعلى' },
-                   { value: 'price-desc', label: 'السعر: من الأعلى للأقل' },
-                 ]}
-                 value={sortBy}
-                 onChange={(val) => setSortBy(val as SortByType)}
-               />
-              </div>
-            </div>
           </div>
         </div>
 
         {paginatedProducts.length > 0 ? (
           <div className="space-y-12">
-            {/* Product count badge */}
             <div className="flex items-center justify-between mb-2">
               <span className="inline-flex items-center gap-1.5 bg-surface-container-low border border-outline-variant text-on-surface-variant text-xs font-bold px-3.5 py-1.5 rounded-full">
                 <span className="material-symbols-outlined text-[14px] text-primary">inventory_2</span>
@@ -249,7 +254,6 @@ export const ShopPageContent = memo(function ShopPageContent({ initialProducts, 
               </span>
             </div>
 
-            {/* Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
               {paginatedProducts.map((product, index) => (
                 <ProductCard
@@ -261,7 +265,6 @@ export const ShopPageContent = memo(function ShopPageContent({ initialProducts, 
               ))}
             </div>
 
-            {/* Pagination Controls */}
             <div className="flex justify-between items-center bg-surface-container-low border border-outline-variant/40 rounded-2xl px-6 py-4 select-none font-tajawal">
               <p className="text-xs text-on-surface-variant font-bold">
                 الصفحة {currentPage} من {totalPages}
@@ -309,7 +312,6 @@ export const ShopPageContent = memo(function ShopPageContent({ initialProducts, 
             </button>
           </div>
         )}
-
       </main>
 
       {selectedProduct && (
@@ -318,7 +320,137 @@ export const ShopPageContent = memo(function ShopPageContent({ initialProducts, 
           onClose={() => setSelectedProduct(null)}
         />
       )}
+
+      {/* Sliding Filter Drawer (Shared for Mobile and Desktop!) */}
+      {isFilterDrawerOpen && (
+        <div className="fixed inset-0 z-50 flex justify-end" dir="rtl">
+          {/* Backdrop */}
+          <div
+            className="fixed inset-0 bg-black/40 backdrop-blur-sm transition-opacity duration-300 animate-[fadeIn_0.2s_ease-out]"
+            onClick={() => setIsFilterDrawerOpen(false)}
+          />
+          {/* Drawer Content */}
+          <div className="relative w-full max-w-[340px] sm:max-w-[380px] bg-white h-full shadow-2xl flex flex-col z-10 transition-transform duration-300 animate-[slideInRight_0.25s_ease-out] p-6 space-y-6 overflow-y-auto">
+            {/* Header */}
+            <div className="flex items-center justify-between border-b border-outline-variant/30 pb-4">
+              <div className="flex items-center gap-2">
+                <span className="material-symbols-outlined text-primary text-[20px]">filter_list</span>
+                <h3 className="font-bold text-sm text-on-surface">تصفية وتصنيف المنتجات</h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsFilterDrawerOpen(false)}
+                className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-surface-container-high transition-colors cursor-pointer border-0 bg-transparent"
+              >
+                <span className="material-symbols-outlined text-[20px]">close</span>
+              </button>
+            </div>
+
+            {/* Filters Stack */}
+            <div className="flex-grow space-y-6 text-start">
+              {/* Search */}
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-on-surface-variant">البحث بالاسم أو الوصف</label>
+                <div className="relative">
+                  <input
+                    className="w-full bg-surface-container-low border border-outline-variant rounded-xl pr-10 pl-4 py-2.5 text-xs focus:ring-2 focus:ring-primary/10 focus:border-primary outline-none transition-all text-on-surface text-right font-medium"
+                    placeholder="ابحث عن منتجات..."
+                    type="text"
+                    value={searchInput}
+                    onChange={(e) => setSearchInput(e.target.value)}
+                  />
+                  <span className="material-symbols-outlined absolute right-3.5 top-1/2 -translate-y-1/2 text-on-surface-variant text-base select-none">
+                    search
+                  </span>
+                </div>
+              </div>
+
+              {/* Main Category */}
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-on-surface-variant">القسم الرئيسي</label>
+                <CustomDropdown
+                  options={[
+                    { value: ALL_CATEGORIES, label: 'جميع الأقسام' },
+                    ...categoryHierarchy.map(g => ({ value: g.name, label: g.name }))
+                  ]}
+                  value={selectedMainCategory}
+                  onChange={(val) => {
+                    setSelectedMainCategory(val);
+                    setSelectedSubCategory(ALL_CATEGORIES);
+                    if (val === ALL_CATEGORIES) {
+                      setCategory(ALL_CATEGORIES);
+                    } else {
+                      setCategory(val);
+                    }
+                  }}
+                  className="w-full"
+                />
+              </div>
+
+              {/* Subcategory */}
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-on-surface-variant">الفئة الفرعية</label>
+                <CustomDropdown
+                  options={[
+                    { value: ALL_CATEGORIES, label: 'جميع الفئات الفرعية' },
+                    ...(categoryHierarchy.find(g => g.name === selectedMainCategory)?.subcategories || []).map(sub => ({ value: sub, label: sub }))
+                  ]}
+                  value={selectedSubCategory}
+                  onChange={(val) => {
+                    setSelectedSubCategory(val);
+                    if (val === ALL_CATEGORIES) {
+                      setCategory(selectedMainCategory);
+                    } else {
+                      setCategory(val);
+                    }
+                  }}
+                  disabled={selectedMainCategory === ALL_CATEGORIES}
+                  className="w-full"
+                />
+              </div>
+
+              {/* Sort By */}
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-on-surface-variant">ترتيب المنتجات</label>
+                <CustomDropdown
+                  options={[
+                    { value: 'name-asc', label: 'أبجدي (أ - ي)' },
+                    { value: 'price-asc', label: 'السعر: من الأقل للأعلى' },
+                    { value: 'price-desc', label: 'السعر: من الأعلى للأقل' },
+                  ]}
+                  value={sortBy}
+                  onChange={(val: string) => setSortBy(val as SortByType)}
+                  className="w-full"
+                />
+              </div>
+
+              {/* Hide Out of Stock Checkbox */}
+              <div className="pt-2">
+                <label className="flex items-center gap-2 cursor-pointer font-bold text-xs text-on-surface select-none">
+                  <input
+                    type="checkbox"
+                    checked={hideOutOfStock}
+                    onChange={(e) => setHideOutOfStock(e.target.checked)}
+                    className="w-4 h-4 rounded border-outline-variant focus:ring-primary text-primary accent-primary cursor-pointer"
+                  />
+                  إخفاء غير المتوفر من المخزون
+                </label>
+              </div>
+            </div>
+
+            {/* Clear filters Button */}
+            {(category !== ALL_CATEGORIES || searchInput || hideOutOfStock || sortBy !== 'name-asc') && (
+              <button
+                type="button"
+                onClick={handleClearFilters}
+                className="w-full bg-surface-container-low hover:bg-surface-container-high text-primary border border-outline-variant/30 py-3 rounded-xl font-bold text-xs active:scale-[0.98] transition-all cursor-pointer text-center"
+              >
+                إعادة تعيين التصفية
+              </button>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 });
-ShopPageContent.displayName = 'ShopPageContent';

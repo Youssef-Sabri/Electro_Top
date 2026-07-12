@@ -49,5 +49,6 @@ supabase_setup_script_organizer.html
 .eslintcache
 /ProjectMD-files
 elsewedy_products.csv
-himel_products.csv
+himel_siemens_products.csv
+/public/images/
 

@@ -61,3 +61,9 @@ export interface CartItem {
   quantity: number;
   selectedColor?: string | null;
 }
+
+export interface CategoryGroup {
+  name: string;
+  icon: string;
+  subcategories: string[];
+}
