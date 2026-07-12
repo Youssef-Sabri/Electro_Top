@@ -46,7 +46,7 @@ export const ProductCard = React.memo(function ProductCard({ product, onOpenDeta
   return (
     <div
       onClick={() => onOpenDetails(product)}
-      className="group bg-white rounded-2xl border border-outline-variant/30 overflow-hidden shadow-sm hover:shadow-lg active:scale-[0.98] transition-all duration-300 flex flex-col cursor-pointer animate-fade-in-up opacity-0 relative"
+      className="group bg-white rounded-2xl border border-outline-variant/20 overflow-hidden premium-shadow hover:premium-shadow-lg hover:-translate-y-1.5 active:scale-[0.98] premium-transition flex flex-col cursor-pointer animate-fade-in-up opacity-0 relative"
       style={{ animationDelay: `${(index % 8) * 60}ms` }}
     >
       {/* Image Area */}
@@ -56,7 +56,7 @@ export const ProductCard = React.memo(function ProductCard({ product, onOpenDeta
             src={product.image_url}
             alt={product.name}
             fill
-            className="w-full h-full object-contain p-4 group-hover:scale-105 transition-transform duration-500 pointer-events-none select-none"
+            className="w-full h-full object-contain p-4 group-hover:scale-105 premium-transition pointer-events-none select-none"
             sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
             quality={80}
             priority={index < 4}

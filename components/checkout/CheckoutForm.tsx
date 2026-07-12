@@ -314,13 +314,13 @@ export function CheckoutForm() {
 
       <div className="flex flex-col lg:flex-row gap-8">
         {/* Billing/Shipping Inputs Section */}
-        <div className="lg:w-2/3 bg-white border border-outline-variant/40 rounded-2xl p-8 shadow-sm text-start space-y-6">
+        <div className="lg:w-2/3 bg-white border border-outline-variant/20 rounded-2xl p-8 premium-shadow text-start space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
               <label className="text-sm text-on-surface block font-bold">الاسم الكامل</label>
               <input
-                className={`w-full border rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/10 focus:border-primary transition-all bg-white text-on-background font-medium text-sm ${
-                  errors.customer_name ? 'border-error ring-1 ring-error/20' : 'border-outline-variant'
+                className={`w-full border rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/15 focus:border-primary premium-transition bg-white text-on-background font-medium text-sm ${
+                  errors.customer_name ? 'border-error ring-1 ring-error/20' : 'border-outline-variant/50'
                 }`}
                 name="customer_name"
                 placeholder="مثال: محمد علي"
@@ -337,8 +337,8 @@ export function CheckoutForm() {
             <div className="space-y-2">
               <label className="text-sm text-on-surface block font-bold">رقم الهاتف</label>
               <input
-                className={`w-full border rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/10 focus:border-primary transition-all bg-white text-on-background font-medium text-sm text-left ${
-                  errors.phone_number ? 'border-error ring-1 ring-error/20' : 'border-outline-variant'
+                className={`w-full border rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/15 focus:border-primary premium-transition bg-white text-on-background font-medium text-sm text-left ${
+                  errors.phone_number ? 'border-error ring-1 ring-error/20' : 'border-outline-variant/50'
                 }`}
                 name="phone_number"
                 placeholder="010 1234 5678"
@@ -360,8 +360,8 @@ export function CheckoutForm() {
           <div className="space-y-2">
             <label className="text-sm text-on-surface block font-bold">عنوان الشحن بالتفصيل</label>
             <input
-              className={`w-full border rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/10 focus:border-primary transition-all bg-white text-on-background font-medium text-sm ${
-                errors.shipping_address ? 'border-error ring-1 ring-error/20' : 'border-outline-variant'
+              className={`w-full border rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/15 focus:border-primary premium-transition bg-white text-on-background font-medium text-sm ${
+                errors.shipping_address ? 'border-error ring-1 ring-error/20' : 'border-outline-variant/50'
               }`}
               name="shipping_address"
               placeholder="مثال: 12 شارع جمال عبد الناصر، سيدي بشر، الإسكندرية"
@@ -381,7 +381,7 @@ export function CheckoutForm() {
                 رابط الموقع الجغرافي <span className="text-on-surface-variant font-semibold text-xs">(اختياري - رابط جوجل ماب)</span>
               </label>
               <input
-                className="w-full border rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/10 focus:border-primary transition-all bg-white text-on-background font-medium text-sm border-outline-variant text-left"
+                className="w-full border rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/15 focus:border-primary premium-transition bg-white text-on-background font-medium text-sm border-outline-variant/50 text-left"
                 name="location_link"
                 placeholder="https://maps.app.goo.gl/xyz"
                 type="text"
@@ -398,7 +398,7 @@ export function CheckoutForm() {
                   رقم الهاتف المحول منه إنستاباي <span className="text-on-surface-variant font-semibold text-xs">(اختياري)</span>
                 </label>
                 <input
-                  className="w-full border rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/10 focus:border-primary transition-all bg-white text-on-background font-medium text-sm border-outline-variant text-left"
+                  className="w-full border rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/15 focus:border-primary premium-transition bg-white text-on-background font-medium text-sm border-outline-variant/50 text-left"
                   name="instapay_phone_number"
                   placeholder="010 1122 3344"
                   type="tel"

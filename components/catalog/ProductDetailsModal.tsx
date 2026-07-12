@@ -263,10 +263,10 @@ export const ProductDetailsModal = memo(function ProductDetailsModal({ product, 
                 <button
                   type="button"
                   onClick={() => setSelectedColor(null)}
-                  className={`w-8 h-8 rounded-full border transition-all duration-200 cursor-pointer flex items-center justify-center bg-surface-container-low ${
+                  className={`w-8 h-8 rounded-full border premium-transition cursor-pointer flex items-center justify-center bg-surface-container-low ${
                     selectedColor === null
-                      ? 'border-primary ring-2 ring-offset-2 ring-primary/60 scale-105'
-                      : 'border-outline-variant/40 hover:border-outline hover:scale-105'
+                      ? 'border-primary ring-2 ring-offset-2 ring-primary/40 scale-105 shadow-sm'
+                      : 'border-outline-variant/30 hover:border-outline hover:scale-105'
                   }`}
                   title="كل الألوان"
                   aria-label="كل الألوان"
@@ -281,10 +281,10 @@ export const ProductDetailsModal = memo(function ProductDetailsModal({ product, 
                       key={colorName}
                       type="button"
                       onClick={() => setSelectedColor(colorName)}
-                      className={`w-8 h-8 rounded-full border transition-all duration-200 cursor-pointer relative flex items-center justify-center ${
+                      className={`w-8 h-8 rounded-full border premium-transition cursor-pointer relative flex items-center justify-center ${
                           isSelected
-                          ? 'border-primary ring-2 ring-offset-2 ring-primary/60 scale-105'
-                          : 'border-outline-variant/40 hover:border-outline hover:scale-105'
+                          ? 'border-primary ring-2 ring-offset-2 ring-primary/40 scale-105 shadow-sm'
+                          : 'border-outline-variant/30 hover:border-outline hover:scale-105'
                       }`}
                       title={colorName}
                       aria-label={`اختر لون ${colorName}`}
@@ -315,11 +315,11 @@ export const ProductDetailsModal = memo(function ProductDetailsModal({ product, 
 
           <div className="mt-auto pt-5 border-t border-outline-variant/10 flex flex-col sm:flex-row gap-4 items-stretch">
             {product.stock > 0 && (
-              <div className="flex items-center border border-outline-variant/30 rounded-xl overflow-hidden shrink-0 bg-surface-container-low justify-between h-[48px] px-2.5">
+              <div className="flex items-center border border-outline-variant/20 rounded-xl overflow-hidden shrink-0 bg-surface-container-low justify-between h-[48px] px-2.5 premium-transition">
                 <button
                   onClick={handleDecrement}
                   disabled={quantity <= 1}
-                  className="p-1 hover:bg-white rounded transition-colors disabled:opacity-30 disabled:hover:bg-transparent cursor-pointer"
+                  className="p-1 hover:bg-white rounded premium-transition disabled:opacity-30 disabled:hover:bg-transparent cursor-pointer"
                   aria-label="تقليل الكمية"
                 >
                   <span className="material-symbols-outlined text-[20px] select-none">remove</span>
@@ -328,7 +328,7 @@ export const ProductDetailsModal = memo(function ProductDetailsModal({ product, 
                 <button
                   onClick={handleIncrement}
                   disabled={quantity >= product.stock}
-                  className="p-1 hover:bg-white rounded transition-colors disabled:opacity-30 disabled:hover:bg-transparent cursor-pointer"
+                  className="p-1 hover:bg-white rounded premium-transition disabled:opacity-30 disabled:hover:bg-transparent cursor-pointer"
                   aria-label="زيادة الكمية"
                 >
                   <span className="material-symbols-outlined text-[20px] select-none">add</span>

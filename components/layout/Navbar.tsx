@@ -74,7 +74,7 @@ export const Navbar = memo(function Navbar() {
   return (
     <header className="sticky top-0 w-full z-50 transition-shadow duration-300">
       {/* Main Nav Container */}
-      <nav className={`w-full bg-white/95 backdrop-blur-md border-b border-outline-variant/20 transition-all duration-300 ${isScrolled ? 'shadow-md' : 'shadow-sm'}`}>
+      <nav className={`w-full bg-white/85 backdrop-blur-md border-b border-outline-variant/10 premium-transition ${isScrolled ? 'premium-shadow' : 'shadow-sm'}`}>
         
         {/* Tier 2: Logo, Search Bar, Icons */}
         <div className="max-w-max-width mx-auto flex items-center justify-between px-margin-mobile md:px-margin-desktop py-4 gap-6">
@@ -97,7 +97,7 @@ export const Navbar = memo(function Navbar() {
           {/* Centered Wide Search Bar */}
           <form onSubmit={handleSearchSubmit} className="relative flex-grow max-w-xl hidden md:block">
             <input
-              className="w-full bg-surface-container-low border border-outline-variant/60 rounded-full pr-11 pl-4 py-2.5 text-label-md focus:ring-2 focus:ring-primary/10 focus:border-primary outline-none transition-all text-on-surface text-right"
+              className="w-full bg-surface-container-low border border-outline-variant/50 rounded-full pr-11 pl-4 py-2.5 text-label-md focus:ring-2 focus:ring-primary/15 focus:border-primary outline-none transition-all text-on-surface text-right"
               placeholder="البحث عن المنتجات والمستلزمات الكهربائية..."
               type="text"
               value={searchQuery}
@@ -147,44 +147,44 @@ export const Navbar = memo(function Navbar() {
         </div>
 
         {/* Tier 3: Centered Link Row */}
-        <div className="hidden md:block border-t border-outline-variant/10 bg-white/50">
+        <div className="hidden md:block border-t border-outline-variant/10 bg-white/40">
           <div className="max-w-max-width mx-auto flex justify-center items-center gap-10 py-3">
             <Link
               href="/"
-              className={`font-label-md text-sm font-semibold transition-colors duration-[250ms] pb-1 border-b-2 ${
+              className={`font-label-md text-sm font-semibold transition-colors duration-[250ms] pb-1 ${
                 isHomeActive
-                  ? 'text-primary border-primary'
-                  : 'text-on-surface-variant border-transparent hover:text-primary'
+                  ? 'text-primary active-nav-glow'
+                  : 'text-on-surface-variant hover:text-primary'
               }`}
             >
               الرئيسية
             </Link>
             <Link
               href="/shop"
-              className={`font-label-md text-sm font-semibold transition-colors duration-[250ms] pb-1 border-b-2 ${
+              className={`font-label-md text-sm font-semibold transition-colors duration-[250ms] pb-1 ${
                 pathname.startsWith('/shop')
-                  ? 'text-primary border-primary'
-                  : 'text-on-surface-variant border-transparent hover:text-primary'
+                  ? 'text-primary active-nav-glow'
+                  : 'text-on-surface-variant hover:text-primary'
               }`}
             >
               المتجر
             </Link>
             <Link
               href="/track"
-              className={`font-label-md text-sm font-semibold transition-colors duration-[250ms] pb-1 border-b-2 ${
+              className={`font-label-md text-sm font-semibold transition-colors duration-[250ms] pb-1 ${
                 isTrackActive
-                  ? 'text-primary border-primary'
-                  : 'text-on-surface-variant border-transparent hover:text-primary'
+                  ? 'text-primary active-nav-glow'
+                  : 'text-on-surface-variant hover:text-primary'
               }`}
             >
               تتبع الطلب
             </Link>
             <Link
               href="/support"
-              className={`font-label-md text-sm font-semibold transition-colors duration-[250ms] pb-1 border-b-2 ${
+              className={`font-label-md text-sm font-semibold transition-colors duration-[250ms] pb-1 ${
                 pathname.startsWith('/support')
-                  ? 'text-primary border-primary'
-                  : 'text-on-surface-variant border-transparent hover:text-primary'
+                  ? 'text-primary active-nav-glow'
+                  : 'text-on-surface-variant hover:text-primary'
               }`}
             >
               الدعم

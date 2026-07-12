@@ -193,7 +193,7 @@ export const ShopPageContent = memo(function ShopPageContent({ initialProducts, 
       <main className="max-w-max-width mx-auto px-margin-mobile md:px-margin-desktop py-12">
         
         {/* Sleek Filter Trigger Control Bar */}
-        <div className="flex flex-wrap items-center justify-between gap-4 bg-surface-container-low border border-outline-variant/30 rounded-2xl p-4 mb-8 shadow-sm">
+        <div className="flex flex-wrap items-center justify-between gap-4 bg-surface-container-low border border-outline-variant/20 rounded-2xl p-4 mb-8 premium-shadow premium-transition">
           {/* Active category trace path */}
           <div className="flex items-center gap-2 text-start">
             <span className="material-symbols-outlined text-primary text-[18px]">shopping_bag</span>
@@ -220,7 +220,7 @@ export const ShopPageContent = memo(function ShopPageContent({ initialProducts, 
             <button
               type="button"
               onClick={() => setIsFilterDrawerOpen(true)}
-              className="bg-primary hover:bg-primary/95 text-on-primary px-5 py-2.5 rounded-xl text-xs font-bold active:scale-[0.98] transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-md shadow-primary/15"
+              className="bg-primary hover:bg-primary/95 text-on-primary px-5 py-2.5 rounded-xl text-xs font-bold active:scale-[0.98] premium-transition flex items-center justify-center gap-1.5 cursor-pointer shadow-md shadow-primary/15"
             >
               <span className="material-symbols-outlined text-[16px]">filter_list</span>
               تصفية وتصنيف
@@ -316,9 +316,9 @@ export const ShopPageContent = memo(function ShopPageContent({ initialProducts, 
             onClick={() => setIsFilterDrawerOpen(false)}
           />
           {/* Drawer Content */}
-          <div className="relative w-full max-w-[340px] sm:max-w-[380px] bg-white h-full shadow-2xl flex flex-col z-10 transition-transform duration-300 animate-[slideInRight_0.25s_ease-out] p-6 space-y-6 overflow-y-auto">
+          <div className="relative w-full max-w-[340px] sm:max-w-[380px] bg-white h-full shadow-2xl flex flex-col z-10 transition-transform duration-300 animate-[slideInRight_0.25s_ease-out] border-s border-outline-variant/10 p-6 space-y-6 overflow-y-auto">
             {/* Header */}
-            <div className="flex items-center justify-between border-b border-outline-variant/30 pb-4">
+            <div className="flex items-center justify-between border-b border-outline-variant/20 pb-4">
               <div className="flex items-center gap-2">
                 <span className="material-symbols-outlined text-primary text-[20px]">filter_list</span>
                 <h3 className="font-bold text-sm text-on-surface">تصفية وتصنيف المنتجات</h3>
