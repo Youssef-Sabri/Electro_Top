@@ -49,7 +49,7 @@ export const ShopPageContent = memo(function ShopPageContent({ initialProducts, 
   useEffect(() => {
     async function loadHierarchy() {
       try {
-        const res = await fetch('/api/admin/category-hierarchy');
+        const res = await fetch('/api/category-hierarchy');
         if (res.ok) {
           const data = await res.json();
           setCategoryHierarchy(data);

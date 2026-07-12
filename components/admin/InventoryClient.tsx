@@ -95,7 +95,7 @@ export const InventoryClient = memo(function InventoryClient() {
     let active = true;
     async function load() {
       try {
-        const res = await fetch('/api/admin/category-hierarchy');
+        const res = await fetch('/api/category-hierarchy');
         if (res.ok) {
           const data = await res.json();
           if (active) setHierarchy(data);

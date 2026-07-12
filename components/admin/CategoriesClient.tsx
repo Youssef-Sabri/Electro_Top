@@ -30,7 +30,7 @@ export function CategoriesClient() {
     let active = true;
     async function load() {
       try {
-        const res = await fetch('/api/admin/category-hierarchy');
+        const res = await fetch('/api/category-hierarchy');
         if (res.ok) {
           const data = await res.json();
           if (active) setHierarchy(data);
@@ -49,7 +49,7 @@ export function CategoriesClient() {
 
   const saveHierarchy = async (updated: CategoryHierarchyItem[], successMsg: string) => {
     try {
-      const res = await fetch('/api/admin/category-hierarchy', {
+      const res = await fetch('/api/category-hierarchy', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updated),

@@ -114,7 +114,7 @@ export const LandingPage = memo(function LandingPage({ initialCategories = [], i
   const [hierarchy, setHierarchy] = useState<{ name: string; subcategories: string[] }[]>([]);
 
   useEffect(() => {
-    fetch('/api/admin/category-hierarchy')
+    fetch('/api/category-hierarchy')
       .then((res) => res.json())
       .then((data) => {
         if (Array.isArray(data)) setHierarchy(data);
