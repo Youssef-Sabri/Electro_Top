@@ -35,7 +35,7 @@ export const RATE_LIMIT_CONFIGS = {
     table: TABLES.loginAttempts,
     countColumn: 'attempt_count',
     lastColumn: 'last_attempt_at',
-    firstColumn: 'first_request_at',
+    firstColumn: 'first_attempt_at',
     maxAttempts: 5,
     windowMs: 60_000,
   },
