@@ -2,12 +2,13 @@ import { NextResponse } from 'next/server';
 import { requireAdminGuard } from '@/lib/admin-guard';
 import { parseJsonBody } from '@/lib/parse-json';
 import { createSupabaseAdminClient } from '@/lib/supabase-server';
+import { TABLES } from '@/lib/db-constants';
 
 export async function GET() {
   try {
     const supabase = createSupabaseAdminClient();
     const { data: categories, error } = await supabase
-      .from('categories')
+      .from(TABLES.categories)
       .select('name, parent_category')
       .order('name');
 
@@ -55,34 +56,34 @@ export async function POST(request: Request) {
 
     if (allActiveNames.length > 0) {
       const { error: mainErr } = await supabase
-        .from('categories')
+        .from(TABLES.categories)
         .upsert(mainCatNames.map((name) => ({ name })), { onConflict: 'name' });
       if (mainErr) throw mainErr;
 
       if (allSubCats.length > 0) {
         const { error: subErr } = await supabase
-          .from('categories')
+          .from(TABLES.categories)
           .upsert(allSubCats.map((name) => ({ name })), { onConflict: 'name' });
         if (subErr) throw subErr;
       }
     }
 
     const { data: dbCats, error: fetchErr } = await supabase
-      .from('categories')
+      .from(TABLES.categories)
       .select('name');
     if (fetchErr) throw fetchErr;
 
     const toDelete = dbCats.map((c) => c.name).filter((name) => !allActiveNames.includes(name));
     if (toDelete.length > 0) {
       const { error: deleteErr } = await supabase
-        .from('categories')
+        .from(TABLES.categories)
         .delete()
         .in('name', toDelete);
       if (deleteErr) throw deleteErr;
     }
 
     const { error: resetErr } = await supabase
-      .from('categories')
+      .from(TABLES.categories)
       .update({ parent_category: null })
       .neq('name', '');
     if (resetErr) throw resetErr;
@@ -90,7 +91,7 @@ export async function POST(request: Request) {
     for (const group of body) {
       if (group.subcategories.length > 0) {
         const { error: updateErr } = await supabase
-          .from('categories')
+          .from(TABLES.categories)
           .update({ parent_category: group.name.trim() })
           .in('name', group.subcategories.map((s: string) => s.trim()));
         if (updateErr) throw updateErr;
