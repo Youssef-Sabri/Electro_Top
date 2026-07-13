@@ -5,7 +5,7 @@ import Image from 'next/image';
 import type { CartItem as CartItemType } from '@/types';
 import { useCart } from '@/hooks/useCart';
 import { formatCurrency } from '@/lib/utils/format';
-import { getColorHex } from '@/lib/utils/color';
+import { ColorSwatch } from '@/components/ui/ColorSwatch';
 
 interface CartItemProps {
   item: CartItemType;
@@ -81,9 +81,7 @@ export const CartItem = memo(function CartItem({ item }: CartItemProps) {
             </h3>
             {item.selectedColor && (
               <span className="inline-flex items-center gap-1.5 bg-surface-container-low border border-outline-variant/40 text-on-surface-variant text-xs font-semibold px-2.5 py-0.5 rounded-full w-fit">
-                <span className="w-2 h-2 rounded-full border border-outline-variant" style={{
-                  background: getColorHex(item.selectedColor)
-                }} />
+                <ColorSwatch color={item.selectedColor} />
                 اللون: {item.selectedColor}
               </span>
             )}

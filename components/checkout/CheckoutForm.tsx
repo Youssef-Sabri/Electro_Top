@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef, type ChangeEvent, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import Image from 'next/image';
 import { useCart } from '@/hooks/useCart';
 import { checkoutSchema } from '@/lib/validations';
@@ -11,6 +10,7 @@ import { formatCurrency } from '@/lib/utils/format';
 import { processAndCompressImage } from '@/lib/utils/image';
 import { readFileAsDataURL } from '@/lib/utils/file';
 import { Toast } from '@/components/ui/Toast';
+import { BackLink } from '@/components/ui/BackLink';
 
 export function CheckoutForm() {
   const router = useRouter();
@@ -264,10 +264,7 @@ export function CheckoutForm() {
         />
       )}
 
-      <Link href="/cart" className="group flex items-center gap-2 text-primary font-bold text-sm mb-6 w-fit">
-        <span className="material-symbols-outlined select-none rotate-180 text-[18px]">arrow_back</span>
-        <span className="group-hover:underline">العودة إلى السلة</span>
-      </Link>
+      <BackLink href="/cart" label="العودة إلى السلة" />
 
       <h1 className="font-bold text-[28px] md:text-[32px] mb-8 text-on-background text-start">
         الدفع الآمن

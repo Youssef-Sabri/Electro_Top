@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server'
 import { SupabaseClient } from '@supabase/supabase-js'
-import { revalidatePath } from 'next/cache'
 import { createSupabaseAdminClient } from '@/lib/supabase/server'
 import { requireAdminGuard } from '@/lib/auth'
 import { productFormPartialSchema } from '@/lib/validations'
@@ -8,6 +7,7 @@ import { deleteStorageFile } from '@/lib/utils/file'
 import { TABLES, STORAGE_BUCKETS } from '@/lib/constants'
 import { parseJsonBody } from '@/lib/utils/misc'
 import { devLog } from '@/lib/utils/misc'
+import { revalidateShopPaths } from '@/lib/api-helpers'
 
 const ALLOWED_UPDATE_FIELDS = ['name', 'description', 'price', 'stock', 'image_url', 'image_url_2', 'image_url_3', 'is_active', 'category', 'has_colors', 'colors'] as const
 
@@ -98,8 +98,7 @@ export async function PATCH(
     }
   }
 
-  revalidatePath('/')
-  revalidatePath('/shop')
+  revalidateShopPaths()
 
   return NextResponse.json({ success: true })
 }
@@ -144,8 +143,7 @@ export async function DELETE(
     }
   }
 
-  revalidatePath('/')
-  revalidatePath('/shop')
+  revalidateShopPaths()
 
   return NextResponse.json({ success: true })
 }

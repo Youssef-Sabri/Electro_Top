@@ -9,6 +9,8 @@ import { formatOrderDate, todayStamp } from '@/lib/utils/date';
 import { STATUS_OPTIONS } from '@/lib/utils/status';
 import { exportToCSV } from '@/lib/utils/csv';
 import { StatusBadge } from '@/components/ui/StatusBadge';
+import { StatCard } from '@/components/ui/StatCard';
+import { PaymentMethodBadge } from '@/components/ui/PaymentMethodBadge';
 import { PaginationControls } from '@/components/ui/PaginationControls';
 import { CustomDropdown } from '@/components/ui/CustomDropdown';
 import { ConfirmationModal } from '@/components/ui/ConfirmationModal';
@@ -137,49 +139,10 @@ export const OrdersLedger = memo(function OrdersLedger() {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-gutter text-start">
-        <div className="bg-surface-container-lowest border border-outline-variant/30 rounded-xl p-6 shadow-sm space-y-2">
-          <div className="flex justify-between items-center text-on-surface-variant">
-            <span className="font-label-md text-label-md font-semibold uppercase tracking-wider">إجمالي الطلبات</span>
-            <span className="material-symbols-outlined text-purple-600 bg-purple-50 p-2 rounded-lg text-[20px]">shopping_bag</span>
-          </div>
-          <h2 className="text-[28px] font-extrabold text-on-surface tracking-tight mt-1">
-            {metrics.totalCount}
-          </h2>
-          <p className="text-xs text-on-surface-variant mt-1">سجلات نشطة في النظام</p>
-        </div>
-
-        <div className="bg-surface-container-lowest border border-outline-variant/30 rounded-xl p-6 shadow-sm space-y-2">
-          <div className="flex justify-between items-center text-on-surface-variant">
-            <span className="font-label-md text-label-md font-semibold uppercase tracking-wider">قيد المراجعة</span>
-            <span className="material-symbols-outlined text-amber-600 bg-amber-50 p-2 rounded-lg text-[20px]">notifications_active</span>
-          </div>
-          <h2 className="text-[28px] font-extrabold text-on-surface tracking-tight mt-1">
-            {metrics.pendingCount}
-          </h2>
-          <p className="text-xs text-primary mt-1 font-semibold">⚠️ بحاجة لاتخاذ إجراء</p>
-        </div>
-
-        <div className="bg-surface-container-lowest border border-outline-variant/30 rounded-xl p-6 shadow-sm space-y-2">
-          <div className="flex justify-between items-center text-on-surface-variant">
-            <span className="font-label-md text-label-md font-semibold uppercase tracking-wider">قيد التحضير</span>
-            <span className="material-symbols-outlined text-blue-600 bg-blue-50 p-2 rounded-lg text-[20px]">bolt</span>
-          </div>
-          <h2 className="text-[28px] font-extrabold text-on-surface tracking-tight mt-1">
-            {metrics.activeFulfillmentCount}
-          </h2>
-          <p className="text-xs text-on-surface-variant mt-1">في مسار التحضير حالياً</p>
-        </div>
-
-        <div className="bg-surface-container-lowest border border-outline-variant/30 rounded-xl p-6 shadow-sm space-y-2">
-          <div className="flex justify-between items-center text-on-surface-variant">
-            <span className="font-label-md text-label-md font-semibold uppercase tracking-wider">الطلبات المكتملة</span>
-            <span className="material-symbols-outlined text-green-600 bg-green-50 p-2 rounded-lg text-[20px]">task_alt</span>
-          </div>
-          <h2 className="text-[28px] font-extrabold text-on-surface tracking-tight mt-1">
-            {metrics.completedCount}
-          </h2>
-          <p className="text-xs text-on-surface-variant mt-1">تم توصيلها بنجاح للعملاء</p>
-        </div>
+        <StatCard title="إجمالي الطلبات" value={metrics.totalCount} description="سجلات نشطة في النظام" icon="shopping_bag" iconColor="text-purple-600" />
+        <StatCard title="قيد المراجعة" value={metrics.pendingCount} description="⚠️ بحاجة لاتخاذ إجراء" icon="notifications_active" iconColor="text-amber-600" />
+        <StatCard title="قيد التحضير" value={metrics.activeFulfillmentCount} description="في مسار التحضير حالياً" icon="bolt" iconColor="text-blue-600" />
+        <StatCard title="الطلبات المكتملة" value={metrics.completedCount} description="تم توصيلها بنجاح للعملاء" icon="task_alt" iconColor="text-green-600" />
       </div>
 
       <div className="bg-surface-container-lowest rounded-xl border border-outline-variant/30 shadow-sm overflow-hidden text-start">
@@ -254,18 +217,7 @@ export const OrdersLedger = memo(function OrdersLedger() {
                       </td>
 
                       <td className="px-6 py-4 font-body-md text-body-md text-on-surface text-start">
-                        <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold ${
-                          order.payment_method === 'cod'
-                            ? 'bg-[var(--color-status-delivered)]/10 text-[var(--color-status-delivered)] border-[var(--color-status-delivered)]/30'
-                            : order.payment_method === 'instapay'
-                              ? 'bg-[var(--color-status-accepted)]/10 text-[var(--color-status-accepted)] border-[var(--color-status-accepted)]/30'
-                              : 'bg-surface-container-low text-on-surface-variant border border-outline-variant'
-                        }`}>
-                          <span className="material-symbols-outlined text-[14px] select-none">
-                            {order.payment_method === 'cod' ? 'payments' : order.payment_method === 'instapay' ? 'account_balance_wallet' : 'help'}
-                          </span>
-                          {order.payment_method === 'cod' ? 'COD' : order.payment_method === 'instapay' ? 'InstaPay' : '-'}
-                        </span>
+                        <PaymentMethodBadge method={order.payment_method} />
                       </td>
 
                       <td className="px-6 py-4 font-headline-md text-label-md text-on-surface text-end font-bold">
@@ -330,15 +282,7 @@ export const OrdersLedger = memo(function OrdersLedger() {
                   <div className="flex flex-wrap gap-2 items-center justify-between">
                     <div className="flex gap-2">
                       <StatusBadge status={order.status} />
-                      <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
-                        order.payment_method === 'cod'
-                          ? 'bg-[var(--color-status-delivered)]/10 text-[var(--color-status-delivered)] border-[var(--color-status-delivered)]/30'
-                          : order.payment_method === 'instapay'
-                            ? 'bg-[var(--color-status-accepted)]/10 text-[var(--color-status-accepted)] border-[var(--color-status-accepted)]/30'
-                            : 'bg-surface-container-low text-on-surface-variant border border-outline-variant'
-                      }`}>
-                        {order.payment_method === 'cod' ? 'COD' : order.payment_method === 'instapay' ? 'InstaPay' : '-'}
-                      </span>
+                      <PaymentMethodBadge method={order.payment_method} />
                     </div>
                     <span className="text-[11px] text-on-surface-variant font-medium">
                       {dateStr}

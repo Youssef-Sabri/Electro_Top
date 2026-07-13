@@ -3,6 +3,7 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { PaginationControls } from '@/components/ui/PaginationControls';
 import { useCategoryHierarchy } from '@/hooks/useCategoryHierarchy';
+import { useConfirmModal } from '@/hooks/useConfirmModal';
 import { ConfirmationModal } from '@/components/ui/ConfirmationModal';
 import { Toast } from '@/components/ui/Toast';
 
@@ -24,20 +25,7 @@ export function CategoriesClient() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 6;
 
-  const [confirmModal, setConfirmModal] = useState<{
-    isOpen: boolean;
-    title: string;
-    message: string;
-    confirmLabel?: string;
-    cancelLabel?: string;
-    isDestructive?: boolean;
-    onConfirm: () => void;
-  }>({
-    isOpen: false,
-    title: '',
-    message: '',
-    onConfirm: () => {},
-  });
+  const { confirmModal, openConfirm, closeConfirm } = useConfirmModal();
 
   const [renameModal, setRenameModal] = useState<{
     isOpen: boolean;
@@ -93,14 +81,13 @@ export function CategoriesClient() {
         showToast(`القسم الرئيسي "${trimmed}" موجود بالفعل.`);
         return;
       }
-      setConfirmModal({
-        isOpen: true,
+      openConfirm({
         title: 'تعديل اسم القسم الرئيسي',
         message: `هل أنت متأكد من تغيير اسم القسم من "${oldName}" إلى "${trimmed}"؟ سيتم تحديث جميع المنتجات المرتبطة.`,
         confirmLabel: 'نعم، عدّل الاسم',
         cancelLabel: 'إلغاء',
         onConfirm: async () => {
-          setConfirmModal(prev => ({ ...prev, isOpen: false }));
+          closeConfirm();
           setRenameModal(prev => ({ ...prev, isOpen: false }));
           const updated = hierarchy.map(g => {
             if (g.name === oldName) return { ...g, name: trimmed };
@@ -117,14 +104,13 @@ export function CategoriesClient() {
         showToast(`الفئة "${trimmed}" موجودة بالفعل كقسم رئيسي أو فئة فرعية.`);
         return;
       }
-      setConfirmModal({
-        isOpen: true,
+      openConfirm({
         title: 'تعديل اسم الفئة الفرعية',
         message: `هل أنت متأكد من تغيير اسم الفئة من "${oldName}" إلى "${trimmed}"؟ سيتم تحديث جميع المنتجات المرتبطة.`,
         confirmLabel: 'نعم، عدّل الاسم',
         cancelLabel: 'إلغاء',
         onConfirm: async () => {
-          setConfirmModal(prev => ({ ...prev, isOpen: false }));
+          closeConfirm();
           setRenameModal(prev => ({ ...prev, isOpen: false }));
           const updated = hierarchy.map(g => {
             if (g.name === parentName) {
@@ -146,14 +132,13 @@ export function CategoriesClient() {
       showToast(`القسم الرئيسي "${name}" موجود بالفعل.`);
       return;
     }
-    setConfirmModal({
-      isOpen: true,
+    openConfirm({
       title: 'إضافة قسم رئيسي',
       message: `هل أنت متأكد من إضافة القسم الرئيسي "${name}"؟`,
       confirmLabel: 'نعم، أضف القسم',
       cancelLabel: 'إلغاء',
       onConfirm: async () => {
-        setConfirmModal(prev => ({ ...prev, isOpen: false }));
+        closeConfirm();
         const updated = [...hierarchy, { name, subcategories: [] }];
         await saveHierarchy(updated, `تم إنشاء القسم الرئيسي "${name}" بنجاح.`);
         setNewMainCatName('');
@@ -162,15 +147,14 @@ export function CategoriesClient() {
   };
 
   const handleDeleteMainCategory = (name: string) => {
-    setConfirmModal({
-      isOpen: true,
+    openConfirm({
       title: 'حذف القسم الرئيسي',
       message: `هل أنت متأكد من حذف القسم الرئيسي "${name}"؟ سيتم فك ارتباط الفئات الفرعية التابعة له.`,
       confirmLabel: 'نعم، احذف القسم',
       cancelLabel: 'إلغاء',
       isDestructive: true,
       onConfirm: async () => {
-        setConfirmModal(prev => ({ ...prev, isOpen: false }));
+        closeConfirm();
         const updated = hierarchy.filter(g => g.name !== name);
         await saveHierarchy(updated, `تم حذف القسم الرئيسي "${name}" بنجاح.`);
       },
@@ -188,14 +172,13 @@ export function CategoriesClient() {
       return;
     }
 
-    setConfirmModal({
-      isOpen: true,
+    openConfirm({
       title: 'إضافة فئة فرعية',
       message: `هل أنت متأكد من إضافة الفئة الفرعية "${subName}" إلى "${parentName}"؟`,
       confirmLabel: 'نعم، أضف الفئة',
       cancelLabel: 'إلغاء',
       onConfirm: async () => {
-        setConfirmModal(prev => ({ ...prev, isOpen: false }));
+        closeConfirm();
         const updated = hierarchy.map(g => {
           if (g.name === parentName) {
             return { ...g, subcategories: [...g.subcategories, subName] };
@@ -209,15 +192,14 @@ export function CategoriesClient() {
   };
 
   const handleDeleteSubcategory = (subName: string, parentName: string) => {
-    setConfirmModal({
-      isOpen: true,
+    openConfirm({
       title: 'حذف الفئة الفرعية',
       message: `هل أنت متأكد من حذف الفئة الفرعية "${subName}" من "${parentName}"؟`,
       confirmLabel: 'نعم، احذف الفئة',
       cancelLabel: 'إلغاء',
       isDestructive: true,
       onConfirm: async () => {
-        setConfirmModal(prev => ({ ...prev, isOpen: false }));
+        closeConfirm();
         const updated = hierarchy.map(g => {
           if (g.name === parentName) {
             return { ...g, subcategories: g.subcategories.filter(s => s !== subName) };
@@ -463,7 +445,7 @@ export function CategoriesClient() {
         cancelLabel={confirmModal.cancelLabel || 'إلغاء'}
         isDestructive={confirmModal.isDestructive}
         onConfirm={confirmModal.onConfirm}
-        onCancel={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
+        onCancel={closeConfirm}
       />
 
       {/* Rename Modal */}

@@ -1,29 +1,14 @@
 import { NextResponse } from 'next/server'
 import { createSupabaseAdminClient } from '@/lib/supabase/server'
-import { requireAdminGuard } from '@/lib/auth'
-import { verifyAdminPassword } from '@/lib/auth'
 import { clearStorageBucket } from '@/lib/utils/file'
 import { TABLES, STORAGE_BUCKETS } from '@/lib/constants'
-import { parseJsonBody } from '@/lib/utils/misc'
 import { devLog } from '@/lib/utils/misc'
+import { requirePasswordVerification } from '@/lib/api-helpers'
 
 export async function DELETE(request: Request) {
-  const guard = await requireAdminGuard(request)
-  if (guard instanceof NextResponse) return guard
-  const { supabaseClient, user } = guard
-
-  const body = await parseJsonBody<{ password?: string }>(request)
-  if (body instanceof NextResponse) return body
-
-  const password = body.password as string | undefined
-  if (!password) {
-    return NextResponse.json({ error: 'كلمة المرور مطلوبة.' }, { status: 400 })
-  }
-
-  const email = user.email
-  if (!email) return NextResponse.json({ error: 'User email not found' }, { status: 500 })
-  const pwError = await verifyAdminPassword(supabaseClient, email, password)
-  if (pwError) return pwError
+  const result = await requirePasswordVerification(request)
+  if (result instanceof NextResponse) return result
+  const { supabaseClient } = result
 
   // Delete all receipt files from storage before clearing DB records (including orphaned files)
   const clearClient = createSupabaseAdminClient()

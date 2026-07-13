@@ -7,10 +7,11 @@ import Image from 'next/image';
 import { useOrderTracking } from '@/hooks/useOrderTracking';
 import { useProducts } from '@/hooks/useProducts';
 import { StatusTimeline } from '@/components/tracking/StatusTimeline';
+import { BackLink } from '@/components/ui/BackLink';
 import { formatCurrency } from '@/lib/utils/format';
 import { formatOrderDate } from '@/lib/utils/date';
 import { getSafeUrl, normalizeTrackingId, isValidTrackingId } from '@/lib/utils/misc';
-import { getColorHex } from '@/lib/utils/color';
+import { ColorSwatch } from '@/components/ui/ColorSwatch';
 import { translateStatus, publicStatus } from '@/lib/utils/status';
 
 interface TrackingDetailClientProps {
@@ -135,10 +136,7 @@ export function TrackingDetailClient({ id }: TrackingDetailClientProps) {
   return (
     <div className="max-w-max-width mx-auto px-margin-mobile md:px-margin-desktop py-12 font-tajawal text-on-surface">
       <div className="mb-8 flex justify-start">
-        <Link href="/track" className="group flex items-center gap-2 text-primary font-bold text-sm w-fit">
-          <span className="material-symbols-outlined select-none rotate-180 text-[18px]">arrow_back</span>
-          <span className="group-hover:underline">العودة إلى تتبع الشحنات</span>
-        </Link>
+        <BackLink href="/track" label="العودة إلى تتبع الشحنات" />
       </div>
 
       <div className="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-outline-variant/40 pb-6 text-start">
@@ -222,9 +220,7 @@ export function TrackingDetailClient({ id }: TrackingDetailClientProps) {
                       </p>
                       {item.selected_color && (
                         <p className="text-[10px] text-on-surface-variant font-semibold flex items-center gap-1.5 mt-0.5">
-                          <span className="w-2 h-2 rounded-full border border-white/10 shadow-sm" style={{
-                            background: getColorHex(item.selected_color)
-                          }} />
+                          <ColorSwatch color={item.selected_color} />
                           اللون: {item.selected_color}
                         </p>
                       )}

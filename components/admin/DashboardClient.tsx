@@ -5,6 +5,7 @@ import Link from 'next/link';
 
 import { formatCurrency } from '@/lib/utils/format';
 import { StatusBadge } from '@/components/ui/StatusBadge';
+import { StatCard } from '@/components/ui/StatCard';
 import { Spinner } from '@/components/ui/Spinner';
 import type { Order } from '@/types';
 
@@ -104,55 +105,10 @@ export const DashboardClient = memo(function DashboardClient() {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">
-        <div className="bg-white border border-outline-variant/30 rounded-xl p-6 shadow-sm space-y-2">
-          <div className="flex justify-between items-center text-on-surface-variant">
-            <span className="font-label-md text-label-md font-semibold uppercase tracking-wider">إجمالي الإيرادات</span>
-            <span className="material-symbols-outlined text-green-600 bg-green-50 p-2 rounded-lg text-[20px]">payments</span>
-          </div>
-          <h2 className="text-[28px] font-extrabold text-on-surface tracking-tight">
-            {formatCurrency(stats.totalRevenue)}
-          </h2>
-          <p className="text-xs text-on-surface-variant">من الطلبات التي تم توصيلها</p>
-        </div>
-
-        <div className="bg-white border border-outline-variant/30 rounded-xl p-6 shadow-sm space-y-2">
-          <div className="flex justify-between items-center text-on-surface-variant">
-            <span className="font-label-md text-label-md font-semibold uppercase tracking-wider">قيد التنفيذ النشط</span>
-            <span className="material-symbols-outlined text-primary bg-primary/5 p-2 rounded-lg text-[20px]">timeline</span>
-          </div>
-          <h2 className="text-[28px] font-extrabold text-on-surface tracking-tight">
-            {formatCurrency(stats.pendingRevenue)}
-          </h2>
-          <p className="text-xs text-on-surface-variant">من الطلبات المعلقة وقيد التحضير</p>
-        </div>
-
-        <div className="bg-white border border-outline-variant/30 rounded-xl p-6 shadow-sm space-y-2">
-          <div className="flex justify-between items-center text-on-surface-variant">
-            <span className="font-label-md text-label-md font-semibold uppercase tracking-wider">إجمالي الطلبات</span>
-            <span className="material-symbols-outlined text-purple-600 bg-purple-50 p-2 rounded-lg text-[20px]">shopping_bag</span>
-          </div>
-          <h2 className="text-[28px] font-extrabold text-on-surface tracking-tight">
-            {stats.totalOrders}
-          </h2>
-          <p className="text-xs text-on-surface-variant">يشمل جميع الحالات والسجلات</p>
-        </div>
-
-        <div className="bg-white border border-outline-variant/30 rounded-xl p-6 shadow-sm space-y-2">
-          <div className="flex justify-between items-center text-on-surface-variant">
-            <span className="font-label-md text-label-md font-semibold uppercase tracking-wider">المخزون بالكتالوج</span>
-            <span className="material-symbols-outlined text-amber-600 bg-amber-50 p-2 rounded-lg text-[20px]">inventory_2</span>
-          </div>
-          <h2 className="text-[28px] font-extrabold text-on-surface tracking-tight">
-            {stats.totalProductsCount}
-          </h2>
-          <p className="text-xs text-on-surface-variant">
-            {stats.outOfStockCount > 0 ? (
-              <span className="text-red-500 font-medium">⚠️ {stats.outOfStockCount} نفد من المخزون</span>
-            ) : (
-              <span>جميع المنتجات النشطة</span>
-            )}
-          </p>
-        </div>
+        <StatCard title="إجمالي الإيرادات" value={formatCurrency(stats.totalRevenue)} description="من الطلبات التي تم توصيلها" icon="payments" iconColor="text-green-600" />
+        <StatCard title="قيد التنفيذ النشط" value={formatCurrency(stats.pendingRevenue)} description="من الطلبات المعلقة وقيد التحضير" icon="timeline" iconColor="text-primary" />
+        <StatCard title="إجمالي الطلبات" value={stats.totalOrders} description="يشمل جميع الحالات والسجلات" icon="shopping_bag" iconColor="text-purple-600" />
+        <StatCard title="المخزون بالكتالوج" value={stats.totalProductsCount} description={stats.outOfStockCount > 0 ? `⚠️ ${stats.outOfStockCount} نفد من المخزون` : 'جميع المنتجات النشطة'} icon="inventory_2" iconColor="text-amber-600" />
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">

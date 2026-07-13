@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useCart } from '@/hooks/useCart';
 import { CartItem } from '@/components/cart/CartItem';
+import { BackLink } from '@/components/ui/BackLink';
 import { formatCurrency } from '@/lib/utils/format';
 
 export function CartClient() {
@@ -58,10 +59,7 @@ export function CartClient() {
           ))}
           
           <div className="pt-6 flex justify-start">
-            <Link href="/shop" className="group flex items-center gap-2 text-primary font-bold text-sm">
-              <span className="material-symbols-outlined select-none rotate-180 text-[18px]">arrow_back</span>
-              <span className="group-hover:underline">مواصلة التسوق</span>
-            </Link>
+            <BackLink href="/shop" label="مواصلة التسوق" />
           </div>
         </div>
 

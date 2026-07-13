@@ -1,13 +1,12 @@
 import { NextResponse } from 'next/server'
-import { revalidatePath } from 'next/cache'
 import { createSupabaseAdminClient } from '@/lib/supabase/server'
 import { requireAdminGuard } from '@/lib/auth'
 import { productFormSchema } from '@/lib/validations'
-import { verifyAdminPassword } from '@/lib/auth'
 import { now } from '@/lib/utils/date'
 import { TABLES, STORAGE_BUCKETS } from '@/lib/constants'
 import { clearStorageBucket } from '@/lib/utils/file'
 import { parseJsonBody } from '@/lib/utils/misc'
+import { requirePasswordVerification, revalidateShopPaths } from '@/lib/api-helpers'
 
 export async function POST(request: Request) {
   const guard = await requireAdminGuard(request)
@@ -34,29 +33,15 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: insertError.message || 'Failed to add product' }, { status: 500 })
   }
 
-  revalidatePath('/')
-  revalidatePath('/shop')
+  revalidateShopPaths()
 
   return NextResponse.json({ success: true, product: newProduct })
 }
 
 export async function DELETE(request: Request) {
-  const guard = await requireAdminGuard(request)
-  if (guard instanceof NextResponse) return guard
-  const { supabaseClient, user } = guard
-
-  const body = await parseJsonBody<{ password?: string }>(request)
-  if (body instanceof NextResponse) return body
-
-  const password = body.password as string | undefined
-  if (!password) {
-    return NextResponse.json({ error: 'كلمة المرور مطلوبة.' }, { status: 400 })
-  }
-
-  const email = user.email
-  if (!email) return NextResponse.json({ error: 'User email not found' }, { status: 500 })
-  const pwError = await verifyAdminPassword(supabaseClient, email, password)
-  if (pwError) return pwError
+  const result = await requirePasswordVerification(request)
+  if (result instanceof NextResponse) return result
+  const { supabaseClient } = result
 
   const clearClient = createSupabaseAdminClient()
 
@@ -72,8 +57,7 @@ export async function DELETE(request: Request) {
 
   await clearStorageBucket(clearClient, STORAGE_BUCKETS.productImages)
 
-  revalidatePath('/')
-  revalidatePath('/shop')
+  revalidateShopPaths()
 
   return NextResponse.json({ success: true })
 }

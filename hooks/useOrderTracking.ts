@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import type { Order, OrderItem, OrderStatusHistory } from '@/types';
 import { normalizeTrackingId, devLog } from '@/lib/utils/misc';
 

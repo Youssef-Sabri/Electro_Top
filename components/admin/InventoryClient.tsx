@@ -5,11 +5,13 @@ import Image from 'next/image';
 import { useProducts } from '@/hooks/useProducts';
 import { useCategoryHierarchy } from '@/hooks/useCategoryHierarchy';
 import { usePagination } from '@/hooks/usePagination';
+import { useConfirmModal } from '@/hooks/useConfirmModal';
 import { formatCurrency } from '@/lib/utils/format';
 import { todayStamp } from '@/lib/utils/date';
 import type { Product } from '@/types';
 import { ProductFormData, productFormSchema } from '@/lib/validations';
 import { CustomDropdown } from '@/components/ui/CustomDropdown';
+import { StatCard } from '@/components/ui/StatCard';
 import { ConfirmationModal } from '@/components/ui/ConfirmationModal';
 import { PasswordConfirmModal } from '@/components/ui/PasswordConfirmModal';
 import { Toast } from '@/components/ui/Toast';
@@ -17,6 +19,7 @@ import { PaginationControls } from '@/components/ui/PaginationControls';
 import { exportToCSV } from '@/lib/utils/csv';
 import { uploadProductImage, processAndCompressImage, deleteProductImage } from '@/lib/utils/image';
 import { ALL_COLORS } from '@/lib/utils/color';
+import { ImageUploadField } from '@/components/admin/ImageUploadField';
 
 export const InventoryClient = memo(function InventoryClient() {
 
@@ -64,20 +67,7 @@ export const InventoryClient = memo(function InventoryClient() {
 
   const [isClearProductsPasswordOpen, setIsClearProductsPasswordOpen] = useState(false);
 
-  const [confirmModal, setConfirmModal] = useState<{
-    isOpen: boolean;
-    title: string;
-    message: string;
-    confirmLabel?: string;
-    cancelLabel?: string;
-    isDestructive?: boolean;
-    onConfirm: () => void;
-  }>({
-    isOpen: false,
-    title: '',
-    message: '',
-    onConfirm: () => {},
-  });
+  const { confirmModal, openConfirm, closeConfirm } = useConfirmModal();
 
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const showToast = (msg: string) => {
@@ -171,15 +161,14 @@ export const InventoryClient = memo(function InventoryClient() {
   };
 
   const handleClearAllProducts = () => {
-    setConfirmModal({
-      isOpen: true,
+    openConfirm({
       title: 'مسح المخزون بالكامل',
       message: 'هل أنت متأكد من رغبتك في حذف جميع المنتجات في المخزون نهائياً؟ هذا الإجراء لا يمكن التراجع عنه.',
       confirmLabel: 'نعم، امسح كل المنتجات',
       cancelLabel: 'إلغاء',
       isDestructive: true,
       onConfirm: () => {
-        setConfirmModal((prev) => ({ ...prev, isOpen: false }));
+        closeConfirm();
         setIsClearProductsPasswordOpen(true);
       },
     });
@@ -352,14 +341,13 @@ export const InventoryClient = memo(function InventoryClient() {
     }
 
     if (editingProduct) {
-      setConfirmModal({
-        isOpen: true,
+      openConfirm({
         title: 'حفظ تغييرات المنتج',
         message: `هل أنت متأكد من رغبتك في حفظ التغييرات على المنتج "${editingProduct.name}"؟`,
         confirmLabel: 'حفظ التغييرات',
         cancelLabel: 'إلغاء',
         onConfirm: async () => {
-          setConfirmModal((prev) => ({ ...prev, isOpen: false }));
+          closeConfirm();
           setIsSaving(true);
           const uploadedUrls: string[] = [];
           try {
@@ -392,14 +380,13 @@ export const InventoryClient = memo(function InventoryClient() {
         },
       });
     } else {
-      setConfirmModal({
-        isOpen: true,
+      openConfirm({
         title: 'إضافة منتج',
         message: `هل أنت متأكد من رغبتك في إضافة المنتج الجديد "${result.data.name}"؟`,
         confirmLabel: 'إضافة منتج',
         cancelLabel: 'إلغاء',
         onConfirm: async () => {
-          setConfirmModal((prev) => ({ ...prev, isOpen: false }));
+          closeConfirm();
           setIsSaving(true);
           const uploadedUrls: string[] = [];
           try {
@@ -448,15 +435,14 @@ export const InventoryClient = memo(function InventoryClient() {
 
   const handleToggleActive = (product: Product) => {
     const actionName = product.is_active ? 'تعطيل' : 'تنشيط';
-    setConfirmModal({
-      isOpen: true,
+    openConfirm({
       title: `${product.is_active ? 'تعطيل' : 'تنشيط'} المنتج`,
       message: `هل أنت متأكد من رغبتك في ${actionName} المنتج "${product.name}"؟`,
       confirmLabel: product.is_active ? 'تعطيل' : 'تنشيط',
       cancelLabel: 'إلغاء',
       isDestructive: product.is_active,
       onConfirm: async () => {
-        setConfirmModal((prev) => ({ ...prev, isOpen: false }));
+        closeConfirm();
         try {
           await updateProduct({
             ...product,
@@ -529,49 +515,10 @@ export const InventoryClient = memo(function InventoryClient() {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4 gap-6">
-        <div className="bg-surface-container-lowest border border-outline-variant/30 rounded-xl p-6 shadow-sm space-y-2">
-          <div className="flex justify-between items-center text-on-surface-variant">
-            <span className="font-label-md text-label-md font-semibold uppercase tracking-wider">إجمالي المنتجات</span>
-            <span className="material-symbols-outlined text-on-surface-variant bg-surface-container-low p-2 rounded-lg text-[20px]">inventory_2</span>
-          </div>
-          <h2 className="text-[28px] font-extrabold text-on-surface tracking-tight mt-1">
-            {metrics.total}
-          </h2>
-          <p className="text-xs text-on-surface-variant mt-1">جميع المنتجات بالكتالوج</p>
-        </div>
-
-        <div className="bg-surface-container-lowest border border-outline-variant/30 rounded-xl p-6 shadow-sm space-y-2">
-          <div className="flex justify-between items-center text-on-surface-variant">
-            <span className="font-label-md text-label-md font-semibold uppercase tracking-wider">الكتالوج النشط</span>
-            <span className="material-symbols-outlined text-green-600 bg-green-50 p-2 rounded-lg text-[20px]">visibility</span>
-          </div>
-          <h2 className="text-[28px] font-extrabold text-on-surface tracking-tight mt-1">
-            {metrics.active}
-          </h2>
-          <p className="text-xs text-on-surface-variant mt-1">المنتجات المعروضة للمشترين</p>
-        </div>
-
-        <div className="bg-surface-container-lowest border border-outline-variant/30 rounded-xl p-6 shadow-sm space-y-2">
-          <div className="flex justify-between items-center text-on-surface-variant">
-            <span className="font-label-md text-label-md font-semibold uppercase tracking-wider">نفد من المخزون</span>
-            <span className="material-symbols-outlined text-primary bg-red-50 p-2 rounded-lg text-[20px]">warning</span>
-          </div>
-          <h2 className={`text-[28px] font-extrabold tracking-tight mt-1 ${metrics.outOfStock > 0 ? 'text-primary' : 'text-on-surface'}`}>
-            {metrics.outOfStock}
-          </h2>
-          <p className="text-xs text-on-surface-variant mt-1">منتجات تحتاج لإعادة التعبئة</p>
-        </div>
-
-        <div className="bg-surface-container-lowest border border-outline-variant/30 rounded-xl p-6 shadow-sm space-y-2">
-          <div className="flex justify-between items-center text-on-surface-variant">
-            <span className="font-label-md text-label-md font-semibold uppercase tracking-wider">إجمالي وحدات المخزون</span>
-            <span className="material-symbols-outlined text-secondary bg-yellow-50 p-2 rounded-lg text-[20px]">widgets</span>
-          </div>
-          <h2 className="text-[28px] font-extrabold text-on-surface tracking-tight mt-1">
-            {metrics.totalStock}
-          </h2>
-          <p className="text-xs text-on-surface-variant mt-1">عدد قطع المخزون المتاحة</p>
-        </div>
+        <StatCard title="إجمالي المنتجات" value={metrics.total} description="جميع المنتجات بالكتالوج" icon="inventory_2" iconColor="text-on-surface-variant" />
+        <StatCard title="الكتالوج النشط" value={metrics.active} description="المنتجات المعروضة للمشترين" icon="visibility" iconColor="text-green-600" />
+        <StatCard title="نفد من المخزون" value={metrics.outOfStock} description="منتجات تحتاج لإعادة التعبئة" icon="warning" iconColor="text-primary" />
+        <StatCard title="إجمالي وحدات المخزون" value={metrics.totalStock} description="عدد قطع المخزون المتاحة" icon="widgets" iconColor="text-secondary" />
       </div>
 
       <div className="w-full bg-surface-container-lowest border border-outline-variant/30 rounded-xl p-6 shadow-sm flex flex-col justify-start space-y-5">
@@ -896,32 +843,14 @@ export const InventoryClient = memo(function InventoryClient() {
                 </div>
 
                 <div className="space-y-1">
-                  <label className="font-label-md text-on-surface block font-bold">صورة المنتج الرئيسية</label>
-                  <div className="flex items-center gap-4">
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => handleImageFileChange(e, 0)}
-                      disabled={isCompressing}
-                      className="block w-full text-xs text-on-surface-variant file:me-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-surface-container-low file:text-primary hover:file:bg-surface-container-high cursor-pointer disabled:opacity-60"
-                    />
-                    {isCompressing && (
-                      <span className="text-xs text-primary font-medium flex items-center gap-1 shrink-0 animate-pulse">
-                        <span className="material-symbols-outlined text-base select-none">architecture</span>
-                        جاري معالجة الصورة...
-                      </span>
-                    )}
-                    {!isCompressing && formData.image_url && (
-                      <div className="relative w-12 h-12 rounded border border-outline-variant/30 overflow-hidden bg-surface-container-low shrink-0 flex items-center justify-center">
-                        {/* eslint-disable-next-line @next/next/no-img-element -- data-URI preview */}
-                        <img
-                          src={formData.image_url}
-                          alt="Product Preview"
-                          className="object-cover w-full h-full"
-                        />
-                      </div>
-                    )}
-                  </div>
+                  <ImageUploadField
+                    label="صورة المنتج الرئيسية"
+                    slot="image_url"
+                    currentUrl={formData.image_url}
+                    previewUrl={isCompressing ? null : formData.image_url || null}
+                    isUploading={isCompressing}
+                    onFileChange={(e) => handleImageFileChange(e, 0)}
+                  />
                   {compressionInfo && !formErrors.image_url && (
                     <p className="text-[11px] text-[var(--color-status-delivered)] font-medium flex items-center gap-1 mt-1">
                       <span className="material-symbols-outlined text-sm select-none">check_circle</span>
@@ -934,32 +863,14 @@ export const InventoryClient = memo(function InventoryClient() {
                 </div>
 
                 <div className="space-y-1">
-                  <label className="font-label-md text-on-surface block font-bold">صورة إضافية 1 (اختياري)</label>
-                  <div className="flex items-center gap-4">
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => handleImageFileChange(e, 1)}
-                      disabled={isCompressing2}
-                      className="block w-full text-xs text-on-surface-variant file:me-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-surface-container-low file:text-primary hover:file:bg-surface-container-high cursor-pointer disabled:opacity-60"
-                    />
-                    {isCompressing2 && (
-                      <span className="text-xs text-primary font-medium flex items-center gap-1 shrink-0 animate-pulse">
-                        <span className="material-symbols-outlined text-base select-none">architecture</span>
-                        جاري معالجة الصورة...
-                      </span>
-                    )}
-                    {!isCompressing2 && formData.image_url_2 && (
-                      <div className="relative w-12 h-12 rounded border border-outline-variant/30 overflow-hidden bg-surface-container-low shrink-0 flex items-center justify-center">
-                        {/* eslint-disable-next-line @next/next/no-img-element -- data-URI preview */}
-                        <img
-                          src={formData.image_url_2}
-                          alt="Preview 2"
-                          className="object-cover w-full h-full"
-                        />
-                      </div>
-                    )}
-                  </div>
+                  <ImageUploadField
+                    label="صورة إضافية 1 (اختياري)"
+                    slot="image_url_2"
+                    currentUrl={formData.image_url_2 || ''}
+                    previewUrl={isCompressing2 ? null : formData.image_url_2 || null}
+                    isUploading={isCompressing2}
+                    onFileChange={(e) => handleImageFileChange(e, 1)}
+                  />
                   {compressionInfo2 && !formErrors.image_url_2 && (
                     <p className="text-[11px] text-green-600 font-medium flex items-center gap-1 mt-1">
                       <span className="material-symbols-outlined text-sm select-none">check_circle</span>
@@ -972,32 +883,14 @@ export const InventoryClient = memo(function InventoryClient() {
                 </div>
 
                 <div className="space-y-1">
-                  <label className="font-label-md text-on-surface block font-bold">صورة إضافية 2 (اختياري)</label>
-                  <div className="flex items-center gap-4">
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => handleImageFileChange(e, 2)}
-                      disabled={isCompressing3}
-                      className="block w-full text-xs text-on-surface-variant file:me-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-surface-container-low file:text-primary hover:file:bg-surface-container-high cursor-pointer disabled:opacity-60"
-                    />
-                    {isCompressing3 && (
-                      <span className="text-xs text-primary font-medium flex items-center gap-1 shrink-0 animate-pulse">
-                        <span className="material-symbols-outlined text-base select-none">architecture</span>
-                        جاري معالجة الصورة...
-                      </span>
-                    )}
-                    {!isCompressing3 && formData.image_url_3 && (
-                      <div className="relative w-12 h-12 rounded border border-outline-variant/30 overflow-hidden bg-surface-container-low shrink-0 flex items-center justify-center">
-                        {/* eslint-disable-next-line @next/next/no-img-element -- data-URI preview */}
-                        <img
-                          src={formData.image_url_3}
-                          alt="Preview 3"
-                          className="object-cover w-full h-full"
-                        />
-                      </div>
-                    )}
-                  </div>
+                  <ImageUploadField
+                    label="صورة إضافية 2 (اختياري)"
+                    slot="image_url_3"
+                    currentUrl={formData.image_url_3 || ''}
+                    previewUrl={isCompressing3 ? null : formData.image_url_3 || null}
+                    isUploading={isCompressing3}
+                    onFileChange={(e) => handleImageFileChange(e, 2)}
+                  />
                   {compressionInfo3 && !formErrors.image_url_3 && (
                     <p className="text-[11px] text-green-600 font-medium flex items-center gap-1 mt-1">
                       <span className="material-symbols-outlined text-sm select-none">check_circle</span>
@@ -1235,7 +1128,7 @@ export const InventoryClient = memo(function InventoryClient() {
         cancelLabel={confirmModal.cancelLabel || 'إلغاء'}
         isDestructive={confirmModal.isDestructive}
         onConfirm={confirmModal.onConfirm}
-        onCancel={() => setConfirmModal((prev) => ({ ...prev, isOpen: false }))}
+        onCancel={closeConfirm}
       />
 
       <PasswordConfirmModal

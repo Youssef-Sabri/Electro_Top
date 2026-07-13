@@ -1,6 +1,7 @@
 'use client';
 
 import { memo, useState, useEffect, useRef } from 'react';
+import { Modal } from '@/components/ui/Modal';
 
 interface PasswordConfirmModalProps {
   isOpen: boolean;
@@ -28,15 +29,11 @@ export const PasswordConfirmModal = memo(function PasswordConfirmModal({
 
   useEffect(() => {
     if (isOpen) {
-      document.body.style.overflow = 'hidden';
       setPassword('');
       setError('');
       setIsVerifying(false);
       setTimeout(() => inputRef.current?.focus(), 100);
-    } else {
-      document.body.style.overflow = '';
     }
-    return () => { document.body.style.overflow = ''; };
   }, [isOpen]);
 
   const handleSubmit = async () => {
@@ -63,10 +60,8 @@ export const PasswordConfirmModal = memo(function PasswordConfirmModal({
     }
   };
 
-  if (!isOpen) return null;
-
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm transition-opacity duration-300">
+    <Modal isOpen={isOpen} onClose={onCancel}>
       <div
         className="relative w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden border border-outline-variant/20 p-6 text-start font-tajawal"
         style={{ animation: 'modalAppear 0.2s ease-out forwards' }}
@@ -120,6 +115,6 @@ export const PasswordConfirmModal = memo(function PasswordConfirmModal({
           </div>
         </div>
       </div>
-    </div>
+    </Modal>
   );
 });

@@ -1,6 +1,3 @@
-'use client';
-
-import { memo } from 'react';
 import type { OrderStatus, OrderStatusHistory } from '@/types';
 import { formatOrderTimestamp } from '@/lib/utils/date';
 
@@ -36,7 +33,7 @@ const STATUS_FLOW: { status: OrderStatus; label: string; desc: string; icon: str
   },
 ];
 
-export const StatusTimeline = memo(function StatusTimeline({ currentStatus, statusHistory }: StatusTimelineProps) {
+export function StatusTimeline({ currentStatus, statusHistory }: StatusTimelineProps) {
   if (currentStatus === 'Declined') {
     const declinedEntry = statusHistory.find((h) => h.status === 'Declined');
     const declinedTime = declinedEntry
@@ -148,4 +145,4 @@ export const StatusTimeline = memo(function StatusTimeline({ currentStatus, stat
       </div>
     </div>
   );
-});
+}
