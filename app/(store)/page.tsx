@@ -12,11 +12,11 @@ export const metadata: Metadata = {
 export const revalidate = 60;
 
 export default async function Page() {
-  const { categories, products } = await fetchCatalog();
+  const { categories, products, hierarchy } = await fetchCatalog();
 
   return (
     <main className="min-h-screen">
-      <LandingPage initialCategories={categories} initialProducts={products} />
+      <LandingPage initialCategories={categories} initialProducts={products} initialHierarchy={hierarchy} />
     </main>
   );
 }

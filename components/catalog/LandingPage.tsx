@@ -5,7 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useProducts } from '@/hooks/useProducts';
 import { useCategoryHierarchy } from '@/hooks/useCategoryHierarchy';
-import type { Product } from '@/types';
+import type { Product, CategoryGroup } from '@/types';
 
 interface CategorySlideshowCardProps {
   category: string;
@@ -101,11 +101,16 @@ function CategorySlideshowCard({ category, products, productCount }: CategorySli
 interface LandingPageProps {
   initialCategories?: string[];
   initialProducts?: Product[];
+  initialHierarchy?: CategoryGroup[];
 }
 
-export const LandingPage = memo(function LandingPage({ initialCategories = [], initialProducts = [] }: LandingPageProps) {
+export const LandingPage = memo(function LandingPage({
+  initialCategories = [],
+  initialProducts = [],
+  initialHierarchy = []
+}: LandingPageProps) {
   const { categories: contextCategories, products, initializeData, isLoaded } = useProducts();
-  const { hierarchy } = useCategoryHierarchy();
+  const { hierarchy } = useCategoryHierarchy(initialHierarchy);
 
   useEffect(() => {
     if (!isLoaded && initialProducts.length > 0) {

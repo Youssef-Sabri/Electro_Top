@@ -7,7 +7,7 @@ import { useProducts } from '@/hooks/useProducts';
 import { useCategoryHierarchy } from '@/hooks/useCategoryHierarchy';
 import { usePagination } from '@/hooks/usePagination';
 import { ProductCard } from '@/components/catalog/ProductCard';
-import type { Product } from '@/types';
+import type { Product, CategoryGroup } from '@/types';
 import { CustomDropdown } from '@/components/ui/CustomDropdown';
 
 const ProductDetailsModal = dynamic(
@@ -21,11 +21,12 @@ type SortByType = 'name-asc' | 'price-asc' | 'price-desc';
 interface ShopPageContentProps {
   initialProducts: Product[];
   initialCategories: string[];
+  initialHierarchy: CategoryGroup[];
 }
 
-export const ShopPageContent = memo(function ShopPageContent({ initialProducts, initialCategories }: ShopPageContentProps) {
+export const ShopPageContent = memo(function ShopPageContent({ initialProducts, initialCategories, initialHierarchy }: ShopPageContentProps) {
   const { products: contextProducts, initializeData, isLoaded } = useProducts();
-  const { hierarchy: categoryHierarchy } = useCategoryHierarchy();
+  const { hierarchy: categoryHierarchy } = useCategoryHierarchy(initialHierarchy);
   const searchParams = useSearchParams();
   const router = useRouter();
   const isInitialSync = useRef(false);

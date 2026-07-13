@@ -4,9 +4,9 @@ import { useState, useEffect, useCallback } from 'react';
 import type { CategoryGroup } from '@/types';
 import { devLog } from '@/lib/dev-log';
 
-export function useCategoryHierarchy() {
-  const [hierarchy, setHierarchy] = useState<CategoryGroup[]>([]);
-  const [loading, setLoading] = useState(true);
+export function useCategoryHierarchy(initialHierarchy?: CategoryGroup[]) {
+  const [hierarchy, setHierarchy] = useState<CategoryGroup[]>(initialHierarchy || []);
+  const [loading, setLoading] = useState(!initialHierarchy);
 
   const refresh = useCallback(async () => {
     try {

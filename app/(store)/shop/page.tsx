@@ -12,10 +12,10 @@ export const metadata: Metadata = {
 export const revalidate = 60;
 
 async function ShopCatalogLoader() {
-  const { categories, products } = await fetchCatalog();
+  const { categories, products, hierarchy } = await fetchCatalog();
 
   return (
-    <ShopPageContent initialProducts={products} initialCategories={categories} />
+    <ShopPageContent initialProducts={products} initialCategories={categories} initialHierarchy={hierarchy} />
   );
 }
 
