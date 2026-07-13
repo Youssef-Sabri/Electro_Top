@@ -43,8 +43,9 @@ Built with Next.js 16 (App Router), TypeScript, Tailwind CSS v4, and Supabase (P
 ```
 app/
   (store)/          # Public pages (home, shop, cart, checkout, tracking, support)
-  admin/            # Admin pages (dashboard, orders, inventory)
+  admin/            # Admin pages (dashboard, orders, inventory, categories)
   api/              # API routes (public: orders, tracking; admin: CRUD, auth, upload)
+  sitemap.ts        # Dynamic sitemap generator for search engines
 components/
   admin/            # Admin dashboard components
   cart/             # Cart page components
@@ -53,11 +54,13 @@ components/
   layout/           # Navbar, Footer, CartReconciler
   tracking/         # Order tracking components
   ui/               # Reusable primitives (modals, badges, spinner, pagination, toast)
-context/            # React providers (Cart, Products, Orders)
+providers/          # React context providers (Cart, Products, Orders)
 hooks/              # Custom hooks (useCart, useProducts, useOrders, useOrderTracking, usePagination)
 lib/                # Utilities (Supabase clients, auth guards, validators, rate-limiter, image utils, CSV export, etc.)
 types/              # Shared TypeScript interfaces (Product, Order, OrderItem, CartItem, etc.)
-proxy.ts            # Edge middleware (CSP, admin auth, inactivity timeout, CSRF, rate-limit)
+public/
+  robots.txt        # Search engine crawler rules (blocks /admin/, /api/)
+proxy.ts            # Next.js 16 proxy (CSP, admin auth, inactivity timeout, CSRF, rate-limit)
 next.config.ts      # Next.js config (security headers, image remote patterns, dev origins)
 ```
 
@@ -73,18 +76,31 @@ npm install
 ```
 
 ### 2. Configure Environment
-Create `.env.local` with your Supabase project credentials:
+Copy the example and fill in your credentials:
+```bash
+cp .env.local.example .env.local
+```
+
+Required variables:
 ```env
-NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
-NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=your_anon_key
-SUPABASE_SECRET_KEY=your_service_role_key
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_your_anon_key
+SUPABASE_SECRET_KEY=sb_secret_your_service_role_key
+ADMIN_SESSION_SECRET=any_random_string_at_least_32_chars
 NEXT_PUBLIC_SITE_URL=http://localhost:3000
-NEXT_PUBLIC_INSTAPAY_ACCOUNT_NAME=your_merchant_name
-NEXT_PUBLIC_INSTAPAY_PHONE=your_instapay_phone
+NEXT_PUBLIC_CURRENCY_SYMBOL=EGP
+NEXT_PUBLIC_INSTAPAY_ACCOUNT_NAME=Your Name
+NEXT_PUBLIC_INSTAPAY_PHONE=01000000000
+NEXT_PUBLIC_SUPPORT_WHATSAPP_1=201000000000
+NEXT_PUBLIC_SUPPORT_WHATSAPP_2=201000000000
+NEXT_PUBLIC_SUPPORT_PHONE_1=+201000000000
+NEXT_PUBLIC_SUPPORT_PHONE_2=+201000000000
+NEXT_PUBLIC_SUPPORT_FACEBOOK=https://www.facebook.com/yourpage
+NEXT_PUBLIC_SUPPORT_EMAIL=info@yourdomain.com
 ```
 
 ### 3. Set Up Database
-Open `supabase_setup_script_organizer.html` and run Steps 1–8 in your Supabase Dashboard SQL Editor to create all tables, RLS policies, triggers, and RPCs.
+Open `supabase_setup.html` and run Steps 1–8 in your Supabase Dashboard SQL Editor to create all tables, RLS policies, triggers, and RPCs.
 
 ### 4. Run Development Server
 ```bash
@@ -107,7 +123,7 @@ npm run dev
 
 ## Database
 
-All database schema, migrations, RPCs, triggers, and RLS policies are documented in a single SQL workflow: `supabase_setup_script_organizer.html` (8 ordered steps). This includes:
+All database schema, migrations, RPCs, triggers, and RLS policies are documented in a single SQL workflow: `supabase_setup.html` (8 ordered steps). This includes:
 
 - 10 tables (categories, products, orders, order_items, order_status_history, rate-limit tables)
 - 5 RPC functions (order creation, tracking, rate-limiting, order counts)
@@ -119,12 +135,14 @@ All database schema, migrations, RPCs, triggers, and RLS policies are documented
 
 ## Security
 
-- **Admin routes** protected by edge middleware: checks Supabase session + `role === 'admin'` on every request
+- **Admin routes** protected by edge proxy: checks Supabase session + `role === 'admin'` on every request
+- **HMAC-signed cookies** — admin session cookie is cryptographically signed to prevent tampering
 - **1-hour inactivity timeout** — session auto-expires server-side after 60 minutes of no requests
 - **CSRF protection** — Origin/Referer validation on all non-GET requests
 - **CSP with nonces** — per-request Content-Security-Policy header
-- **Rate limiting** — atomic per-IP limits on login, order creation, tracking lookups, and uploads
+- **Rate limiting** — atomic per-IP limits on login, order creation, tracking lookups, receipt uploads, and CSP reports
 - **Password re-verification** — required for destructive admin actions (clear all orders)
 - **Image validation** — magic-byte MIME detection on uploaded images
-- **Body size limit** — 10 MB max request body enforced in middleware
+- **Body size limit** — 10 MB max request body enforced in proxy
 - **Host validation** — blocks spoofed Host headers in production
+- **Server-side cart validation** — verifies product existence, active status, and stock before order creation
