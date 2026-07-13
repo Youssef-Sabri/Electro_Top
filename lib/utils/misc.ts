@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server';
-import { TRACKING_ID_REGEX } from '@/lib/constants';
+
+const TRACKING_ID_REGEX = /^ET-[A-Z0-9]{10}$/i;
 
 // Developer logging helper (errors only in dev mode)
 export function devLog(...args: unknown[]) {

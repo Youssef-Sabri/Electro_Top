@@ -9,9 +9,8 @@ import { useProducts } from '@/hooks/useProducts';
 import { StatusTimeline } from '@/components/tracking/StatusTimeline';
 import { formatCurrency } from '@/lib/utils/format';
 import { formatOrderDate } from '@/lib/utils/date';
-import { getSafeUrl } from '@/lib/utils/misc';
+import { getSafeUrl, normalizeTrackingId, isValidTrackingId } from '@/lib/utils/misc';
 import { getColorHex } from '@/lib/utils/color';
-import { normalizeTrackingId, isValidTrackingId } from '@/lib/utils/misc';
 import { translateStatus, publicStatus } from '@/lib/utils/status';
 
 interface TrackingDetailClientProps {
@@ -20,7 +19,7 @@ interface TrackingDetailClientProps {
 
 export function TrackingDetailClient({ id }: TrackingDetailClientProps) {
   const router = useRouter();
-  const { order, items: orderItems, history: statusHistory, loading } = useOrderTracking(id);
+  const { order, items: orderItems, history: statusHistory, loading, error: trackingError, cooldown } = useOrderTracking(id);
   const { getProductsMap } = useProducts();
 
   const productsById = getProductsMap();
@@ -85,11 +84,19 @@ export function TrackingDetailClient({ id }: TrackingDetailClientProps) {
           
           <div className="space-y-2 text-center">
             <h2 className="text-xl font-bold text-on-surface">
-              لم يتم العثور على الطلب
+              {cooldown > 0
+                ? `لقد تجاوزت الحد المسموح`
+                : trackingError || 'لم يتم العثور على الطلب'}
             </h2>
-            <p className="text-xs text-on-surface-variant leading-relaxed">
-              رقم التتبع هذا غير موجود. يرجى التحقق من رقم التتبع (مثال: ET-A1B2C3D4E5) والمحاولة مرة أخرى.
-            </p>
+            {cooldown > 0 ? (
+              <p className="text-xs text-on-surface-variant leading-relaxed">
+                يرجى الانتظار <span className="text-error font-bold font-mono">{cooldown}</span> ثانية ثم المحاولة مرة أخرى.
+              </p>
+            ) : !trackingError && (
+              <p className="text-xs text-on-surface-variant leading-relaxed">
+                رقم التتبع هذا غير موجود. يرجى التحقق من رقم التتبع (مثال: ET-A1B2C3D4E5) والمحاولة مرة أخرى.
+              </p>
+            )}
           </div>
 
           <form onSubmit={handleRetrySubmit} className="space-y-3 pt-2">
@@ -109,8 +116,8 @@ export function TrackingDetailClient({ id }: TrackingDetailClientProps) {
             {retryError && (
               <p className="text-xs text-error font-medium">{retryError}</p>
             )}
-            <button type="submit" className="w-full bg-primary text-white py-3.5 rounded-xl font-bold hover:opacity-95 transition-all text-xs cursor-pointer">
-              جرب رقم تتبع آخر
+            <button type="submit" disabled={cooldown > 0} className="w-full bg-primary text-white py-3.5 rounded-xl font-bold hover:opacity-95 transition-all text-xs cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
+              {cooldown > 0 ? `انتظر ${cooldown} ثانية` : 'جرب رقم تتبع آخر'}
             </button>
           </form>
 

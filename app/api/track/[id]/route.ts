@@ -1,10 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createSupabaseAdminClient } from '@/lib/supabase/server'
-import { getClientIp } from '@/lib/utils/misc'
+import { getClientIp, isValidTrackingId, normalizeTrackingId } from '@/lib/utils/misc'
 import { checkAndIncrementRateLimit, setRateLimitHeaders } from '@/lib/security'
 import { RATE_LIMIT_CONFIGS } from '@/lib/constants'
-import { TRACKING_ID_REGEX } from '@/lib/constants'
-import { normalizeTrackingId } from '@/lib/utils/misc'
 
 const TRACKING_RATE_LIMIT = RATE_LIMIT_CONFIGS.tracking;
 
@@ -44,7 +42,7 @@ export async function GET(
   const { id } = await params
   const sanitizedId = normalizeTrackingId(id)
 
-  if (!TRACKING_ID_REGEX.test(sanitizedId)) {
+  if (!isValidTrackingId(sanitizedId)) {
     return NextResponse.json({ error: 'Invalid tracking ID format' }, { status: 400 })
   }
 

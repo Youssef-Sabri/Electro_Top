@@ -71,6 +71,15 @@ export function CartProvider({ children }: { children: ReactNode }) {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setItems(loadCartFromStorage());
     setIsHydrated(true);
+
+    function handleStorageEvent(e: StorageEvent) {
+      if (e.key === LOCAL_STORAGE_KEY) {
+        const updated = loadCartFromStorage();
+        setItems(updated);
+      }
+    }
+    window.addEventListener('storage', handleStorageEvent);
+    return () => window.removeEventListener('storage', handleStorageEvent);
   }, []);
 
   useEffect(() => {

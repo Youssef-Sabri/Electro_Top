@@ -6,9 +6,8 @@ import Link from 'next/link';
 import { useOrderTracking } from '@/hooks/useOrderTracking';
 import { useProducts } from '@/hooks/useProducts';
 import { formatCurrency } from '@/lib/utils/format';
-import { getSafeUrl } from '@/lib/utils/misc';
 import { formatOrderDate, formatOrderTimestamp } from '@/lib/utils/date';
-import { getSupportEnv } from '@/lib/utils/misc';
+import { getSafeUrl, getSupportEnv } from '@/lib/utils/misc';
 
 export function ConfirmationClient() {
   const searchParams = useSearchParams();

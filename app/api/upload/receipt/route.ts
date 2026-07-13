@@ -4,8 +4,7 @@ import { validateRequestOrigin } from '@/lib/security'
 import { detectImageMimeType } from '@/lib/utils/file'
 import { checkAndIncrementRateLimit, setRateLimitHeaders } from '@/lib/security'
 import { getClientIp } from '@/lib/utils/misc'
-import { TABLES, STORAGE_BUCKETS, RATE_LIMIT_CONFIGS } from '@/lib/constants'
-import { MAX_FILE_SIZE_BYTES } from '@/lib/constants'
+import { TABLES, STORAGE_BUCKETS, RATE_LIMIT_CONFIGS, MAX_FILE_SIZE_BYTES } from '@/lib/constants'
 import { parseJsonBody } from '@/lib/utils/misc'
 import { SAFE_FILENAME_RE } from '@/lib/validations'
 
@@ -18,7 +17,7 @@ export async function POST(request: NextRequest) {
   const adminClient = createSupabaseAdminClient()
   const rateCheck = await checkAndIncrementRateLimit(adminClient, ip, RATE_LIMIT_CONFIGS.receiptUpload)
   if (rateCheck.blocked) {
-    const res = NextResponse.json({ error: `محاولات كثيرة جداً. يرجى الانتظار ${rateCheck.cooldown} ثانية.` }, { status: 429 })
+    const res = NextResponse.json({ error: `محاولات كثيرة جداً. يرجى الانتظار ${rateCheck.cooldown} ثانية.`, cooldown: rateCheck.cooldown }, { status: 429 })
     setRateLimitHeaders(res, rateCheck)
     return res
   }

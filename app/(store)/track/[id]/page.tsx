@@ -3,7 +3,7 @@ import { TrackingDetailClient } from '@/components/tracking/TrackingDetailClient
 
 export const metadata: Metadata = {
   title: 'حالة الطلب | إلكترو توب',
-  description: 'تفاصيل حالة طلبك وتحديثاته.',
+  description: 'تتبع حالة طلبك واطلع على آخر التحديثات.',
 };
 
 export default async function TrackDetailPage({ params }: { params: Promise<{ id: string }> }) {

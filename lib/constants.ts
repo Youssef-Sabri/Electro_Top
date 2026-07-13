@@ -1,11 +1,9 @@
 export const MAX_FILE_SIZE_MB = 5;
 export const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
 
-export const TRACKING_ID_REGEX = /^ET-[A-Z0-9]{10}$/i;
-
 export const SITE_METADATA = {
   title: 'إلكترو توب | مستلزمات كهربائية معتمدة',
-  description: 'متجر إلكتروني متخصص في المستلزمات الكهربائية. تسوق كزائر وتتبع طلبك بسهولة.',
+  description: 'موزعون معتمدون للسويدي إلكتريك، ميتسوبيشي، هيمل، ABB، وفينوس. أسلاك، كابلات، لوحات توزيع، قواطع حماية، ومجري أسلاك تركية للمشاريع السكنية والتجارية والصناعية.',
   url: process.env.NEXT_PUBLIC_SITE_URL || '',
 } as const;
 
@@ -84,7 +82,7 @@ export const RATE_LIMIT_CONFIGS = {
   },
 } as const;
 
-export const ADMIN_ROLE = 'admin' as const;
+const ADMIN_ROLE = 'admin' as const;
 
 export function isAdminRole(role: unknown): role is typeof ADMIN_ROLE {
   return role === ADMIN_ROLE;

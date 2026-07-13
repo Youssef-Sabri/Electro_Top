@@ -34,11 +34,26 @@ export function CheckoutForm() {
   const [errors, setErrors] = useState<Partial<Record<keyof CheckoutFormData, string>>>({});
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [honeypot, setHoneypot] = useState('');
+  const [cooldown, setCooldown] = useState(0);
   const pageLoadTimeRef = useRef<number>(0);
 
   useEffect(() => {
     pageLoadTimeRef.current = Date.now();
   }, []);
+
+  useEffect(() => {
+    if (cooldown <= 0) return;
+    const timer = setInterval(() => {
+      setCooldown((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [cooldown]);
 
   const [formData, setFormData] = useState<CheckoutFormData>({
     customer_name: '',
@@ -163,6 +178,9 @@ export function CheckoutForm() {
           const uploadData = await uploadRes.json();
 
           if (!uploadRes.ok) {
+            if (uploadRes.status === 429) {
+              setCooldown(uploadData.cooldown || 60);
+            }
             throw new Error(uploadData.error || 'فشل رفع إيصال التحويل. يرجى المحاولة مرة أخرى.');
           }
 
@@ -170,6 +188,8 @@ export function CheckoutForm() {
           finalScreenshotUrl = uploadedFileName;
         }
       }
+
+      setImageState({ selectedFile: null, compressedUploadFile: null, isCompressing: false, compressionInfo: null });
 
       const orderData = {
         ...validationResult.data,
@@ -187,6 +207,9 @@ export function CheckoutForm() {
       const result = await response.json();
 
       if (!response.ok) {
+        if (response.status === 429) {
+          setCooldown(result.cooldown || 60);
+        }
         if (result.fieldErrors) {
           const firstError = Object.values(result.fieldErrors)[0];
           throw new Error(typeof firstError === 'string' ? firstError : 'بيانات غير صالحة.');
@@ -328,19 +351,22 @@ export function CheckoutForm() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
               <label className="text-sm text-on-surface block font-bold">الاسم الكامل</label>
-              <input
-                className={`w-full border rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/15 focus:border-primary premium-transition bg-white text-on-background font-medium text-sm ${
-                  errors.customer_name ? 'border-error ring-1 ring-error/20' : 'border-outline-variant/50'
-                }`}
-                name="customer_name"
-                placeholder="مثال: محمد علي"
-                type="text"
-                value={formData.customer_name}
-                onChange={handleChange}
-                disabled={uiState.isSubmitting}
-              />
+                <input
+                  className={`w-full border rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/15 focus:border-primary premium-transition bg-white text-on-background font-medium text-sm ${
+                    errors.customer_name ? 'border-error ring-1 ring-error/20' : 'border-outline-variant/50'
+                  }`}
+                  name="customer_name"
+                  placeholder="مثال: محمد علي"
+                  type="text"
+                  value={formData.customer_name}
+                  onChange={handleChange}
+                  disabled={uiState.isSubmitting}
+                  aria-required="true"
+                  aria-invalid={!!errors.customer_name}
+                  aria-describedby={errors.customer_name ? 'error-customer-name' : undefined}
+                />
               {errors.customer_name && (
-                <p className="text-xs text-error font-medium">{errors.customer_name}</p>
+                <p id="error-customer-name" className="text-xs text-error font-medium">{errors.customer_name}</p>
               )}
             </div>
 
@@ -357,6 +383,8 @@ export function CheckoutForm() {
                 value={formData.phone_number}
                 onChange={handleChange}
                 disabled={uiState.isSubmitting}
+                aria-required="true"
+                aria-invalid={!!errors.phone_number}
               />
               <p className="text-[10px] text-on-surface-variant font-bold mt-1">
                 يفضل أن يكون نشطاً على واتساب للتنسيق مع مندوب الشحن
@@ -379,6 +407,8 @@ export function CheckoutForm() {
               value={formData.shipping_address}
               onChange={handleChange}
               disabled={uiState.isSubmitting}
+              aria-required="true"
+              aria-invalid={!!errors.shipping_address}
             />
             {errors.shipping_address && (
               <p className="text-xs text-error font-medium">{errors.shipping_address}</p>
@@ -517,13 +547,19 @@ export function CheckoutForm() {
 
             <button
               type="submit"
-              disabled={uiState.isSubmitting}
-              className="w-full bg-[#CA202B] hover:bg-[#b01b24] text-white py-4 rounded-xl font-bold hover:shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer text-sm"
+              disabled={uiState.isSubmitting || cooldown > 0}
+              aria-label="تأكيد الطلب الآن"
+              className="w-full bg-[#CA202B] hover:bg-[#b01b24] text-white py-4 rounded-xl font-bold hover:shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer text-sm disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {uiState.isSubmitting ? (
                 <>
                   <span className="material-symbols-outlined animate-spin select-none text-[18px]">sync</span>
                   جاري إرسال الطلب...
+                </>
+              ) : cooldown > 0 ? (
+                <>
+                  <span className="material-symbols-outlined select-none text-[18px]">timer</span>
+                  انتظر {cooldown} ثانية
                 </>
               ) : (
                 'تأكيد الطلب الآن'

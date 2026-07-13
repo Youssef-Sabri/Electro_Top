@@ -208,13 +208,13 @@ body {
   text-shadow: 0 0 12px rgba(234, 179, 8, 0.35), 0 0 4px rgba(234, 179, 8, 0.15);
 }
 
-/* Global reset to hide default browser select dropdown arrows */
-select {
+/* Reset default browser select dropdown arrows (applied only inside form contexts) */
+select.select-reset {
   appearance: none !important;
   -webkit-appearance: none !important;
   -moz-appearance: none !important;
 }
-select::-ms-expand {
+select.select-reset::-ms-expand {
   display: none !important;
 }
 /* Fade in animation */
@@ -263,4 +263,17 @@ select::-ms-expand {
 *:focus-visible {
   outline: 2px solid var(--color-primary) !important;
   outline-offset: 2px !important;
+}
+
+/* Respect users who prefer reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .pulsing-dot {
+    animation: none !important;
+  }
 }

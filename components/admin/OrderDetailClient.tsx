@@ -7,16 +7,12 @@ import { useOrders } from '@/hooks/useOrders';
 import { useProducts } from '@/hooks/useProducts';
 import { z } from 'zod';
 import type { OrderStatus, Order, OrderItem, OrderStatusHistory } from '@/types';
-import { formatCurrency } from '@/lib/utils/format';
+import { formatCurrency, getInitials } from '@/lib/utils/format';
 import { formatOrderDate } from '@/lib/utils/date';
-import { getInitials } from '@/lib/utils/format';
 import { STATUS_OPTIONS, translateStatus, translateHistoryStatus } from '@/lib/utils/status';
-import { getSafeUrl } from '@/lib/utils/misc';
-import { devLog } from '@/lib/utils/misc';
+import { getSafeUrl, devLog, getSupportEnv, isValidTrackingId } from '@/lib/utils/misc';
 import { getColorHex } from '@/lib/utils/color';
-import { getSupportEnv } from '@/lib/utils/misc';
 import { SAFE_FILENAME_RE } from '@/lib/validations';
-import { isValidTrackingId } from '@/lib/utils/misc';
 
 import { Toast } from '@/components/ui/Toast';
 import { CustomDropdown } from '@/components/ui/CustomDropdown';
@@ -435,14 +431,20 @@ export const OrderDetailClient = memo(function OrderDetailClient({ id }: OrderDe
               className="w-full bg-surface p-4 border border-outline-variant rounded-lg font-body-md text-body-md focus:ring-2 focus:ring-primary/10 focus:border-primary outline-none text-on-surface"
               placeholder="أضف ملاحظة خاصة بشأن تنفيذ هذا الطلب..."
               rows={4}
-              maxLength={2000}
+              maxLength={MAX_NOTES_LENGTH}
               value={notesValue}
               onChange={(e) => setNotesValue(e.target.value)}
               onBlur={handleNotesBlur}
+              aria-label="ملاحظات المسؤول"
             ></textarea>
-            <p className="text-on-surface-variant font-label-sm text-label-sm mt-2 select-none">
-              هذه الملاحظات مرئية فقط لفريق الإدارة وتُحفظ تلقائياً عند إلغاء التركيز.
-            </p>
+            <div className="flex justify-between items-center mt-2">
+              <p className="text-on-surface-variant font-label-sm text-label-sm select-none">
+                هذه الملاحظات مرئية فقط لفريق الإدارة وتُحفظ تلقائياً عند إلغاء التركيز.
+              </p>
+              <span className={`text-xs font-bold tabular-nums select-none ${notesValue.length > MAX_NOTES_LENGTH * 0.9 ? 'text-error' : 'text-on-surface-variant/50'}`}>
+                {notesValue.length}/{MAX_NOTES_LENGTH}
+              </span>
+            </div>
           </div>
         </div>
 

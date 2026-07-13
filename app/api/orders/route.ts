@@ -2,13 +2,10 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createSupabaseAdminClient } from '@/lib/supabase/server'
 import { validateRequestOrigin } from '@/lib/security'
 import { checkoutSchema, SAFE_FILENAME_RE } from '@/lib/validations'
-import { generateOrderId } from '@/lib/utils/misc'
-import { getClientIp } from '@/lib/utils/misc'
+import { generateOrderId, getClientIp, parseJsonBody, devLog } from '@/lib/utils/misc'
 import { checkAndIncrementRateLimit, setRateLimitHeaders } from '@/lib/security'
 import { RATE_LIMIT_CONFIGS } from '@/lib/constants'
 import { now } from '@/lib/utils/date'
-import { parseJsonBody } from '@/lib/utils/misc'
-import { devLog } from '@/lib/utils/misc'
 
 const ORDER_RATE_LIMIT = RATE_LIMIT_CONFIGS.order;
 
@@ -22,7 +19,7 @@ export async function POST(request: NextRequest) {
   const rateLimit = await checkAndIncrementRateLimit(adminClient, ip, ORDER_RATE_LIMIT)
   if (rateLimit.blocked) {
     const res = NextResponse.json({
-      error: 'محاولات كثيرة جداً. يرجى الانتظار والمحاولة مرة أخرى.',
+      error: `محاولات كثيرة جداً. يرجى الانتظار ${rateLimit.cooldown} ثانية ثم المحاولة مرة أخرى.`,
       cooldown: rateLimit.cooldown,
     }, { status: 429 })
     setRateLimitHeaders(res, rateLimit)
@@ -60,9 +57,32 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'السلة فارغة.' }, { status: 400 })
   }
 
+  // Validate all product IDs exist and are active, fetch current prices/stock
+  const productIds = cartItems.map((item: { product: { id: string } }) => item.product.id)
+  const { data: serverProducts, error: prodErr } = await adminClient
+    .from('products')
+    .select('id, price, stock, is_active, name')
+    .in('id', productIds)
+
+  if (prodErr || !serverProducts) {
+    return NextResponse.json({ error: 'فشل التحقق من المنتجات.' }, { status: 500 })
+  }
+
+  const productMap = new Map(serverProducts.map((p) => [p.id, p]))
+
   for (const item of cartItems) {
     if (!item.product?.id || typeof item.quantity !== 'number' || item.quantity < 1) {
       return NextResponse.json({ error: 'بيانات المنتج غير صالحة.' }, { status: 400 })
+    }
+    const serverProduct = productMap.get(item.product.id)
+    if (!serverProduct) {
+      return NextResponse.json({ error: `المنتج "${item.product.id}" غير موجود.` }, { status: 400 })
+    }
+    if (!serverProduct.is_active) {
+      return NextResponse.json({ error: `المنتج "${serverProduct.name}" لم يعد متاحاً.` }, { status: 400 })
+    }
+    if (item.quantity > serverProduct.stock) {
+      return NextResponse.json({ error: `الكمية المطلوبة للمنتج "${serverProduct.name}" غير متوفرة (متوفر: ${serverProduct.stock}).` }, { status: 400 })
     }
   }
 

@@ -300,7 +300,7 @@ export const LandingPage = memo(function LandingPage({
               <div className="flex flex-col">
                 <h3 className="font-headline-md text-[16px] md:text-[18px] text-on-background font-bold mb-1 md:mb-2 group-hover:text-primary transition-colors duration-200">منتجات أصلية بضمان الجودة</h3>
                 <p className="text-on-surface-variant text-[13px] leading-relaxed">
-                  نعمل كموزعين معتمدين لأشهر العلامات التجارية مثل السويدي، شنايدر، ABB، سيمنس، هيميل، وجيوبس، لضمان أعلى مستويات الجودة والأمان.
+                  نعمل كموزعين معتمدين لأشهر العلامات التجارية مثل السويدي إلكتريك، ميتسوبيشي، هيمل، ABB، وفينوس، لضمان أعلى مستويات الجودة والأمان.
                 </p>
               </div>
             </div>

@@ -3,6 +3,47 @@ import { createSupabaseServerClient } from '@/lib/supabase/server'
 import { getSupabaseHostname } from '@/lib/supabase/url'
 import { validateRequestOrigin } from '@/lib/security'
 import { isAdminRole } from '@/lib/constants'
+
+const HMAC_SECRET = process.env.ADMIN_SESSION_SECRET
+
+async function signValue(value: string): Promise<string> {
+  const encoder = new TextEncoder()
+  const keyPromise = crypto.subtle.importKey(
+    'raw',
+    encoder.encode(HMAC_SECRET),
+    { name: 'HMAC', hash: 'SHA-256' },
+    false,
+    ['sign']
+  )
+  return keyPromise.then(key =>
+    crypto.subtle.sign('HMAC', key, encoder.encode(value))
+  ).then(sig => {
+    const sigHex = Array.from(new Uint8Array(sig)).map(b => b.toString(16).padStart(2, '0')).join('')
+    return `${value}.${sigHex}`
+  })
+}
+
+async function verifyValue(signed: string): Promise<string | null> {
+  const lastDot = signed.lastIndexOf('.')
+  if (lastDot === -1) return null
+  const value = signed.slice(0, lastDot)
+  const sigHex = signed.slice(lastDot + 1)
+  const encoder = new TextEncoder()
+  return crypto.subtle.importKey(
+    'raw',
+    encoder.encode(HMAC_SECRET),
+    { name: 'HMAC', hash: 'SHA-256' },
+    false,
+    ['verify']
+  ).then(key =>
+    crypto.subtle.verify(
+      'HMAC',
+      key,
+      new Uint8Array(sigHex.match(/.{2}/g)!.map(h => parseInt(h, 16))),
+      encoder.encode(value)
+    )
+  ).then(valid => valid ? value : null)
+}
  
 function getExpectedHost(): string | null {
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL
@@ -96,7 +137,8 @@ export async function proxy(request: NextRequest) {
     response.headers.set('x-nonce', nonce)
     response.headers.set('Content-Security-Policy', buildCsp(nonce, supabaseHost))
     if (pathname === '/api/admin/login' && request.method === 'POST') {
-      response.cookies.set('admin-last-activity', String(Date.now()), {
+      const signedValue = await signValue(String(Date.now()))
+      response.cookies.set('admin-last-activity', signedValue, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'lax',
@@ -145,16 +187,21 @@ export async function proxy(request: NextRequest) {
     }
  
     // Inactivity timeout: expire session after 1h of no requests
-    const lastActivity = request.cookies.get('admin-last-activity')?.value
+    const rawCookie = request.cookies.get('admin-last-activity')?.value
     const now = Date.now()
     let isExpired = false
 
-    if (!lastActivity) {
+    if (!rawCookie) {
       isExpired = true
     } else {
-      const elapsed = now - parseInt(lastActivity, 10)
-      if (elapsed > 3600_000) {
+      const verifiedValue = await verifyValue(rawCookie)
+      if (!verifiedValue) {
         isExpired = true
+      } else {
+        const elapsed = now - parseInt(verifiedValue, 10)
+        if (elapsed > 3600_000) {
+          isExpired = true
+        }
       }
     }
 
@@ -171,7 +218,7 @@ export async function proxy(request: NextRequest) {
       return redirectResp
     }
  
-    response.cookies.set('admin-last-activity', String(now), {
+    response.cookies.set('admin-last-activity', await signValue(String(now)), {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',

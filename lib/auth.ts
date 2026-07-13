@@ -3,7 +3,7 @@ import { createClient, type User, type SupabaseClient } from '@supabase/supabase
 import { getServerSupabase } from '@/lib/supabase/server';
 import { isAdminRole } from '@/lib/constants';
 
-export async function requireAdmin(supabaseClient: SupabaseClient) {
+async function requireAdmin(supabaseClient: SupabaseClient) {
   const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
   if (authError || !user || !isAdminRole(user.app_metadata?.role)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
