@@ -1,6 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
-import { devLog } from './utils/misc';
+import { devLog } from '@/lib/utils/misc';
 
 // CSRF Origin / Referrer validation
 export function validateRequestOrigin(request: Request): boolean {

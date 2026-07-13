@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { isSafeUrl } from './utils/misc';
+import { isSafeUrl } from '@/lib/utils/misc';
 
 const egyptPhoneRegex = /^01[0-9]{9}$/;
 

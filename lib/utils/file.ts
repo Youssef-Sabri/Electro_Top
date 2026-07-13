@@ -1,5 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { devLog } from './misc';
+import { devLog } from '@/lib/utils/misc';
 
 export function readFileAsDataURL(file: File): Promise<string> {
   return new Promise<string>((resolve, reject) => {

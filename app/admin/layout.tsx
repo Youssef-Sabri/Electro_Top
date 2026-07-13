@@ -1,6 +1,6 @@
 import { getServerSupabase } from '@/lib/supabase/server';
 import { isAdminRole } from '@/lib/constants';
-import AdminClientLayout from './AdminClientLayout';
+import AdminClientLayout from '@/app/admin/AdminClientLayout';
 import { OrdersProvider } from '@/providers/OrdersContext';
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
