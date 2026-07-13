@@ -1,6 +1,6 @@
 'use client';
 
-import { memo, useCallback } from 'react';
+import { memo, useCallback, useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import type { CartItem as CartItemType } from '@/types';
 import { useCart } from '@/hooks/useCart';
@@ -15,17 +15,41 @@ export const CartItem = memo(function CartItem({ item }: CartItemProps) {
   const { updateQuantity, removeFromCart } = useCart();
   const { product, quantity } = item;
 
+  const [localQuantity, setLocalQuantity] = useState(quantity);
+  const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    setLocalQuantity(quantity);
+  }, [quantity]);
+
+  useEffect(() => {
+    return () => {
+      if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+    };
+  }, []);
+
+  const debouncedUpdate = useCallback((newQty: number) => {
+    if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+    debounceTimerRef.current = setTimeout(() => {
+      updateQuantity(product.id, newQty, item.selectedColor);
+    }, 250);
+  }, [product.id, item.selectedColor, updateQuantity]);
+
   const handleDecrease = useCallback(() => {
-    if (quantity > 1) {
-      updateQuantity(product.id, quantity - 1, item.selectedColor);
+    if (localQuantity > 1) {
+      const nextQty = localQuantity - 1;
+      setLocalQuantity(nextQty);
+      debouncedUpdate(nextQty);
     }
-  }, [quantity, product.id, item.selectedColor, updateQuantity]);
+  }, [localQuantity, debouncedUpdate]);
 
   const handleIncrease = useCallback(() => {
-    if (quantity < product.stock) {
-      updateQuantity(product.id, quantity + 1, item.selectedColor);
+    if (localQuantity < product.stock) {
+      const nextQty = localQuantity + 1;
+      setLocalQuantity(nextQty);
+      debouncedUpdate(nextQty);
     }
-  }, [quantity, product.stock, product.id, item.selectedColor, updateQuantity]);
+  }, [localQuantity, product.stock, debouncedUpdate]);
 
   const handleRemove = useCallback(() => {
     removeFromCart(product.id, item.selectedColor);
@@ -81,7 +105,7 @@ export const CartItem = memo(function CartItem({ item }: CartItemProps) {
               <span className="material-symbols-outlined text-[18px] select-none">remove</span>
             </button>
             <span className="px-3 font-bold text-on-surface text-sm min-w-[20px] text-center">
-              {quantity}
+              {localQuantity}
             </span>
             <button
               onClick={handleIncrease}

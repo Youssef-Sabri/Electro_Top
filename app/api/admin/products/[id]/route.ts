@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { SupabaseClient } from '@supabase/supabase-js'
 import { revalidatePath } from 'next/cache'
 import { createSupabaseAdminClient } from '@/lib/supabase-server'
 import { requireAdminGuard } from '@/lib/admin-guard'
@@ -9,6 +10,28 @@ import { parseJsonBody } from '@/lib/parse-json'
 import { devLog } from '@/lib/dev-log'
 
 const ALLOWED_UPDATE_FIELDS = ['name', 'description', 'price', 'stock', 'image_url', 'image_url_2', 'image_url_3', 'is_active', 'category', 'has_colors', 'colors'] as const
+
+async function deleteProductImageIfUnreferenced(
+  supabaseClient: SupabaseClient,
+  adminClient: SupabaseClient,
+  url: string,
+  productId: string
+) {
+  try {
+    const { data, error } = await supabaseClient
+      .from(TABLES.products)
+      .select('id')
+      .or(`image_url.eq."${url}",image_url_2.eq."${url}",image_url_3.eq."${url}"`)
+      .neq('id', productId)
+      .limit(1)
+
+    if (!error && (!data || data.length === 0)) {
+      await deleteStorageFile(adminClient, STORAGE_BUCKETS.productImages, url)
+    }
+  } catch (err) {
+    devLog('Failed to delete image check:', err)
+  }
+}
 
 export async function PATCH(
   request: Request,
@@ -70,7 +93,7 @@ export async function PATCH(
       const oldVal = oldImageUrls[key]
       const newVal = validation.data[key]
       if (key in validation.data && oldVal && oldVal !== newVal) {
-        await deleteStorageFile(adminClient, STORAGE_BUCKETS.productImages, oldVal)
+        await deleteProductImageIfUnreferenced(supabaseClient, adminClient, oldVal, id)
       }
     }
   }
@@ -117,7 +140,7 @@ export async function DELETE(
     const adminClient = createSupabaseAdminClient()
     const urlsToDelete = [productData.image_url, productData.image_url_2, productData.image_url_3].filter(Boolean) as string[]
     for (const url of urlsToDelete) {
-      await deleteStorageFile(adminClient, STORAGE_BUCKETS.productImages, url)
+      await deleteProductImageIfUnreferenced(supabaseClient, adminClient, url, id)
     }
   }
 

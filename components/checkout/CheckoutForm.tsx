@@ -93,7 +93,7 @@ export function CheckoutForm() {
 
   useEffect(() => {
     if (uiState.isHydrated && items.length === 0 && !uiState.isSubmitting) {
-      router.replace('/');
+      router.replace('/shop');
     }
   }, [uiState.isHydrated, items.length, router, uiState.isSubmitting]);
 
@@ -195,6 +195,16 @@ export function CheckoutForm() {
       }
 
       const trackingId = result.trackingId;
+      try {
+        sessionStorage.setItem(`last-order-${trackingId}`, JSON.stringify({
+          customer_name: validationResult.data.customer_name,
+          phone_number: validationResult.data.phone_number,
+          shipping_address: validationResult.data.shipping_address,
+          location_link: validationResult.data.location_link || '',
+          payment_method: validationResult.data.payment_method,
+          instapay_phone_number: validationResult.data.instapay_phone_number || '',
+        }));
+      } catch {}
       clearCart();
       router.push(`/checkout/confirmation?id=${trackingId}`);
     } catch (err) {

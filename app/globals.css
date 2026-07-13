@@ -258,3 +258,9 @@ select::-ms-expand {
   border-radius: 9999px;
   animation: fadeIn 0.2s ease-out forwards;
 }
+
+/* High-contrast focus outline rings for keyboard accessibility */
+*:focus-visible {
+  outline: 2px solid var(--color-primary) !important;
+  outline-offset: 2px !important;
+}

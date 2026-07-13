@@ -124,6 +124,10 @@ export async function PATCH(
 
   if (updateError) {
     devLog('Update order error:', updateError)
+    const errorMsg = updateError.message || ''
+    if (errorMsg.includes('Insufficient stock')) {
+      return NextResponse.json({ error: 'عذراً، الكمية المتوفرة في المخزون غير كافية لتنشيط هذا الطلب.' }, { status: 400 })
+    }
     return NextResponse.json({ error: 'فشل تحديث الطلب. يرجى المحاولة مرة أخرى.' }, { status: 500 })
   }
 

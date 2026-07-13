@@ -117,15 +117,25 @@ export const ShopPageContent = memo(function ShopPageContent({ initialProducts, 
   }, [searchParams]);
 
   const filteredProducts = useMemo(() => {
+    const normalizeArabic = (text: string) => {
+      return text
+        .replace(/[أإآ]/g, 'ا')
+        .replace(/ة/g, 'ه')
+        .replace(/ى/g, 'ي')
+        .replace(/[\u064B-\u0652]/g, '') // remove diacritics
+        .toLowerCase();
+    };
+
     return products.filter((p) => {
       if (!p.is_active) return false;
       if (hideOutOfStock && p.stock === 0) return false;
 
       const query = debouncedSearch.trim().toLowerCase();
+      const normQuery = normalizeArabic(query);
       const matchesSearch =
         !query ||
-        p.name.toLowerCase().includes(query) ||
-        p.description.toLowerCase().includes(query) ||
+        normalizeArabic(p.name).includes(normQuery) ||
+        normalizeArabic(p.description).includes(normQuery) ||
         p.id.toLowerCase().includes(query);
 
       let matchesCategory = true;
@@ -317,7 +327,7 @@ export const ShopPageContent = memo(function ShopPageContent({ initialProducts, 
             onClick={() => setIsFilterDrawerOpen(false)}
           />
           {/* Drawer Content */}
-          <div className="relative w-full max-w-[340px] sm:max-w-[380px] bg-white h-full shadow-2xl flex flex-col z-10 transition-transform duration-300 animate-[slideInRight_0.25s_ease-out] border-s border-outline-variant/10 p-6 space-y-6 overflow-y-auto">
+          <div className="relative w-full max-w-[290px] sm:max-w-[360px] bg-white h-full shadow-2xl flex flex-col z-10 transition-transform duration-300 animate-[slideInRight_0.25s_ease-out] border-s border-outline-variant/10 p-6 space-y-6 overflow-y-auto">
             {/* Header */}
             <div className="flex items-center justify-between border-b border-outline-variant/20 pb-4">
               <div className="flex items-center gap-2">

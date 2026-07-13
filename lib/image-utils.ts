@@ -41,6 +41,9 @@ async function compressFile(file: File): Promise<{ compressedFile: File; info: s
     canvas.width = width;
     canvas.height = height;
     const ctx = canvas.getContext('2d')!;
+    // Fill transparent area with white to avoid black background on PNG conversion
+    ctx.fillStyle = '#FFFFFF';
+    ctx.fillRect(0, 0, width, height);
     ctx.drawImage(img, 0, 0, width, height);
     img.close();
 

@@ -67,7 +67,7 @@ function CategorySlideshowCard({ category, products, productCount }: CategorySli
           >
             <Image
               src={currentImg}
-              alt={`${category} - ${currentIndex}`}
+              alt={`معاينة منتجات قسم ${category}`}
               fill
               className="object-cover group-hover:scale-105 transition-transform duration-500"
               sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"

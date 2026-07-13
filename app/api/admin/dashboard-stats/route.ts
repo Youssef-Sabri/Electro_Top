@@ -1,8 +1,40 @@
 import { NextResponse } from 'next/server'
+import { SupabaseClient } from '@supabase/supabase-js'
 import { createSupabaseAdminClient } from '@/lib/supabase-server'
 import { requireAdminGuard } from '@/lib/admin-guard'
-import { TABLES } from '@/lib/db-constants'
+import { TABLES, STORAGE_BUCKETS } from '@/lib/db-constants'
 import { devLog } from '@/lib/dev-log'
+
+async function cleanupOrphanedReceipts(adminClient: SupabaseClient) {
+  try {
+    const { data: files, error } = await adminClient.storage.from(STORAGE_BUCKETS.receipts).list()
+    if (error || !files || files.length === 0) return
+
+    const { data: orders, error: ordersErr } = await adminClient.from(TABLES.orders).select('instapay_screenshot')
+    if (ordersErr || !orders) return
+
+    const activeScreenshots = new Set(
+      orders
+        .map((o: { instapay_screenshot: string | null }) => o.instapay_screenshot?.split('/').pop())
+        .filter(Boolean)
+    )
+
+    const toDelete = files
+      .filter((f) => {
+        if (!f.created_at) return false
+        const ageMs = Date.now() - new Date(f.created_at).getTime()
+        const isOld = ageMs > 24 * 60 * 60 * 1000
+        return isOld && !activeScreenshots.has(f.name)
+      })
+      .map((f) => f.name)
+
+    if (toDelete.length > 0) {
+      await adminClient.storage.from(STORAGE_BUCKETS.receipts).remove(toDelete)
+    }
+  } catch (err) {
+    devLog('Failed to cleanup orphaned receipts:', err)
+  }
+}
 
 export async function GET(request: Request) {
   const guard = await requireAdminGuard(request)
@@ -11,74 +43,35 @@ export async function GET(request: Request) {
   const adminClient = createSupabaseAdminClient()
 
   try {
-    const [
-      ordersDataRes,
-      productsStockRes,
-      recentOrdersRes,
-      salesRes
-    ] = await Promise.all([
-      // 1. Fetch status and total_amount for all orders to aggregate metrics
-      adminClient.from(TABLES.orders).select('status, total_amount'),
-      // 2. Fetch all product stock values for inventory counts
-      adminClient.from(TABLES.products).select('stock'),
-      // 3. Recent orders (exactly 5)
-      adminClient.from(TABLES.orders).select('id_unique_tracking, customer_name, status, total_amount, created_at').order('created_at', { ascending: false }).limit(5),
-      // 4. Order items category sales (joined)
-      adminClient.from(TABLES.orderItems).select('quantity, unit_price, products(category), orders!inner(status)').eq('orders.status', 'Delivered')
+    // 1. Fetch aggregate metrics via RPC and fetch the 5 most recent orders in parallel
+    const [statsRes, recentOrdersRes] = await Promise.all([
+      adminClient.rpc('get_dashboard_stats'),
+      adminClient.from(TABLES.orders).select('id_unique_tracking, customer_name, status, total_amount, created_at').order('created_at', { ascending: false }).limit(5)
     ])
 
-    if (ordersDataRes.error) throw ordersDataRes.error
-    if (productsStockRes.error) throw productsStockRes.error
+    if (statsRes.error) throw statsRes.error
     if (recentOrdersRes.error) throw recentOrdersRes.error
-    if (salesRes.error) throw salesRes.error
 
-    const ordersList = ordersDataRes.data || []
-    const totalRevenue = ordersList.filter(o => o.status === 'Delivered').reduce((sum, o) => sum + Number(o.total_amount), 0)
-    const pendingRevenue = ordersList.filter(o => ['Pending Review', 'Accepted', 'Processing', 'Check Internal Note'].includes(o.status)).reduce((sum, o) => sum + Number(o.total_amount), 0)
+    const stats = statsRes.data || {}
 
-    const totalOrders = ordersList.length
-    const pendingCount = ordersList.filter(o => o.status === 'Pending Review').length
-    const processingCount = ordersList.filter(o => o.status === 'Processing' || o.status === 'Accepted').length
-    const deliveredCount = ordersList.filter(o => o.status === 'Delivered').length
-    const declinedCount = ordersList.filter(o => o.status === 'Declined').length
-
-    const productsStock = productsStockRes.data || []
-    const totalProductsCount = productsStock.length
-    const outOfStockCount = productsStock.filter(p => p.stock === 0).length
-    const lowStockCount = productsStock.filter(p => p.stock > 0 && p.stock <= 5).length
-
-    const salesByCategory: Record<string, number> = {}
-    const unitsByCategory: Record<string, number> = {}
-
-    type SalesRow = {
-      quantity: number
-      unit_price: number | string
-      products: { category: string | null } | { category: string | null }[] | null
-    }
-
-    const salesData: SalesRow[] = salesRes.data || []
-
-    salesData.forEach(item => {
-      const prod = Array.isArray(item.products) ? item.products[0] : item.products
-      const category = prod?.category || 'أخرى'
-      const cost = Number(item.unit_price) * item.quantity
-      salesByCategory[category] = (salesByCategory[category] || 0) + cost
-      unitsByCategory[category] = (unitsByCategory[category] || 0) + item.quantity
+    // 2. Trigger non-blocking background cleanup of orphaned receipts
+    cleanupOrphanedReceipts(adminClient).catch(err => {
+      devLog('Background receipts cleanup failed:', err)
     })
 
     return NextResponse.json({
-      totalRevenue,
-      pendingRevenue,
-      totalOrders,
-      pendingCount,
-      processingCount,
-      deliveredCount,
-      declinedCount,
-      totalProductsCount,
-      outOfStockCount,
-      lowStockCount,
-      salesByCategory,
-      unitsByCategory,
+      totalRevenue: stats.totalRevenue || 0,
+      pendingRevenue: stats.pendingRevenue || 0,
+      totalOrders: stats.totalOrders || 0,
+      pendingCount: stats.pendingCount || 0,
+      processingCount: stats.processingCount || 0,
+      deliveredCount: stats.deliveredCount || 0,
+      declinedCount: stats.declinedCount || 0,
+      totalProductsCount: stats.totalProductsCount || 0,
+      outOfStockCount: stats.outOfStockCount || 0,
+      lowStockCount: stats.lowStockCount || 0,
+      salesByCategory: stats.salesByCategory || {},
+      unitsByCategory: stats.unitsByCategory || {},
       recentOrders: recentOrdersRes.data || [],
     })
   } catch (error) {

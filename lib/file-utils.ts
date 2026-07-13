@@ -23,7 +23,14 @@ export async function deleteStorageFile(
   bucket: string,
   url: string
 ): Promise<void> {
-  const fileName = url.includes('/') ? extractFileName(url) : url;
+  let fileName = url;
+  const publicMarker = `/public/${bucket}/`;
+  if (url.includes(publicMarker)) {
+    fileName = url.substring(url.indexOf(publicMarker) + publicMarker.length).split('?')[0];
+  } else if (url.includes('/')) {
+    fileName = extractFileName(url) || url;
+  }
+  fileName = decodeURIComponent(fileName);
   if (!fileName) return;
   await client.storage.from(bucket).remove([fileName]);
 }

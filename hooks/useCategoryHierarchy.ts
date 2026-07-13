@@ -23,10 +23,15 @@ export function useCategoryHierarchy(initialHierarchy?: CategoryGroup[]) {
   }, []);
 
   useEffect(() => {
-    (async () => {
-      await refresh();
-    })();
-  }, [refresh]);
+    if (hierarchy.length === 0) {
+      (async () => {
+        await refresh();
+      })();
+    } else {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setLoading(false);
+    }
+  }, [refresh, hierarchy.length]);
 
   return { hierarchy, loading, refresh };
 }

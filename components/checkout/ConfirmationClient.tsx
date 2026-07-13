@@ -21,6 +21,13 @@ export function ConfirmationClient() {
   const productsById = getProductsMap();
   
   const [copied, setCopied] = useState(false);
+  const [cachedOrder, setCachedOrder] = useState<{
+    customer_name: string;
+    phone_number: string;
+    shipping_address: string;
+    location_link?: string;
+    instapay_phone_number?: string;
+  } | null>(null);
   const copyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -28,6 +35,29 @@ export function ConfirmationClient() {
       if (copyTimerRef.current) clearTimeout(copyTimerRef.current);
     };
   }, []);
+
+  useEffect(() => {
+    if (orderId) {
+      try {
+        const stored = sessionStorage.getItem(`last-order-${orderId}`);
+        if (stored) {
+          // eslint-disable-next-line react-hooks/set-state-in-effect
+          setCachedOrder(JSON.parse(stored));
+        }
+      } catch {}
+    }
+  }, [orderId]);
+
+  const displayOrder = order ? {
+    ...order,
+    ...(cachedOrder ? {
+      customer_name: cachedOrder.customer_name,
+      phone_number: cachedOrder.phone_number,
+      shipping_address: cachedOrder.shipping_address,
+      location_link: cachedOrder.location_link,
+      instapay_phone_number: cachedOrder.instapay_phone_number,
+    } : {})
+  } : null;
 
   const resetCopiedAfter = () => {
     if (copyTimerRef.current) clearTimeout(copyTimerRef.current);
@@ -84,7 +114,7 @@ export function ConfirmationClient() {
     );
   }
 
-  if (!order) {
+  if (!displayOrder) {
     return (
       <div className="max-w-md mx-auto px-margin-mobile py-20 text-center font-tajawal space-y-6">
         <div className="mb-4 flex justify-center">
@@ -130,11 +160,11 @@ export function ConfirmationClient() {
         <p className="text-surface-variant/80 text-xs uppercase tracking-widest mb-3 font-semibold">رقم التتبع الخاص بك</p>
         <div className="flex items-center justify-center gap-3 flex-wrap">
           <h2 className="font-bold text-[32px] md:text-[40px] text-electro-gold tracking-widest uppercase leading-none">
-            {order.id_unique_tracking}
+            {displayOrder.id_unique_tracking}
           </h2>
           <button
             type="button"
-            onClick={() => handleCopy(order.id_unique_tracking)}
+            onClick={() => handleCopy(displayOrder.id_unique_tracking)}
             className="flex items-center justify-center p-2 rounded-xl bg-white/10 hover:bg-white/20 text-white transition-all cursor-pointer border border-white/5 active:scale-95 shrink-0"
             title="نسخ رقم التتبع"
           >
@@ -203,33 +233,33 @@ export function ConfirmationClient() {
           </h3>
           <div className="text-left">
             <p className="text-on-surface-variant text-[10px] uppercase font-bold tracking-wider mb-0.5">رقم الطلب</p>
-            <p className="font-mono text-xs font-bold text-on-surface tracking-wider">{order.id_unique_tracking}</p>
+            <p className="font-mono text-xs font-bold text-on-surface tracking-wider">{displayOrder.id_unique_tracking}</p>
           </div>
         </div>
 
         <div className="flex items-center gap-2 text-on-surface-variant text-xs mb-5 font-semibold">
           <span className="material-symbols-outlined text-[15px] text-primary select-none">calendar_today</span>
           <span>
-            {formatOrderDate(order.created_at)}
+            {formatOrderDate(displayOrder.created_at)}
             {' — '}
-            {formatOrderTimestamp(order.created_at)}
+            {formatOrderTimestamp(displayOrder.created_at)}
           </span>
         </div>
 
         <div className="mb-6 space-y-2 text-sm text-on-surface-variant text-start font-medium">
           <div className="flex gap-2">
             <span className="material-symbols-outlined text-[18px] text-primary select-none mt-0.5">person</span>
-            <span>{order.customer_name}</span>
+            <span>{displayOrder.customer_name}</span>
           </div>
           <div className="flex gap-2">
             <span className="material-symbols-outlined text-[18px] text-primary select-none mt-0.5">location_on</span>
-            <span>{order.shipping_address}</span>
+            <span>{displayOrder.shipping_address}</span>
           </div>
-          {order.location_link && getSafeUrl(order.location_link) && (
+          {displayOrder.location_link && getSafeUrl(displayOrder.location_link) && (
             <div className="flex gap-2">
               <span className="material-symbols-outlined text-[18px] text-primary select-none mt-0.5">map</span>
               <a
-                href={getSafeUrl(order.location_link)!}
+                href={getSafeUrl(displayOrder.location_link)!}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-primary font-bold hover:underline"
@@ -270,7 +300,7 @@ export function ConfirmationClient() {
           <div className="pt-4 border-t border-outline-variant/30 space-y-2">
             <div className="flex justify-between text-xs text-on-surface-variant font-semibold">
               <span>المجموع الفرعي</span>
-              <span className="font-mono">{formatCurrency(order.total_amount)}</span>
+              <span className="font-mono">{formatCurrency(displayOrder.total_amount)}</span>
             </div>
             <div className="flex justify-between text-xs text-on-surface-variant font-semibold">
               <span>التوصيل</span>
@@ -280,7 +310,7 @@ export function ConfirmationClient() {
             <div className="flex justify-between items-center pt-3 border-t border-outline-variant/30 mt-1">
               <span className="font-bold text-base text-on-surface">الإجمالي النهائي</span>
               <span className="font-bold text-primary text-[20px] font-mono leading-none">
-                {formatCurrency(order.total_amount)}
+                {formatCurrency(displayOrder.total_amount)}
               </span>
             </div>
           </div>
@@ -288,9 +318,9 @@ export function ConfirmationClient() {
            <div className="pt-3 border-t border-outline-variant/20 flex items-center gap-2 text-on-surface-variant text-xs font-semibold">
              <span className="material-symbols-outlined text-[16px] text-primary select-none">payments</span>
               <span>
-                {order.payment_method === 'cod' 
+                {displayOrder.payment_method === 'cod' 
                   ? 'الدفع عند الاستلام (Cash on Delivery)' 
-                  : order.payment_method === 'instapay'
+                  : displayOrder.payment_method === 'instapay'
                     ? 'تم الدفع عبر إنستاباي (InstaPay)'
                     : 'طريقة الدفع غير محددة'}
               </span>
@@ -300,7 +330,7 @@ export function ConfirmationClient() {
 
       <div className="flex flex-col sm:flex-row gap-4 justify-center">
         <Link
-          href={`/track/${order.id_unique_tracking}`}
+          href={`/track/${displayOrder.id_unique_tracking}`}
           className="bg-primary hover:bg-primary/95 text-white px-10 py-3.5 rounded-full font-bold text-sm transition-all inline-block"
         >
           تتبع شحنتي

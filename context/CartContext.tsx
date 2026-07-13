@@ -36,20 +36,20 @@ function loadCartFromStorage(): CartItem[] {
         const quantityNum = typeof itemObj.quantity === 'number' ? itemObj.quantity : 1;
 
         if (productObj && typeof productObj.id === 'string' && typeof productObj.price === 'number') {
-              validated.push({
-                product: {
-                  id: productObj.id,
-                  name: (productObj.name as string) || 'Unnamed Product',
-                  description: (productObj.description as string) || '',
-                  price: productObj.price,
-                  image_url: (productObj.image_url as string) || '',
-                  stock: typeof productObj.stock === 'number' ? productObj.stock : 10,
-                  is_active: productObj.is_active !== false,
-                  category: (productObj.category as string) || 'General',
-                  has_colors: productObj.has_colors === true,
-                  colors: Array.isArray(productObj.colors) ? productObj.colors : [],
-                  created_at: (productObj.created_at as string) || new Date().toISOString(),
-                },
+          validated.push({
+            product: {
+              id: productObj.id,
+              name: (productObj.name as string) || 'Unnamed Product',
+              description: (productObj.description as string) || '',
+              price: productObj.price,
+              image_url: (productObj.image_url as string) || '',
+              stock: typeof productObj.stock === 'number' ? productObj.stock : 10,
+              is_active: productObj.is_active !== false,
+              category: (productObj.category as string) || 'General',
+              has_colors: productObj.has_colors === true,
+              colors: Array.isArray(productObj.colors) ? productObj.colors : [],
+              created_at: (productObj.created_at as string) || new Date().toISOString(),
+            },
             quantity: quantityNum,
             selectedColor: typeof itemObj.selectedColor === 'string' ? itemObj.selectedColor : null,
           });
@@ -67,8 +67,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const [isHydrated, setIsHydrated] = useState(false);
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
-  // eslint-disable-next-line react-hooks/set-state-in-effect
-  useEffect(() => { setItems(loadCartFromStorage()); setIsHydrated(true); }, []);
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setItems(loadCartFromStorage());
+    setIsHydrated(true);
+  }, []);
 
   useEffect(() => {
     if (!isHydrated) return;
@@ -76,10 +79,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
     saveTimeoutRef.current = setTimeout(() => {
       try {
         localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(items));
-       } catch {
-       }
+      } catch {}
     }, 300);
-    return () => { if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current); };
+    return () => {
+      if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+    };
   }, [items, isHydrated]);
 
   const addToCart = useCallback((product: Product, quantity = 1, selectedColor: string | null = null) => {
@@ -152,7 +156,17 @@ export function CartProvider({ children }: { children: ReactNode }) {
           changed = true;
           return { ...item, product: current, quantity: Math.min(item.quantity, current.stock) };
         }
+        if (item.quantity > current.stock) {
+          changed = true;
+          return { ...item, product: current, quantity: current.stock };
+        }
         return item;
+      }).filter((item) => {
+        if (item.quantity <= 0) {
+          changed = true;
+          return false;
+        }
+        return true;
       });
       return changed ? reconciled : prevItems;
     });
