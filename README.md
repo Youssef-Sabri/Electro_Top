@@ -44,8 +44,10 @@ Built with Next.js 16 (App Router), TypeScript, Tailwind CSS v4, and Supabase (P
 app/
   (store)/          # Public pages (home, shop, cart, checkout, tracking, support)
   admin/            # Admin pages (dashboard, orders, inventory, categories)
-  api/              # API routes (public: orders, tracking; admin: CRUD, auth, upload)
-  sitemap.ts        # Dynamic sitemap generator for search engines
+  api/              # API routes (public + admin)
+  layout.tsx        # Root layout
+  sitemap.ts        # Dynamic sitemap generator
+  globals.css       # Tailwind v4 theme + animations
 components/
   admin/            # Admin dashboard components
   cart/             # Cart page components
@@ -53,15 +55,14 @@ components/
   checkout/         # Checkout form + confirmation
   layout/           # Navbar, Footer, CartReconciler
   tracking/         # Order tracking components
-  ui/               # Reusable primitives (modals, badges, spinner, pagination, toast)
+  ui/               # Shared reusable primitives
 providers/          # React context providers (Cart, Products, Orders)
-hooks/              # Custom hooks (useCart, useProducts, useOrders, useOrderTracking, usePagination)
-lib/                # Utilities (Supabase clients, auth guards, validators, rate-limiter, image utils, CSV export, etc.)
-types/              # Shared TypeScript interfaces (Product, Order, OrderItem, CartItem, etc.)
-public/
-  robots.txt        # Search engine crawler rules (blocks /admin/, /api/)
-proxy.ts            # Next.js 16 proxy (CSP, admin auth, inactivity timeout, CSRF, rate-limit)
-next.config.ts      # Next.js config (security headers, image remote patterns, dev origins)
+hooks/              # Custom hooks
+lib/                # Utilities, auth, validators, Supabase clients, API helpers
+types/              # Shared TypeScript interfaces
+public/             # Static assets (robots.txt, logo, icons)
+proxy.ts            # Next.js 16 proxy (CSP, auth, CSRF, rate-limit)
+next.config.ts      # Next.js config
 ```
 
 ---
@@ -100,7 +101,7 @@ NEXT_PUBLIC_SUPPORT_EMAIL=info@yourdomain.com
 ```
 
 ### 3. Set Up Database
-Open `supabase_setup.html` and run Steps 1–8 in your Supabase Dashboard SQL Editor to create all tables, RLS policies, triggers, and RPCs.
+Open `supabase_setup.html` and run Steps 1–8 in your Supabase Dashboard SQL Editor.
 
 ### 4. Run Development Server
 ```bash
@@ -117,13 +118,13 @@ npm run dev
 | `npm run build` | Production build |
 | `npm start` | Start production server |
 | `npm run lint` | Run ESLint |
-| `npm run typecheck` | Run TypeScript type checking (`tsc --noEmit`) |
+| `npm run typecheck` | TypeScript type checking |
 
 ---
 
 ## Database
 
-All database schema, migrations, RPCs, triggers, and RLS policies are documented in a single SQL workflow: `supabase_setup.html` (8 ordered steps). This includes:
+All schema, RPCs, triggers, and RLS policies are in `supabase_setup.html` (8 steps):
 
 - 10 tables (categories, products, orders, order_items, order_status_history, rate-limit tables)
 - 5 RPC functions (order creation, tracking, rate-limiting, order counts)
@@ -135,14 +136,14 @@ All database schema, migrations, RPCs, triggers, and RLS policies are documented
 
 ## Security
 
-- **Admin routes** protected by edge proxy: checks Supabase session + `role === 'admin'` on every request
-- **HMAC-signed cookies** — admin session cookie is cryptographically signed to prevent tampering
-- **1-hour inactivity timeout** — session auto-expires server-side after 60 minutes of no requests
+- **Admin routes** protected by edge proxy with session + role checks
+- **HMAC-signed cookies** — admin session cookie is cryptographically signed
+- **1-hour inactivity timeout** — session auto-expires after 60 minutes of no requests
 - **CSRF protection** — Origin/Referer validation on all non-GET requests
 - **CSP with nonces** — per-request Content-Security-Policy header
-- **Rate limiting** — atomic per-IP limits on login, order creation, tracking lookups, receipt uploads, and CSP reports
-- **Password re-verification** — required for destructive admin actions (clear all orders)
+- **Rate limiting** — atomic per-IP limits on login, orders, tracking, uploads, CSP reports
+- **Password re-verification** — required for destructive admin actions
 - **Image validation** — magic-byte MIME detection on uploaded images
 - **Body size limit** — 10 MB max request body enforced in proxy
 - **Host validation** — blocks spoofed Host headers in production
-- **Server-side cart validation** — verifies product existence, active status, and stock before order creation
+- **Server-side cart validation** — verifies stock and product status before order creation
