@@ -5,18 +5,18 @@ import Image from 'next/image';
 import { useProducts } from '@/hooks/useProducts';
 import { useCategoryHierarchy } from '@/hooks/useCategoryHierarchy';
 import { usePagination } from '@/hooks/usePagination';
-import { formatCurrency } from '@/lib/format-currency';
-import { todayStamp } from '@/lib/date-utils';
+import { formatCurrency } from '@/lib/utils/format';
+import { todayStamp } from '@/lib/utils/date';
 import type { Product } from '@/types';
-import { ProductFormData, productFormSchema } from '@/lib/validators';
+import { ProductFormData, productFormSchema } from '@/lib/validations';
 import { CustomDropdown } from '@/components/ui/CustomDropdown';
 import { ConfirmationModal } from '@/components/ui/ConfirmationModal';
 import { PasswordConfirmModal } from '@/components/ui/PasswordConfirmModal';
 import { Toast } from '@/components/ui/Toast';
 import { PaginationControls } from '@/components/ui/PaginationControls';
-import { exportToCSV } from '@/lib/csv-export';
-import { uploadProductImage, processAndCompressImage, deleteProductImage } from '@/lib/image-utils';
-import { ALL_COLORS } from '@/lib/color-palette';
+import { exportToCSV } from '@/lib/utils/csv';
+import { uploadProductImage, processAndCompressImage, deleteProductImage } from '@/lib/utils/image';
+import { ALL_COLORS } from '@/lib/utils/color';
 
 export const InventoryClient = memo(function InventoryClient() {
 

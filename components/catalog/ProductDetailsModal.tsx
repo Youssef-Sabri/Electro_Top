@@ -4,8 +4,8 @@ import { memo, useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import Image from 'next/image';
 import type { Product } from '@/types';
 import { useCart } from '@/hooks/useCart';
-import { formatCurrency } from '@/lib/format-currency';
-import { ALL_COLORS, getColorHex } from '@/lib/color-palette';
+import { formatCurrency } from '@/lib/utils/format';
+import { ALL_COLORS, getColorHex } from '@/lib/utils/color';
 
 interface ProductDetailsModalProps {
   product: Product;

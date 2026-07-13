@@ -2,7 +2,7 @@ import type { NextConfig } from "next";
 import os from "os";
 
 const isDev = process.env.NODE_ENV === 'development';
-import { getSupabaseHostname } from '@/lib/supabase-url';
+import { getSupabaseHostname } from '@/lib/supabase/url';
 
 const supabaseHost = getSupabaseHostname();
 

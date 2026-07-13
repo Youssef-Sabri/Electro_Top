@@ -5,7 +5,7 @@ import Image from 'next/image';
 import type { Product } from '@/types';
 import { useCart } from '@/hooks/useCart';
 import { Toast } from '@/components/ui/Toast';
-import { formatCurrency } from '@/lib/format-currency';
+import { formatCurrency } from '@/lib/utils/format';
 
 interface ProductCardProps {
   product: Product;

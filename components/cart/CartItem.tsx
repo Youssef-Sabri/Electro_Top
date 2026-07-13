@@ -4,8 +4,8 @@ import { memo, useCallback, useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import type { CartItem as CartItemType } from '@/types';
 import { useCart } from '@/hooks/useCart';
-import { formatCurrency } from '@/lib/format-currency';
-import { getColorHex } from '@/lib/color-palette';
+import { formatCurrency } from '@/lib/utils/format';
+import { getColorHex } from '@/lib/utils/color';
 
 interface CartItemProps {
   item: CartItemType;

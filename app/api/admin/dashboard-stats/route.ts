@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server'
 import { SupabaseClient } from '@supabase/supabase-js'
-import { createSupabaseAdminClient } from '@/lib/supabase-server'
-import { requireAdminGuard } from '@/lib/admin-guard'
-import { TABLES, STORAGE_BUCKETS } from '@/lib/db-constants'
-import { devLog } from '@/lib/dev-log'
+import { createSupabaseAdminClient } from '@/lib/supabase/server'
+import { requireAdminGuard } from '@/lib/auth'
+import { TABLES, STORAGE_BUCKETS } from '@/lib/constants'
+import { devLog } from '@/lib/utils/misc'
 
 async function cleanupOrphanedReceipts(adminClient: SupabaseClient) {
   try {

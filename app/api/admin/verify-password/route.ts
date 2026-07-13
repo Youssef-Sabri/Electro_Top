@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
-import { requireAdminGuard } from '@/lib/admin-guard'
-import { verifyAdminPassword } from '@/lib/verify-admin-server'
-import { parseJsonBody } from '@/lib/parse-json'
+import { requireAdminGuard } from '@/lib/auth'
+import { verifyAdminPassword } from '@/lib/auth'
+import { parseJsonBody } from '@/lib/utils/misc'
 
 export async function POST(request: Request) {
   const guard = await requireAdminGuard(request)

@@ -2,7 +2,7 @@
 
 import { memo } from 'react';
 import type { OrderStatus, OrderStatusHistory } from '@/types';
-import { formatOrderTimestamp } from '@/lib/date-utils';
+import { formatOrderTimestamp } from '@/lib/utils/date';
 
 interface StatusTimelineProps {
   currentStatus: OrderStatus;

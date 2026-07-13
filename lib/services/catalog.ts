@@ -1,11 +1,11 @@
-import { createSupabaseServerClient } from '@/lib/supabase-server';
-import { PRODUCT_SELECT_FIELDS, TABLES } from '@/lib/db-constants';
+import { createSupabaseServerClient } from '@/lib/supabase/server';
+import { PRODUCT_SELECT_FIELDS, TABLES } from '@/lib/constants';
 import type { Product, CategoryGroup } from '@/types';
 
 // Server-safe Supabase client for public reads (no auth cookies needed)
 function createPublicClient() {
   return createSupabaseServerClient({
-    getAll() { return [] },
+    getAll() { return []; },
     setAll() {},
   });
 }

@@ -1,8 +1,8 @@
 import { NextResponse, type NextRequest } from 'next/server'
-import { createSupabaseServerClient } from '@/lib/supabase-server'
-import { getSupabaseHostname } from '@/lib/supabase-url'
-import { validateRequestOrigin } from '@/lib/csrf'
-import { isAdminRole } from '@/lib/api-auth'
+import { createSupabaseServerClient } from '@/lib/supabase/server'
+import { getSupabaseHostname } from '@/lib/supabase/url'
+import { validateRequestOrigin } from '@/lib/security'
+import { isAdminRole } from '@/lib/constants'
  
 function getExpectedHost(): string | null {
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL

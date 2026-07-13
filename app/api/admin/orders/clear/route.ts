@@ -1,11 +1,11 @@
 import { NextResponse } from 'next/server'
-import { createSupabaseAdminClient } from '@/lib/supabase-server'
-import { requireAdminGuard } from '@/lib/admin-guard'
-import { verifyAdminPassword } from '@/lib/verify-admin-server'
-import { clearStorageBucket } from '@/lib/file-utils'
-import { TABLES, STORAGE_BUCKETS } from '@/lib/db-constants'
-import { parseJsonBody } from '@/lib/parse-json'
-import { devLog } from '@/lib/dev-log'
+import { createSupabaseAdminClient } from '@/lib/supabase/server'
+import { requireAdminGuard } from '@/lib/auth'
+import { verifyAdminPassword } from '@/lib/auth'
+import { clearStorageBucket } from '@/lib/utils/file'
+import { TABLES, STORAGE_BUCKETS } from '@/lib/constants'
+import { parseJsonBody } from '@/lib/utils/misc'
+import { devLog } from '@/lib/utils/misc'
 
 export async function DELETE(request: Request) {
   const guard = await requireAdminGuard(request)

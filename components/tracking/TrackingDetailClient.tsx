@@ -7,12 +7,12 @@ import Image from 'next/image';
 import { useOrderTracking } from '@/hooks/useOrderTracking';
 import { useProducts } from '@/hooks/useProducts';
 import { StatusTimeline } from '@/components/tracking/StatusTimeline';
-import { formatCurrency } from '@/lib/format-currency';
-import { formatOrderDate } from '@/lib/date-utils';
-import { getSafeUrl } from '@/lib/safe-url';
-import { getColorHex } from '@/lib/color-palette';
-import { normalizeTrackingId, isValidTrackingId } from '@/lib/constants';
-import { translateStatus, publicStatus } from '@/lib/status-utils';
+import { formatCurrency } from '@/lib/utils/format';
+import { formatOrderDate } from '@/lib/utils/date';
+import { getSafeUrl } from '@/lib/utils/misc';
+import { getColorHex } from '@/lib/utils/color';
+import { normalizeTrackingId, isValidTrackingId } from '@/lib/utils/misc';
+import { translateStatus, publicStatus } from '@/lib/utils/status';
 
 interface TrackingDetailClientProps {
   id: string;

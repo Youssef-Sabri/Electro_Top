@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
-import { requireAdminGuard } from '@/lib/admin-guard';
-import { parseJsonBody } from '@/lib/parse-json';
-import { createSupabaseAdminClient } from '@/lib/supabase-server';
-import { TABLES } from '@/lib/db-constants';
+import { requireAdminGuard } from '@/lib/auth';
+import { parseJsonBody } from '@/lib/utils/misc';
+import { createSupabaseAdminClient } from '@/lib/supabase/server';
+import { TABLES } from '@/lib/constants';
 
 export async function GET() {
   try {

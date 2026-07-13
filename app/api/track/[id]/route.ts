@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createSupabaseAdminClient } from '@/lib/supabase-server'
-import { getClientIp } from '@/lib/ip-utils'
-import { checkAndIncrementRateLimit, setRateLimitHeaders } from '@/lib/rate-limit'
-import { RATE_LIMIT_CONFIGS } from '@/lib/db-constants'
-import { normalizeTrackingId, TRACKING_ID_REGEX } from '@/lib/constants'
+import { createSupabaseAdminClient } from '@/lib/supabase/server'
+import { getClientIp } from '@/lib/utils/misc'
+import { checkAndIncrementRateLimit, setRateLimitHeaders } from '@/lib/security'
+import { RATE_LIMIT_CONFIGS } from '@/lib/constants'
+import { TRACKING_ID_REGEX } from '@/lib/constants'
+import { normalizeTrackingId } from '@/lib/utils/misc'
 
 const TRACKING_RATE_LIMIT = RATE_LIMIT_CONFIGS.tracking;
 

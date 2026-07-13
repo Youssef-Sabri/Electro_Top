@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import type { CategoryGroup } from '@/types';
-import { devLog } from '@/lib/dev-log';
+import { devLog } from '@/lib/utils/misc';
 
 export function useCategoryHierarchy(initialHierarchy?: CategoryGroup[]) {
   const [hierarchy, setHierarchy] = useState<CategoryGroup[]>(initialHierarchy || []);

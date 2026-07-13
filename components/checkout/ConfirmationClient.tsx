@@ -5,10 +5,10 @@ import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useOrderTracking } from '@/hooks/useOrderTracking';
 import { useProducts } from '@/hooks/useProducts';
-import { formatCurrency } from '@/lib/format-currency';
-import { getSafeUrl } from '@/lib/safe-url';
-import { formatOrderDate, formatOrderTimestamp } from '@/lib/date-utils';
-import { getSupportEnv } from '@/lib/env-utils';
+import { formatCurrency } from '@/lib/utils/format';
+import { getSafeUrl } from '@/lib/utils/misc';
+import { formatOrderDate, formatOrderTimestamp } from '@/lib/utils/date';
+import { getSupportEnv } from '@/lib/utils/misc';
 
 export function ConfirmationClient() {
   const searchParams = useSearchParams();

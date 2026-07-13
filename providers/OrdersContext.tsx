@@ -4,10 +4,9 @@ import { createContext, useState, useEffect, useMemo, useCallback, useRef, React
 import { usePathname } from 'next/navigation';
 import type { Order, OrderItem, OrderStatusHistory, OrderStatus } from '@/types';
 import type { Session } from '@supabase/supabase-js';
-import { supabase } from '@/lib/supabase';
-import { TABLES, ORDER_SELECT_FIELDS, ORDER_ITEM_SELECT_FIELDS, STATUS_HISTORY_SELECT_FIELDS, VALID_ORDER_STATUSES, ADMIN_NOTES_MAX_LENGTH } from '@/lib/db-constants';
-import { devLog } from '@/lib/dev-log';
-import { normalizeTrackingId } from '@/lib/constants';
+import { supabase } from '@/lib/supabase/client';
+import { TABLES, ORDER_SELECT_FIELDS, ORDER_ITEM_SELECT_FIELDS, STATUS_HISTORY_SELECT_FIELDS, VALID_ORDER_STATUSES, ADMIN_NOTES_MAX_LENGTH } from '@/lib/constants';
+import { devLog, normalizeTrackingId } from '@/lib/utils/misc';
 
 function isValidOrderStatus(value: string): value is OrderStatus {
   return (VALID_ORDER_STATUSES as readonly string[]).includes(value);
@@ -147,23 +146,23 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
 
       const orderIds = (oData || []).map(o => o.id_unique_tracking);
 
-        const [oiResult, hResult, statusesResult] = await Promise.all([
-          orderIds.length > 0
-            ? supabase.from(TABLES.orderItems).select(ORDER_ITEM_SELECT_FIELDS).in('order_id', orderIds)
-            : { data: [] as OrderItem[], error: null },
-          orderIds.length > 0
-            ? supabase.from(TABLES.orderStatusHistory).select(STATUS_HISTORY_SELECT_FIELDS).in('order_id', orderIds)
-            : { data: [] as OrderStatusHistory[], error: null },
-          fetch('/api/admin/order-counts').then(async res => {
-            if (!res.ok) return { data: [] as { status: string; count: number }[], error: 'Failed' };
-            try {
-              const data = await res.json();
-              return { data: Array.isArray(data) ? data : [], error: null };
-            } catch {
-              return { data: [] as { status: string; count: number }[], error: 'Failed' };
-            }
-          }),
-        ]);
+      const [oiResult, hResult, statusesResult] = await Promise.all([
+        orderIds.length > 0
+          ? supabase.from(TABLES.orderItems).select(ORDER_ITEM_SELECT_FIELDS).in('order_id', orderIds)
+          : { data: [] as OrderItem[], error: null },
+        orderIds.length > 0
+          ? supabase.from(TABLES.orderStatusHistory).select(STATUS_HISTORY_SELECT_FIELDS).in('order_id', orderIds)
+          : { data: [] as OrderStatusHistory[], error: null },
+        fetch('/api/admin/order-counts').then(async res => {
+          if (!res.ok) return { data: [] as { status: string; count: number }[], error: 'Failed' };
+          try {
+            const data = await res.json();
+            return { data: Array.isArray(data) ? data : [], error: null };
+          } catch {
+            return { data: [] as { status: string; count: number }[], error: 'Failed' };
+          }
+        }),
+      ]);
 
       setOrders(oData || []);
       setOrderItems(oiResult.data || []);
@@ -221,86 +220,86 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
 
         newChannel
           .on(
-          'postgres_changes',
-          { event: 'INSERT', schema: 'public', table: TABLES.orders },
-          (payload) => {
-            const newOrder = payload.new as Order;
-            setOrders((prev) => {
-              if (prev.some((o) => o.id_unique_tracking === newOrder.id_unique_tracking)) return prev;
-              return [newOrder, ...prev];
-            });
-          }
-        )
-        .on(
-          'postgres_changes',
-          { event: 'UPDATE', schema: 'public', table: TABLES.orders },
-          (payload) => {
-            const updatedOrder = payload.new as Order;
-            setOrders((prev) =>
-              prev.map((o) =>
-                o.id_unique_tracking === updatedOrder.id_unique_tracking ? updatedOrder : o
-              )
-            );
-          }
-        )
-        .on(
-          'postgres_changes',
-          { event: 'DELETE', schema: 'public', table: TABLES.orders },
-          (payload) => {
-            const deletedOrder = payload.old as { id_unique_tracking: string };
-            setOrders((prev) =>
-              prev.filter((o) => o.id_unique_tracking !== deletedOrder.id_unique_tracking)
-            );
-          }
-        )
-        .on(
-          'postgres_changes',
-          { event: 'INSERT', schema: 'public', table: TABLES.orderItems },
-          (payload) => {
-            const newItem = payload.new as OrderItem;
-            setOrderItems((prev) => {
-              if (prev.some((item) => item.id === newItem.id)) return prev;
-              return [...prev, newItem];
-            });
-          }
-        )
-        .on(
-          'postgres_changes',
-          { event: 'UPDATE', schema: 'public', table: TABLES.orderItems },
-          (payload) => {
-            const updatedItem = payload.new as OrderItem;
-            setOrderItems((prev) =>
-              prev.map((item) => (item.id === updatedItem.id ? updatedItem : item))
-            );
-          }
-        )
-        .on(
-          'postgres_changes',
-          { event: 'DELETE', schema: 'public', table: TABLES.orderItems },
-          (payload) => {
-            const deletedId = payload.old.id;
-            setOrderItems((prev) => prev.filter((item) => item.id !== deletedId));
-          }
-        )
-        .on(
-          'postgres_changes',
-          { event: 'INSERT', schema: 'public', table: TABLES.orderStatusHistory },
-          (payload) => {
-            const newHistory = payload.new as OrderStatusHistory;
-            setStatusHistory((prev) => {
-              if (prev.some((h) => h.id === newHistory.id)) return prev;
-              return [...prev, newHistory];
-            });
-          }
-        )
-        .on(
-          'postgres_changes',
-          { event: 'DELETE', schema: 'public', table: TABLES.orderStatusHistory },
-          (payload) => {
-            const deletedId = payload.old.id;
-            setStatusHistory((prev) => prev.filter((h) => h.id !== deletedId));
-          }
-        )
+            'postgres_changes',
+            { event: 'INSERT', schema: 'public', table: TABLES.orders },
+            (payload) => {
+              const newOrder = payload.new as Order;
+              setOrders((prev) => {
+                if (prev.some((o) => o.id_unique_tracking === newOrder.id_unique_tracking)) return prev;
+                return [newOrder, ...prev];
+              });
+            }
+          )
+          .on(
+            'postgres_changes',
+            { event: 'UPDATE', schema: 'public', table: TABLES.orders },
+            (payload) => {
+              const updatedOrder = payload.new as Order;
+              setOrders((prev) =>
+                prev.map((o) =>
+                  o.id_unique_tracking === updatedOrder.id_unique_tracking ? updatedOrder : o
+                )
+              );
+            }
+          )
+          .on(
+            'postgres_changes',
+            { event: 'DELETE', schema: 'public', table: TABLES.orders },
+            (payload) => {
+              const deletedOrder = payload.old as { id_unique_tracking: string };
+              setOrders((prev) =>
+                prev.filter((o) => o.id_unique_tracking !== deletedOrder.id_unique_tracking)
+              );
+            }
+          )
+          .on(
+            'postgres_changes',
+            { event: 'INSERT', schema: 'public', table: TABLES.orderItems },
+            (payload) => {
+              const newItem = payload.new as OrderItem;
+              setOrderItems((prev) => {
+                if (prev.some((item) => item.id === newItem.id)) return prev;
+                return [...prev, newItem];
+              });
+            }
+          )
+          .on(
+            'postgres_changes',
+            { event: 'UPDATE', schema: 'public', table: TABLES.orderItems },
+            (payload) => {
+              const updatedItem = payload.new as OrderItem;
+              setOrderItems((prev) =>
+                prev.map((item) => (item.id === updatedItem.id ? updatedItem : item))
+              );
+            }
+          )
+          .on(
+            'postgres_changes',
+            { event: 'DELETE', schema: 'public', table: TABLES.orderItems },
+            (payload) => {
+              const deletedId = payload.old.id;
+              setOrderItems((prev) => prev.filter((item) => item.id !== deletedId));
+            }
+          )
+          .on(
+            'postgres_changes',
+            { event: 'INSERT', schema: 'public', table: TABLES.orderStatusHistory },
+            (payload) => {
+              const newHistory = payload.new as OrderStatusHistory;
+              setStatusHistory((prev) => {
+                if (prev.some((h) => h.id === newHistory.id)) return prev;
+                return [...prev, newHistory];
+              });
+            }
+          )
+          .on(
+            'postgres_changes',
+            { event: 'DELETE', schema: 'public', table: TABLES.orderStatusHistory },
+            (payload) => {
+              const deletedId = payload.old.id;
+              setStatusHistory((prev) => prev.filter((h) => h.id !== deletedId));
+            }
+          );
         channel = newChannel;
         newChannel.subscribe();
       } finally {
@@ -329,8 +328,6 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
       }
     });
 
-    // onAuthStateChange automatically fires with initial session on mount, no redundant call needed.
-
     const handleVisibility = async () => {
       if (document.visibilityState === 'visible') {
         if (!isAdminRoute) return;
@@ -355,7 +352,6 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
   const getOrderById = useCallback((id: string) => {
     return ordersMapRef.current.get(normalizeTrackingId(id));
   }, []);
-
 
   const updateOrderStatus = useCallback(async (orderId: string, status: OrderStatus) => {
     if (!isValidOrderStatus(status)) {

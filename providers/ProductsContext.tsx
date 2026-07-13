@@ -4,11 +4,9 @@ import { createContext, useState, useEffect, useMemo, useCallback, useRef, React
 import { usePathname } from 'next/navigation';
 import type { Product } from '@/types';
 import type { Session } from '@supabase/supabase-js';
-import { supabase } from '@/lib/supabase';
-
-import { TABLES, PRODUCT_SELECT_FIELDS } from '@/lib/db-constants';
-
-import { devLog } from '@/lib/dev-log';
+import { supabase } from '@/lib/supabase/client';
+import { TABLES, PRODUCT_SELECT_FIELDS } from '@/lib/constants';
+import { devLog } from '@/lib/utils/misc';
 
 export interface ProductsContextType {
   products: Product[];
@@ -18,7 +16,6 @@ export interface ProductsContextType {
   deleteProduct: (id: string) => void;
   getProductById: (id: string) => Product | undefined;
   getProductsMap: () => Map<string, Product>;
-
   clearAllProducts: (password: string) => Promise<void>;
   initializeData: (products: Product[], categories: string[]) => void;
   refreshProducts: () => Promise<void>;
@@ -27,7 +24,6 @@ export interface ProductsContextType {
 }
 
 export const ProductsContext = createContext<ProductsContextType | undefined>(undefined);
-
 
 export function ProductsProvider({ children }: { children: ReactNode }) {
   const pathname = usePathname();
@@ -92,7 +88,6 @@ export function ProductsProvider({ children }: { children: ReactNode }) {
   }, [loadData]);
 
   // Real-time subscriptions + visibility-based refresh (no polling)
-
   useEffect(() => {
     let channel: ReturnType<typeof supabase.channel> | null = null;
 
@@ -279,8 +274,6 @@ export function ProductsProvider({ children }: { children: ReactNode }) {
     return productsMapRef.current;
   }, []);
 
-
-
   const clearAllProducts = useCallback(async (password: string) => {
     const previousProducts = productsRef.current;
     const previousCategories = categoriesRef.current;
@@ -305,7 +298,6 @@ export function ProductsProvider({ children }: { children: ReactNode }) {
       throw e;
     }
   }, []);
-
 
   const value = useMemo(
     () => ({

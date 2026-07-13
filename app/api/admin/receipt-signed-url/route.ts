@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { requireAdminGuard } from '@/lib/admin-guard'
-import { devLog } from '@/lib/dev-log'
-import { createSupabaseAdminClient } from '@/lib/supabase-server'
-import { TABLES, STORAGE_BUCKETS } from '@/lib/db-constants'
-import { SAFE_FILENAME_RE } from '@/lib/validators'
-import { normalizeTrackingId } from '@/lib/constants'
+import { requireAdminGuard } from '@/lib/auth'
+import { devLog } from '@/lib/utils/misc'
+import { createSupabaseAdminClient } from '@/lib/supabase/server'
+import { TABLES, STORAGE_BUCKETS } from '@/lib/constants'
+import { SAFE_FILENAME_RE } from '@/lib/validations'
+import { normalizeTrackingId } from '@/lib/utils/misc'
 
 const SIGNED_URL_TTL = 300 // 5 minutes
 

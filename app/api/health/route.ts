@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
-import { createSupabaseAdminClient } from '@/lib/supabase-server'
-import { TABLES } from '@/lib/db-constants'
+import { createSupabaseAdminClient } from '@/lib/supabase/server'
+import { TABLES } from '@/lib/constants'
 
 export async function GET() {
   const start = Date.now()

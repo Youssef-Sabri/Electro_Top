@@ -1,5 +1,5 @@
 import { Metadata } from 'next';
-import { getSupportEnv } from '@/lib/env-utils';
+import { getSupportEnv } from '@/lib/utils/misc';
 
 export const metadata: Metadata = {
   title: 'الاتصال والدعم | إلكترو توب',

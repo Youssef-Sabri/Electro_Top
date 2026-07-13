@@ -5,11 +5,11 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useCart } from '@/hooks/useCart';
-import { checkoutSchema } from '@/lib/validators';
-import type { CheckoutFormData } from '@/lib/validators';
-import { formatCurrency } from '@/lib/format-currency';
-import { processAndCompressImage } from '@/lib/image-utils';
-import { readFileAsDataURL } from '@/lib/file-utils';
+import { checkoutSchema } from '@/lib/validations';
+import type { CheckoutFormData } from '@/lib/validations';
+import { formatCurrency } from '@/lib/utils/format';
+import { processAndCompressImage } from '@/lib/utils/image';
+import { readFileAsDataURL } from '@/lib/utils/file';
 import { Toast } from '@/components/ui/Toast';
 
 export function CheckoutForm() {

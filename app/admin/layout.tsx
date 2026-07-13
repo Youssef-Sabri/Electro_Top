@@ -1,7 +1,7 @@
-import { getServerSupabase } from '@/lib/supabase-server-cookies';
-import { isAdminRole } from '@/lib/api-auth';
+import { getServerSupabase } from '@/lib/supabase/server';
+import { isAdminRole } from '@/lib/constants';
 import AdminClientLayout from './AdminClientLayout';
-import { OrdersProvider } from '@/context/OrdersContext';
+import { OrdersProvider } from '@/providers/OrdersContext';
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const supabase = await getServerSupabase();

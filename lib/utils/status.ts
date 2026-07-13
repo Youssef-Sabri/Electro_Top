@@ -1,5 +1,5 @@
-import type { OrderStatus } from '@/types'
-import { VALID_ORDER_STATUSES } from '@/lib/db-constants'
+import type { OrderStatus } from '@/types';
+import { VALID_ORDER_STATUSES } from '@/lib/constants';
 
 const STATUS_LABELS: Record<OrderStatus, string> = {
   'Pending Review': 'قيد المراجعة',
@@ -8,7 +8,7 @@ const STATUS_LABELS: Record<OrderStatus, string> = {
   'Delivered': 'تم التوصيل',
   'Declined': 'مرفوض',
   'Check Internal Note': 'قيد الفحص',
-}
+};
 
 const HISTORY_LABELS: Record<OrderStatus, string> = {
   'Pending Review': 'تم تسجيل الطلب والدفع',
@@ -17,30 +17,30 @@ const HISTORY_LABELS: Record<OrderStatus, string> = {
   'Delivered': 'تم توصيل الطلب بنجاح',
   'Declined': 'تم رفض الطلب',
   'Check Internal Note': 'قيد الفحص الداخلي',
-}
+};
 
 type StatusFilterValue = 'All' | OrderStatus;
 
 export const STATUS_OPTIONS: { value: StatusFilterValue; label: string }[] = [
   { value: 'All', label: 'الكل' },
-  ...VALID_ORDER_STATUSES.map(status => ({
+  ...VALID_ORDER_STATUSES.map((status) => ({
     value: status as StatusFilterValue,
-    label: STATUS_LABELS[status]
-  }))
-]
+    label: STATUS_LABELS[status],
+  })),
+];
 
 export function translateStatus(status: string, isPublic = false): string {
-  let displayStatus = status
+  let displayStatus = status;
   if (isPublic && status === 'Check Internal Note') {
-    displayStatus = 'Pending Review'
+    displayStatus = 'Pending Review';
   }
-  return STATUS_LABELS[displayStatus as OrderStatus] || displayStatus
+  return STATUS_LABELS[displayStatus as OrderStatus] || displayStatus;
 }
 
 export function translateHistoryStatus(status: string): string {
-  return HISTORY_LABELS[status as OrderStatus] || status
+  return HISTORY_LABELS[status as OrderStatus] || status;
 }
 
 export function publicStatus(status: string): OrderStatus {
-  return (status === 'Check Internal Note' ? 'Pending Review' : status) as OrderStatus
+  return (status === 'Check Internal Note' ? 'Pending Review' : status) as OrderStatus;
 }

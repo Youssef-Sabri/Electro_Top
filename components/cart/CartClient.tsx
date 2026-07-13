@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useCart } from '@/hooks/useCart';
 import { CartItem } from '@/components/cart/CartItem';
-import { formatCurrency } from '@/lib/format-currency';
+import { formatCurrency } from '@/lib/utils/format';
 
 export function CartClient() {
   const { items, total, itemCount } = useCart();

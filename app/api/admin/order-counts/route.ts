@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
-import { createSupabaseAdminClient } from '@/lib/supabase-server';
-import { requireAdminGuard } from '@/lib/admin-guard';
-import { devLog } from '@/lib/dev-log';
+import { createSupabaseAdminClient } from '@/lib/supabase/server';
+import { requireAdminGuard } from '@/lib/auth';
+import { devLog } from '@/lib/utils/misc';
 
 export async function GET(request: Request) {
   const guard = await requireAdminGuard(request);

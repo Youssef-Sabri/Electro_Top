@@ -4,8 +4,8 @@ import { Cairo, Tajawal } from 'next/font/google';
 import { headers } from 'next/headers';
 import { z } from 'zod';
 import './globals.css';
-import { CartProvider } from '@/context/CartContext';
-import { ProductsProvider } from '@/context/ProductsContext';
+import { CartProvider } from '@/providers/CartContext';
+import { ProductsProvider } from '@/providers/ProductsContext';
 import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
 
 

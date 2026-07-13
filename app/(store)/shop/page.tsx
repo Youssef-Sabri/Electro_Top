@@ -2,7 +2,7 @@ import { Suspense } from 'react';
 import { Metadata } from 'next';
 import { ShopPageContent } from '@/components/catalog/ShopPageContent';
 import { Spinner } from '@/components/ui/Spinner';
-import { fetchCatalog } from '@/lib/fetch-catalog';
+import { fetchCatalog } from '@/lib/services/catalog';
 
 export const metadata: Metadata = {
   title: 'المتجر والمنتجات | إلكترو توب',

@@ -7,4 +7,3 @@ if (!supabaseUrl) throw new Error('Missing environment variable: NEXT_PUBLIC_SUP
 if (!supabaseKey) throw new Error('Missing environment variable: NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY');
 
 export const supabase = createBrowserClient(supabaseUrl, supabaseKey);
-

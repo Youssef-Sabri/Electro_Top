@@ -1,6 +1,6 @@
 import { Metadata } from 'next';
 import { LandingPage } from '@/components/catalog/LandingPage';
-import { fetchCatalog } from '@/lib/fetch-catalog';
+import { fetchCatalog } from '@/lib/services/catalog';
 
 import { SITE_METADATA } from '@/lib/constants';
 

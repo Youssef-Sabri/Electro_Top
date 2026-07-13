@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { checkAndIncrementRateLimit, setRateLimitHeaders } from '@/lib/rate-limit';
-import { createSupabaseAdminClient } from '@/lib/supabase-server';
-import { getClientIp } from '@/lib/ip-utils';
-import { RATE_LIMIT_CONFIGS } from '@/lib/db-constants';
-import { parseJsonBody } from '@/lib/parse-json';
+import { checkAndIncrementRateLimit, setRateLimitHeaders } from '@/lib/security';
+import { createSupabaseAdminClient } from '@/lib/supabase/server';
+import { getClientIp } from '@/lib/utils/misc';
+import { RATE_LIMIT_CONFIGS } from '@/lib/constants';
+import { parseJsonBody } from '@/lib/utils/misc';
 
 
 const CSP_RATE_LIMIT = RATE_LIMIT_CONFIGS.cspReport;

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import type { Order, OrderItem, OrderStatusHistory } from '@/types';
-import { normalizeTrackingId } from '@/lib/constants';
-import { devLog } from '@/lib/dev-log';
+import { normalizeTrackingId } from '@/lib/utils/misc';
+import { devLog } from '@/lib/utils/misc';
 
 export function useOrderTracking(id: string | null): {
   order: Order | null;

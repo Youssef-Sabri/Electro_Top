@@ -1,7 +1,8 @@
 'use client';
 
 import { memo } from 'react';
-import { getSupportEnv } from '@/lib/env-utils';
+import Image from 'next/image';
+import { getSupportEnv } from '@/lib/utils/misc';
 
 export const Footer = memo(function Footer() {
   const { whatsapp: whatsappNumbers, phone: phoneNumbers, facebook: facebookUrl, email: supportEmail } = getSupportEnv();
@@ -15,14 +16,13 @@ export const Footer = memo(function Footer() {
         <div className="space-y-5">
           <div className="flex items-center gap-3">
             <div className="bg-white rounded-xl p-1.5 shadow-sm">
-               <img
+               <Image
                 alt="شعار إلكترو توب"
                 className="h-8 w-auto"
                 src="/logo.png"
-                width="32"
-                height="32"
+                width={32}
+                height={32}
                 style={{ width: 'auto' }}
-                loading="lazy"
               />
             </div>
             <span className="font-headline-md text-headline-md text-secondary-fixed font-extrabold tracking-tighter">

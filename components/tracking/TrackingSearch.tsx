@@ -2,7 +2,8 @@
 
 import React, { memo, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { normalizeTrackingId, isValidTrackingId } from '@/lib/constants';
+import Image from 'next/image';
+import { normalizeTrackingId, isValidTrackingId } from '@/lib/utils/misc';
 
 export const TrackingSearch = memo(function TrackingSearch() {
   const router = useRouter();
@@ -33,12 +34,12 @@ export const TrackingSearch = memo(function TrackingSearch() {
         
         {/* Description panel */}
         <div className="space-y-8 text-start">
-           <img
+           <Image
              alt="شعار إلكترو توب"
              className="h-12 md:h-16 w-auto object-contain mix-blend-multiply select-none"
              src="/logo.png"
-             width="64"
-             height="64"
+             width={64}
+             height={64}
              style={{ width: 'auto' }}
            />
           <h1 className="font-bold text-[36px] md:text-[46px] leading-tight text-on-surface">

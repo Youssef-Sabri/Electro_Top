@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createSupabaseAdminClient } from '@/lib/supabase-server'
-import { getServerSupabase } from '@/lib/supabase-server-cookies'
-import { validateRequestOrigin } from '@/lib/csrf'
-import { getClientIp } from '@/lib/ip-utils'
-import { checkAndIncrementRateLimit, setRateLimitHeaders } from '@/lib/rate-limit'
-import { RATE_LIMIT_CONFIGS } from '@/lib/db-constants'
-import { parseJsonBody } from '@/lib/parse-json'
-import { isAdminRole } from '@/lib/api-auth'
+import { createSupabaseAdminClient } from '@/lib/supabase/server'
+import { getServerSupabase } from '@/lib/supabase/server'
+import { validateRequestOrigin } from '@/lib/security'
+import { getClientIp } from '@/lib/utils/misc'
+import { checkAndIncrementRateLimit, setRateLimitHeaders } from '@/lib/security'
+import { RATE_LIMIT_CONFIGS } from '@/lib/constants'
+import { parseJsonBody } from '@/lib/utils/misc'
+import { isAdminRole } from '@/lib/constants'
 
 export async function GET(request: NextRequest) {
   const ip = getClientIp(request);

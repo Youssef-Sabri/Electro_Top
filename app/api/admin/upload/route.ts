@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
-import { requireAdminGuard } from '@/lib/admin-guard'
-import { detectImageMimeType, EXT_MAP } from '@/lib/magic-bytes'
-import { STORAGE_BUCKETS } from '@/lib/db-constants'
+import { requireAdminGuard } from '@/lib/auth'
+import { detectImageMimeType, EXT_MAP } from '@/lib/utils/file'
+import { STORAGE_BUCKETS } from '@/lib/constants'
 import { MAX_FILE_SIZE_BYTES } from '@/lib/constants'
 
 export async function POST(request: Request) {

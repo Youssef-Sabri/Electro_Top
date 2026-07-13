@@ -1,13 +1,13 @@
 import { NextResponse } from 'next/server'
 import { revalidatePath } from 'next/cache'
-import { createSupabaseAdminClient } from '@/lib/supabase-server'
-import { requireAdminGuard } from '@/lib/admin-guard'
-import { productFormSchema } from '@/lib/validators'
-import { verifyAdminPassword } from '@/lib/verify-admin-server'
-import { now } from '@/lib/date-utils'
-import { TABLES, STORAGE_BUCKETS } from '@/lib/db-constants'
-import { clearStorageBucket } from '@/lib/file-utils'
-import { parseJsonBody } from '@/lib/parse-json'
+import { createSupabaseAdminClient } from '@/lib/supabase/server'
+import { requireAdminGuard } from '@/lib/auth'
+import { productFormSchema } from '@/lib/validations'
+import { verifyAdminPassword } from '@/lib/auth'
+import { now } from '@/lib/utils/date'
+import { TABLES, STORAGE_BUCKETS } from '@/lib/constants'
+import { clearStorageBucket } from '@/lib/utils/file'
+import { parseJsonBody } from '@/lib/utils/misc'
 
 export async function POST(request: Request) {
   const guard = await requireAdminGuard(request)

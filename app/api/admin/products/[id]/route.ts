@@ -1,13 +1,13 @@
 import { NextResponse } from 'next/server'
 import { SupabaseClient } from '@supabase/supabase-js'
 import { revalidatePath } from 'next/cache'
-import { createSupabaseAdminClient } from '@/lib/supabase-server'
-import { requireAdminGuard } from '@/lib/admin-guard'
-import { productFormPartialSchema } from '@/lib/validators'
-import { deleteStorageFile } from '@/lib/file-utils'
-import { TABLES, STORAGE_BUCKETS } from '@/lib/db-constants'
-import { parseJsonBody } from '@/lib/parse-json'
-import { devLog } from '@/lib/dev-log'
+import { createSupabaseAdminClient } from '@/lib/supabase/server'
+import { requireAdminGuard } from '@/lib/auth'
+import { productFormPartialSchema } from '@/lib/validations'
+import { deleteStorageFile } from '@/lib/utils/file'
+import { TABLES, STORAGE_BUCKETS } from '@/lib/constants'
+import { parseJsonBody } from '@/lib/utils/misc'
+import { devLog } from '@/lib/utils/misc'
 
 const ALLOWED_UPDATE_FIELDS = ['name', 'description', 'price', 'stock', 'image_url', 'image_url_2', 'image_url_3', 'is_active', 'category', 'has_colors', 'colors'] as const
 

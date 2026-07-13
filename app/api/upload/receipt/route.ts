@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createSupabaseAdminClient } from '@/lib/supabase-server'
-import { validateRequestOrigin } from '@/lib/csrf'
-import { detectImageMimeType } from '@/lib/magic-bytes'
-import { checkAndIncrementRateLimit, setRateLimitHeaders } from '@/lib/rate-limit'
-import { getClientIp } from '@/lib/ip-utils'
-import { TABLES, STORAGE_BUCKETS, RATE_LIMIT_CONFIGS } from '@/lib/db-constants'
+import { createSupabaseAdminClient } from '@/lib/supabase/server'
+import { validateRequestOrigin } from '@/lib/security'
+import { detectImageMimeType } from '@/lib/utils/file'
+import { checkAndIncrementRateLimit, setRateLimitHeaders } from '@/lib/security'
+import { getClientIp } from '@/lib/utils/misc'
+import { TABLES, STORAGE_BUCKETS, RATE_LIMIT_CONFIGS } from '@/lib/constants'
 import { MAX_FILE_SIZE_BYTES } from '@/lib/constants'
-import { parseJsonBody } from '@/lib/parse-json'
-import { SAFE_FILENAME_RE } from '@/lib/validators'
+import { parseJsonBody } from '@/lib/utils/misc'
+import { SAFE_FILENAME_RE } from '@/lib/validations'
 
 export async function POST(request: NextRequest) {
   if (!validateRequestOrigin(request)) {

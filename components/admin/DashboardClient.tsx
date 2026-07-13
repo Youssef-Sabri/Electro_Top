@@ -3,7 +3,7 @@
 import { memo, useEffect, useState, useCallback, useRef } from 'react';
 import Link from 'next/link';
 
-import { formatCurrency } from '@/lib/format-currency';
+import { formatCurrency } from '@/lib/utils/format';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { Spinner } from '@/components/ui/Spinner';
 import type { Order } from '@/types';
