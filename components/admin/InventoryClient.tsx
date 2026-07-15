@@ -24,7 +24,7 @@ import { ImageUploadField } from '@/components/admin/ImageUploadField';
 
 export const InventoryClient = memo(function InventoryClient() {
 
-  const { products, addProduct, updateProduct, deleteProduct, clearAllProducts } = useProducts();
+  const { products, addProduct, updateProduct, deleteProduct, clearAllProducts, isLoaded } = useProducts();
   const { hierarchy } = useCategoryHierarchy();
 
   const searchParams = useSearchParams();
@@ -48,6 +48,14 @@ export const InventoryClient = memo(function InventoryClient() {
     const p = searchParams?.get('page');
     return p ? parseInt(p, 10) : 1;
   }, [searchParams]);
+
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
@@ -151,7 +159,9 @@ export const InventoryClient = memo(function InventoryClient() {
     resetPage();
   }, [searchQuery, statusFilter, stockFilter, selectedMainCategoryFilter, selectedSubCategoryFilter, resetPage]);
 
+  // Synchronize state to URL
   useEffect(() => {
+    if (pathname !== '/admin/inventory') return;
     if (typeof window === 'undefined') return;
     const params = new URLSearchParams(window.location.search);
 
@@ -181,6 +191,7 @@ export const InventoryClient = memo(function InventoryClient() {
 
   // Sync URL query params back to state (for back/forward navigation and link resets)
   useEffect(() => {
+    if (pathname !== '/admin/inventory') return;
     const urlSearch = searchParams?.get('search') || '';
     const urlStatus = (searchParams?.get('status') === 'active' || searchParams?.get('status') === 'inactive') ? searchParams.get('status') as 'all' | 'active' | 'inactive' : 'all';
     const urlStock = (searchParams?.get('stock') === 'out' || searchParams?.get('stock') === 'low' || searchParams?.get('stock') === 'instock') ? searchParams.get('stock') as 'all' | 'out' | 'low' | 'instock' : 'all';
@@ -194,7 +205,7 @@ export const InventoryClient = memo(function InventoryClient() {
     setSelectedMainCategoryFilter((prev) => (prev === urlMainCat ? prev : urlMainCat));
     setSelectedSubCategoryFilter((prev) => (prev === urlSubCat ? prev : urlSubCat));
     setCurrentPage((prev) => (prev === urlPage ? prev : urlPage));
-  }, [searchParams, setCurrentPage]);
+  }, [searchParams, pathname, setCurrentPage]);
 
   const handleExportCSV = () => {
     const headers = [
@@ -521,6 +532,14 @@ export const InventoryClient = memo(function InventoryClient() {
     });
   };
 
+  if (!isMounted) {
+    return (
+      <div className="w-full py-20 text-center font-tajawal text-on-surface-variant">
+        <p className="text-sm">جاري تحميل إدارة المخزون...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-8 font-tajawal text-on-surface" dir="rtl">
       {toastMessage && (
@@ -673,7 +692,19 @@ export const InventoryClient = memo(function InventoryClient() {
               </tr>
             </thead>
             <tbody className="divide-y divide-outline-variant/10 text-sm">
-              {filteredProducts.length > 0 ? (
+              {!isLoaded ? (
+                Array.from({ length: 5 }).map((_, idx) => (
+                  <tr key={`sk-row-${idx}`} className="animate-pulse border-b border-outline-variant/10">
+                    <td className="px-6 py-4"><div className="h-16 w-16 bg-outline-variant/20 rounded-lg"></div></td>
+                    <td className="px-6 py-4"><div className="space-y-2"><div className="h-4 bg-outline-variant/20 rounded w-32"></div><div className="h-3 bg-outline-variant/20 rounded w-48"></div></div></td>
+                    <td className="px-6 py-4"><div className="h-6 bg-outline-variant/20 rounded-full w-20"></div></td>
+                    <td className="px-6 py-4"><div className="h-4 bg-outline-variant/20 rounded w-16 ml-auto"></div></td>
+                    <td className="px-6 py-4"><div className="flex justify-center"><div className="h-6 bg-outline-variant/20 rounded-full w-20"></div></div></td>
+                    <td className="px-6 py-4"><div className="flex justify-center"><div className="h-7 bg-outline-variant/20 rounded-lg w-20"></div></div></td>
+                    <td className="px-6 py-4"><div className="flex justify-center gap-2"><div className="h-9 w-9 bg-outline-variant/20 rounded-lg"></div><div className="h-9 w-9 bg-outline-variant/20 rounded-lg"></div></div></td>
+                  </tr>
+                ))
+              ) : filteredProducts.length > 0 ? (
                 paginatedProducts.map((product) => (
                   <tr key={product.id} className="hover:bg-surface-container-low/30 transition-colors">
                     <td className="py-4 px-6 text-start">
@@ -772,7 +803,27 @@ export const InventoryClient = memo(function InventoryClient() {
 
         {/* Mobile Card List (shown on mobile, hidden on desktop) */}
         <div className="block lg:hidden divide-y divide-outline-variant/10">
-          {filteredProducts.length > 0 ? (
+          {!isLoaded ? (
+            Array.from({ length: 3 }).map((_, idx) => (
+              <div key={`sk-card-${idx}`} className="p-4 space-y-4 animate-pulse">
+                <div className="flex gap-4">
+                  <div className="w-20 h-20 bg-outline-variant/20 rounded-lg shrink-0"></div>
+                  <div className="space-y-2 flex-grow">
+                    <div className="h-4 bg-outline-variant/20 rounded w-2/3"></div>
+                    <div className="h-3 bg-outline-variant/20 rounded w-1/2"></div>
+                    <div className="flex gap-2 pt-1">
+                      <div className="h-5 bg-outline-variant/20 rounded-full w-16"></div>
+                      <div className="h-5 bg-outline-variant/20 rounded-full w-12"></div>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between bg-surface-container-low/40 p-2.5 rounded-lg">
+                  <div className="space-y-1"><div className="h-3 bg-outline-variant/20 rounded w-8"></div><div className="h-4 bg-outline-variant/20 rounded w-16"></div></div>
+                  <div className="flex gap-2"><div className="h-8 bg-outline-variant/20 rounded-lg w-20"></div><div className="h-9 w-9 bg-outline-variant/20 rounded-lg"></div><div className="h-9 w-9 bg-outline-variant/20 rounded-lg"></div></div>
+                </div>
+              </div>
+            ))
+          ) : filteredProducts.length > 0 ? (
             paginatedProducts.map((product) => (
               <div key={product.id} className="p-4 space-y-4 hover:bg-surface-container-low/30 transition-colors">
                 <div className="flex items-start gap-4">

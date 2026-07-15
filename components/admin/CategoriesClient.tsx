@@ -15,7 +15,7 @@ interface CategoryHierarchyItem {
 }
 
 export function CategoriesClient() {
-  const { hierarchy, refresh: refreshHierarchy } = useCategoryHierarchy();
+  const { hierarchy, loading, refresh: refreshHierarchy } = useCategoryHierarchy();
 
   const searchParams = useSearchParams();
   const pathname = usePathname();
@@ -34,6 +34,13 @@ export function CategoriesClient() {
   const itemsPerPage = 6;
 
   const { confirmModal, openConfirm, closeConfirm } = useConfirmModal();
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+
 
   const [renameModal, setRenameModal] = useState<{
     isOpen: boolean;
@@ -65,6 +72,7 @@ export function CategoriesClient() {
   }, [searchQuery]);
 
   useEffect(() => {
+    if (pathname !== '/admin/categories') return;
     if (typeof window === 'undefined') return;
     const params = new URLSearchParams(window.location.search);
 
@@ -82,12 +90,13 @@ export function CategoriesClient() {
 
   // Sync URL query params back to state (for back/forward navigation and link resets)
   useEffect(() => {
+    if (pathname !== '/admin/categories') return;
     const urlSearch = searchParams?.get('search') || '';
     const urlPage = searchParams?.get('page') ? parseInt(searchParams.get('page')!, 10) : 1;
 
     setSearchQuery((prev) => (prev === urlSearch ? prev : urlSearch));
     setCurrentPage((prev) => (prev === urlPage ? prev : urlPage));
-  }, [searchParams]);
+  }, [searchParams, pathname]);
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
@@ -279,6 +288,14 @@ export function CategoriesClient() {
     return filteredHierarchy.slice(start, start + itemsPerPage);
   }, [filteredHierarchy, currentPage]);
 
+  if (!isMounted) {
+    return (
+      <div className="w-full py-20 text-center font-tajawal text-on-surface-variant">
+        <p className="text-sm">جاري تحميل إدارة الأقسام...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6 font-tajawal">
 
@@ -349,7 +366,26 @@ export function CategoriesClient() {
           </div>
 
           <div className="space-y-3.5">
-            {paginatedHierarchy.length > 0 ? (
+            {loading ? (
+              Array.from({ length: 3 }).map((_, idx) => (
+                <div key={`sk-cat-${idx}`} className="border border-outline-variant/30 rounded-2xl p-4 bg-surface-container-low animate-pulse space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-outline-variant/20 shrink-0"></div>
+                      <div className="space-y-2">
+                        <div className="h-4 bg-outline-variant/20 rounded w-24"></div>
+                        <div className="h-3 bg-outline-variant/20 rounded w-16"></div>
+                      </div>
+                    </div>
+                    <div className="flex gap-1.5">
+                      <div className="h-8 w-8 bg-outline-variant/20 rounded-lg"></div>
+                      <div className="h-8 w-8 bg-outline-variant/20 rounded-lg"></div>
+                      <div className="h-8 w-8 bg-outline-variant/20 rounded-lg"></div>
+                    </div>
+                  </div>
+                </div>
+              ))
+            ) : paginatedHierarchy.length > 0 ? (
               paginatedHierarchy.map((group) => {
                 const isExpanded = expandedGroups.has(group.name);
                 const subCount = (group.subcategories || []).length;

@@ -20,7 +20,7 @@ import { PasswordConfirmModal } from '@/components/ui/PasswordConfirmModal';
 import { Toast } from '@/components/ui/Toast';
 
 export const OrdersLedger = memo(function OrdersLedger() {
-  const { orders, clearAllOrders, deleteOrder, page, totalPages, filters, setFilters, goToPage, globalCounts } = useOrders();
+  const { orders, isLoading, clearAllOrders, deleteOrder, page, totalPages, filters, setFilters, goToPage, globalCounts } = useOrders();
   const { getProductsMap } = useProducts();
   const router = useRouter();
 
@@ -31,6 +31,14 @@ export const OrdersLedger = memo(function OrdersLedger() {
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
   const [searchValue, setSearchValue] = useState(filters.searchQuery);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+
+
   const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const handleExportCSV = useCallback(async () => {
@@ -125,6 +133,14 @@ export const OrdersLedger = memo(function OrdersLedger() {
     router.push(`/admin/orders/${trackingId}`);
   }, [router]);
 
+  if (!isMounted) {
+    return (
+      <div className="w-full py-20 text-center font-tajawal text-on-surface-variant">
+        <p className="text-sm">جاري تحميل دفتر الطلبات...</p>
+      </div>
+    );
+  }
+
   return (
     <section className="space-y-gutter font-tajawal">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 text-start">
@@ -215,7 +231,20 @@ export const OrdersLedger = memo(function OrdersLedger() {
               </tr>
             </thead>
             <tbody className="divide-y divide-outline-variant/10">
-              {orders.length > 0 ? (
+              {isLoading ? (
+                Array.from({ length: 5 }).map((_, idx) => (
+                  <tr key={`sk-row-${idx}`} className="animate-pulse border-b border-outline-variant/10">
+                    <td className="px-6 py-4"><div className="h-4 bg-outline-variant/20 rounded w-20"></div></td>
+                    <td className="px-6 py-4"><div className="h-4 bg-outline-variant/20 rounded w-24"></div></td>
+                    <td className="px-6 py-4"><div className="h-4 bg-outline-variant/20 rounded w-24"></div></td>
+                    <td className="px-6 py-4"><div className="h-4 bg-outline-variant/20 rounded w-32"></div></td>
+                    <td className="px-6 py-4"><div className="h-4 bg-outline-variant/20 rounded w-16"></div></td>
+                    <td className="px-6 py-4"><div className="h-4 bg-outline-variant/20 rounded w-20"></div></td>
+                    <td className="px-6 py-4"><div className="h-4 bg-outline-variant/20 rounded w-16"></div></td>
+                    <td className="px-6 py-4 text-end"><div className="h-8 bg-outline-variant/20 rounded w-8 inline-block"></div></td>
+                  </tr>
+                ))
+              ) : orders.length > 0 ? (
                 orders.map((order) => {
                   const dateStr = formatOrderDate(order.created_at);
 
@@ -246,9 +275,9 @@ export const OrdersLedger = memo(function OrdersLedger() {
                         {order.phone_number}
                       </td>
 
-<td className="px-6 py-4">
-  <StatusBadge status={order.status} />
-</td>
+                      <td className="px-6 py-4">
+                        <StatusBadge status={order.status} />
+                      </td>
 
                       <td className="px-6 py-4 font-body-md text-body-md text-on-surface-variant text-start">
                         {dateStr}
@@ -291,7 +320,30 @@ export const OrdersLedger = memo(function OrdersLedger() {
 
         {/* Mobile Card List (shown on mobile, hidden on desktop) */}
         <div className="block lg:hidden divide-y divide-outline-variant/10">
-          {orders.length > 0 ? (
+          {isLoading ? (
+            Array.from({ length: 3 }).map((_, idx) => (
+              <div key={`sk-card-${idx}`} className="p-4 space-y-4 animate-pulse">
+                <div className="flex justify-between items-start">
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-full bg-outline-variant/20"></div>
+                    <div className="space-y-2">
+                      <div className="h-4 bg-outline-variant/20 rounded w-24"></div>
+                      <div className="h-3 bg-outline-variant/20 rounded w-16"></div>
+                    </div>
+                  </div>
+                  <div className="h-4 bg-outline-variant/20 rounded w-16"></div>
+                </div>
+                <div className="flex justify-between items-center">
+                  <div className="flex gap-2">
+                    <div className="h-6 bg-outline-variant/20 rounded w-16"></div>
+                    <div className="h-6 bg-outline-variant/20 rounded w-16"></div>
+                  </div>
+                  <div className="h-3 bg-outline-variant/20 rounded w-12"></div>
+                </div>
+                <div className="h-12 bg-outline-variant/20 rounded-lg"></div>
+              </div>
+            ))
+          ) : orders.length > 0 ? (
             orders.map((order) => {
               const dateStr = formatOrderDate(order.created_at);
               const orderTotal = order.total_amount;

@@ -21,6 +21,7 @@ const PAGE_SIZE = 50;
 
 export interface OrdersContextType {
   orders: Order[];
+  isLoading: boolean;
   orderItems: OrderItem[];
   statusHistory: OrderStatusHistory[];
   page: number;
@@ -54,16 +55,24 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
   const [orders, setOrders] = useState<Order[]>([]);
   const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
   const [statusHistory, setStatusHistory] = useState<OrderStatusHistory[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [page, setPage] = useState(() => {
-    const urlPage = searchParams?.get('page');
-    return urlPage ? parseInt(urlPage, 10) : 0;
+    if (typeof window !== 'undefined' && window.location.pathname === '/admin/orders') {
+      const urlPage = new URLSearchParams(window.location.search).get('page');
+      return urlPage ? parseInt(urlPage, 10) : 0;
+    }
+    return 0;
   });
   const [totalPages, setTotalPages] = useState(0);
   const [filters, setFilters] = useState<OrderFilters>(() => {
-    return {
-      searchQuery: searchParams?.get('search') || '',
-      status: searchParams?.get('status') || 'All',
-    };
+    if (typeof window !== 'undefined' && window.location.pathname === '/admin/orders') {
+      const params = new URLSearchParams(window.location.search);
+      return {
+        searchQuery: params.get('search') || '',
+        status: params.get('status') || 'All',
+      };
+    }
+    return { searchQuery: '', status: 'All' };
   });
   const [globalCounts, setGlobalCounts] = useState({
     totalCount: 0,
@@ -140,6 +149,7 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const loadData = useCallback(async (pageNum = 0, overrideFilters?: OrderFilters) => {
+    setIsLoading(true);
     try {
       const from = pageNum * PAGE_SIZE;
       const to = from + PAGE_SIZE - 1;
@@ -174,8 +184,10 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
       setOrderItems([]);
       setStatusHistory([]);
       setTotalPages(oCount ? Math.ceil(oCount / PAGE_SIZE) : 0);
+      setIsLoading(false);
     } catch (error) {
       devLog('Failed to load orders/items/logs from Supabase:', error);
+      setIsLoading(false);
     }
   }, []);
 
@@ -188,6 +200,13 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
   // Synchronize URL changes back to state (handles back/forward navigation and layout page transitions)
   useEffect(() => {
     if (!pathname?.startsWith('/admin')) return;
+
+    if (pathname !== '/admin/orders') {
+      setFilters({ searchQuery: '', status: 'All' });
+      setPage(0);
+      return;
+    }
+
     const urlStatus = searchParams?.get('status') || 'All';
     const urlSearch = searchParams?.get('search') || '';
     const urlPage = parseInt(searchParams?.get('page') || '0', 10);
@@ -205,6 +224,16 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
   // Synchronize state and trigger query
   useEffect(() => {
     if (typeof window === 'undefined' || !pathname?.startsWith('/admin')) return;
+
+    if (pathname !== '/admin/orders') {
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        if (session) {
+          loadData(page, filters);
+        }
+      });
+      return;
+    }
+
     const params = new URLSearchParams(window.location.search);
 
     if (filters.status === 'All') params.delete('status');
@@ -519,6 +548,7 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
   const value = useMemo(
     () => ({
       orders,
+      isLoading,
       orderItems,
       statusHistory,
       page,
@@ -540,6 +570,7 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
     }),
     [
       orders,
+      isLoading,
       orderItems,
       statusHistory,
       page,
