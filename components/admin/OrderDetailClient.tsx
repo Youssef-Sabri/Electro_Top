@@ -15,6 +15,7 @@ import { ColorSwatch } from '@/components/ui/ColorSwatch';
 import { SAFE_FILENAME_RE } from '@/lib/validations';
 
 import { Toast } from '@/components/ui/Toast';
+import { Spinner } from '@/components/ui/Spinner';
 import { CustomDropdown } from '@/components/ui/CustomDropdown';
 import { ConfirmationModal } from '@/components/ui/ConfirmationModal';
 import { PrintableInvoice } from '@/components/admin/PrintableInvoice';
@@ -251,7 +252,8 @@ export const OrderDetailClient = memo(function OrderDetailClient({ id }: OrderDe
 
   if (loading) {
     return (
-      <div className="py-20 text-center font-tajawal text-on-surface-variant">
+      <div className="flex flex-col items-center justify-center py-20 font-tajawal text-on-surface-variant">
+        <Spinner className="h-8 w-8 mb-3" />
         <p className="text-sm">جاري جلب تفاصيل الطلب...</p>
       </div>
     );

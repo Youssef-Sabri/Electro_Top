@@ -11,6 +11,8 @@ import { formatCurrency } from '@/lib/utils/format';
 import { todayStamp } from '@/lib/utils/date';
 import type { Product } from '@/types';
 import { ProductFormData, productFormSchema } from '@/lib/validations';
+import { Skeleton } from '@/components/ui/Skeleton';
+import { Spinner } from '@/components/ui/Spinner';
 import { CustomDropdown } from '@/components/ui/CustomDropdown';
 import { StatCard } from '@/components/ui/StatCard';
 import { ConfirmationModal } from '@/components/ui/ConfirmationModal';
@@ -534,7 +536,8 @@ export const InventoryClient = memo(function InventoryClient() {
 
   if (!isMounted) {
     return (
-      <div className="w-full py-20 text-center font-tajawal text-on-surface-variant">
+      <div className="flex flex-col items-center justify-center py-20 font-tajawal text-on-surface-variant">
+        <Spinner className="h-8 w-8 mb-3" />
         <p className="text-sm">جاري تحميل إدارة المخزون...</p>
       </div>
     );
@@ -694,14 +697,14 @@ export const InventoryClient = memo(function InventoryClient() {
             <tbody className="divide-y divide-outline-variant/10 text-sm">
               {!isLoaded ? (
                 Array.from({ length: 5 }).map((_, idx) => (
-                  <tr key={`sk-row-${idx}`} className="animate-pulse border-b border-outline-variant/10">
-                    <td className="px-6 py-4"><div className="h-16 w-16 bg-outline-variant/20 rounded-lg"></div></td>
-                    <td className="px-6 py-4"><div className="space-y-2"><div className="h-4 bg-outline-variant/20 rounded w-32"></div><div className="h-3 bg-outline-variant/20 rounded w-48"></div></div></td>
-                    <td className="px-6 py-4"><div className="h-6 bg-outline-variant/20 rounded-full w-20"></div></td>
-                    <td className="px-6 py-4"><div className="h-4 bg-outline-variant/20 rounded w-16 ml-auto"></div></td>
-                    <td className="px-6 py-4"><div className="flex justify-center"><div className="h-6 bg-outline-variant/20 rounded-full w-20"></div></div></td>
-                    <td className="px-6 py-4"><div className="flex justify-center"><div className="h-7 bg-outline-variant/20 rounded-lg w-20"></div></div></td>
-                    <td className="px-6 py-4"><div className="flex justify-center gap-2"><div className="h-9 w-9 bg-outline-variant/20 rounded-lg"></div><div className="h-9 w-9 bg-outline-variant/20 rounded-lg"></div></div></td>
+                  <tr key={`sk-row-${idx}`} className="border-b border-outline-variant/10">
+                    <td className="px-6 py-4"><Skeleton className="h-16 w-16 rounded-lg" /></td>
+                    <td className="px-6 py-4"><div className="space-y-2"><Skeleton className="h-4 w-32" /><Skeleton className="h-3 w-48" /></div></td>
+                    <td className="px-6 py-4"><Skeleton className="h-6 w-20 rounded-full" /></td>
+                    <td className="px-6 py-4"><Skeleton className="h-4 w-16 ml-auto" /></td>
+                    <td className="px-6 py-4"><div className="flex justify-center"><Skeleton className="h-6 w-20 rounded-full" /></div></td>
+                    <td className="px-6 py-4"><div className="flex justify-center"><Skeleton className="h-7 w-20 rounded-lg" /></div></td>
+                    <td className="px-6 py-4"><div className="flex justify-center gap-2"><Skeleton className="h-9 w-9 rounded-lg" /><Skeleton className="h-9 w-9 rounded-lg" /></div></td>
                   </tr>
                 ))
               ) : filteredProducts.length > 0 ? (
@@ -805,21 +808,21 @@ export const InventoryClient = memo(function InventoryClient() {
         <div className="block lg:hidden divide-y divide-outline-variant/10">
           {!isLoaded ? (
             Array.from({ length: 3 }).map((_, idx) => (
-              <div key={`sk-card-${idx}`} className="p-4 space-y-4 animate-pulse">
+              <div key={`sk-card-${idx}`} className="p-4 space-y-4">
                 <div className="flex gap-4">
-                  <div className="w-20 h-20 bg-outline-variant/20 rounded-lg shrink-0"></div>
+                  <Skeleton className="w-20 h-20 rounded-lg shrink-0" />
                   <div className="space-y-2 flex-grow">
-                    <div className="h-4 bg-outline-variant/20 rounded w-2/3"></div>
-                    <div className="h-3 bg-outline-variant/20 rounded w-1/2"></div>
+                    <Skeleton className="h-4 w-2/3" />
+                    <Skeleton className="h-3 w-1/2" />
                     <div className="flex gap-2 pt-1">
-                      <div className="h-5 bg-outline-variant/20 rounded-full w-16"></div>
-                      <div className="h-5 bg-outline-variant/20 rounded-full w-12"></div>
+                      <Skeleton className="h-5 w-16 rounded-full" />
+                      <Skeleton className="h-5 w-12 rounded-full" />
                     </div>
                   </div>
                 </div>
                 <div className="flex items-center justify-between bg-surface-container-low/40 p-2.5 rounded-lg">
-                  <div className="space-y-1"><div className="h-3 bg-outline-variant/20 rounded w-8"></div><div className="h-4 bg-outline-variant/20 rounded w-16"></div></div>
-                  <div className="flex gap-2"><div className="h-8 bg-outline-variant/20 rounded-lg w-20"></div><div className="h-9 w-9 bg-outline-variant/20 rounded-lg"></div><div className="h-9 w-9 bg-outline-variant/20 rounded-lg"></div></div>
+                  <div className="space-y-1"><Skeleton className="h-3 w-8" /><Skeleton className="h-4 w-16" /></div>
+                  <div className="flex gap-2"><Skeleton className="h-8 w-20 rounded-lg" /><Skeleton className="h-9 w-9 rounded-lg" /><Skeleton className="h-9 w-9 rounded-lg" /></div>
                 </div>
               </div>
             ))

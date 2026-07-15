@@ -6,6 +6,8 @@ import { PaginationControls } from '@/components/ui/PaginationControls';
 import { useCategoryHierarchy } from '@/hooks/useCategoryHierarchy';
 import { useConfirmModal } from '@/hooks/useConfirmModal';
 import { ConfirmationModal } from '@/components/ui/ConfirmationModal';
+import { Skeleton } from '@/components/ui/Skeleton';
+import { Spinner } from '@/components/ui/Spinner';
 import { Toast } from '@/components/ui/Toast';
 
 interface CategoryHierarchyItem {
@@ -290,7 +292,8 @@ export function CategoriesClient() {
 
   if (!isMounted) {
     return (
-      <div className="w-full py-20 text-center font-tajawal text-on-surface-variant">
+      <div className="flex flex-col items-center justify-center py-20 font-tajawal text-on-surface-variant">
+        <Spinner className="h-8 w-8 mb-3" />
         <p className="text-sm">جاري تحميل إدارة الأقسام...</p>
       </div>
     );
@@ -368,19 +371,19 @@ export function CategoriesClient() {
           <div className="space-y-3.5">
             {loading ? (
               Array.from({ length: 3 }).map((_, idx) => (
-                <div key={`sk-cat-${idx}`} className="border border-outline-variant/30 rounded-2xl p-4 bg-surface-container-low animate-pulse space-y-3">
+                <div key={`sk-cat-${idx}`} className="border border-outline-variant/30 rounded-2xl p-4 bg-surface-container-low space-y-3">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-outline-variant/20 shrink-0"></div>
+                      <Skeleton className="w-10 h-10 rounded-xl shrink-0" />
                       <div className="space-y-2">
-                        <div className="h-4 bg-outline-variant/20 rounded w-24"></div>
-                        <div className="h-3 bg-outline-variant/20 rounded w-16"></div>
+                        <Skeleton className="h-4 w-24" />
+                        <Skeleton className="h-3 w-16" />
                       </div>
                     </div>
                     <div className="flex gap-1.5">
-                      <div className="h-8 w-8 bg-outline-variant/20 rounded-lg"></div>
-                      <div className="h-8 w-8 bg-outline-variant/20 rounded-lg"></div>
-                      <div className="h-8 w-8 bg-outline-variant/20 rounded-lg"></div>
+                      <Skeleton className="h-8 w-8 rounded-lg" />
+                      <Skeleton className="h-8 w-8 rounded-lg" />
+                      <Skeleton className="h-8 w-8 rounded-lg" />
                     </div>
                   </div>
                 </div>

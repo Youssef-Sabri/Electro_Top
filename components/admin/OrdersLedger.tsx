@@ -12,6 +12,8 @@ import { STATUS_OPTIONS } from '@/lib/utils/status';
 import { exportToCSV } from '@/lib/utils/csv';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { StatCard } from '@/components/ui/StatCard';
+import { Skeleton } from '@/components/ui/Skeleton';
+import { Spinner } from '@/components/ui/Spinner';
 import { PaymentMethodBadge } from '@/components/ui/PaymentMethodBadge';
 import { PaginationControls } from '@/components/ui/PaginationControls';
 import { CustomDropdown } from '@/components/ui/CustomDropdown';
@@ -135,7 +137,8 @@ export const OrdersLedger = memo(function OrdersLedger() {
 
   if (!isMounted) {
     return (
-      <div className="w-full py-20 text-center font-tajawal text-on-surface-variant">
+      <div className="flex flex-col items-center justify-center py-20 font-tajawal text-on-surface-variant">
+        <Spinner className="h-8 w-8 mb-3" />
         <p className="text-sm">جاري تحميل دفتر الطلبات...</p>
       </div>
     );
@@ -233,15 +236,15 @@ export const OrdersLedger = memo(function OrdersLedger() {
             <tbody className="divide-y divide-outline-variant/10">
               {isLoading ? (
                 Array.from({ length: 5 }).map((_, idx) => (
-                  <tr key={`sk-row-${idx}`} className="animate-pulse border-b border-outline-variant/10">
-                    <td className="px-6 py-4"><div className="h-4 bg-outline-variant/20 rounded w-20"></div></td>
-                    <td className="px-6 py-4"><div className="h-4 bg-outline-variant/20 rounded w-24"></div></td>
-                    <td className="px-6 py-4"><div className="h-4 bg-outline-variant/20 rounded w-24"></div></td>
-                    <td className="px-6 py-4"><div className="h-4 bg-outline-variant/20 rounded w-32"></div></td>
-                    <td className="px-6 py-4"><div className="h-4 bg-outline-variant/20 rounded w-16"></div></td>
-                    <td className="px-6 py-4"><div className="h-4 bg-outline-variant/20 rounded w-20"></div></td>
-                    <td className="px-6 py-4"><div className="h-4 bg-outline-variant/20 rounded w-16"></div></td>
-                    <td className="px-6 py-4 text-end"><div className="h-8 bg-outline-variant/20 rounded w-8 inline-block"></div></td>
+                  <tr key={`sk-row-${idx}`} className="border-b border-outline-variant/10">
+                    <td className="px-6 py-4"><Skeleton className="h-4 w-20" /></td>
+                    <td className="px-6 py-4"><Skeleton className="h-4 w-24" /></td>
+                    <td className="px-6 py-4"><Skeleton className="h-4 w-24" /></td>
+                    <td className="px-6 py-4"><Skeleton className="h-4 w-32" /></td>
+                    <td className="px-6 py-4"><Skeleton className="h-4 w-16" /></td>
+                    <td className="px-6 py-4"><Skeleton className="h-4 w-20" /></td>
+                    <td className="px-6 py-4"><Skeleton className="h-4 w-16" /></td>
+                    <td className="px-6 py-4 text-end"><Skeleton className="h-8 w-8 rounded inline-block" /></td>
                   </tr>
                 ))
               ) : orders.length > 0 ? (
@@ -322,25 +325,25 @@ export const OrdersLedger = memo(function OrdersLedger() {
         <div className="block lg:hidden divide-y divide-outline-variant/10">
           {isLoading ? (
             Array.from({ length: 3 }).map((_, idx) => (
-              <div key={`sk-card-${idx}`} className="p-4 space-y-4 animate-pulse">
+              <div key={`sk-card-${idx}`} className="p-4 space-y-4">
                 <div className="flex justify-between items-start">
                   <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-full bg-outline-variant/20"></div>
+                    <Skeleton className="w-9 h-9 rounded-full" />
                     <div className="space-y-2">
-                      <div className="h-4 bg-outline-variant/20 rounded w-24"></div>
-                      <div className="h-3 bg-outline-variant/20 rounded w-16"></div>
+                      <Skeleton className="h-4 w-24" />
+                      <Skeleton className="h-3 w-16" />
                     </div>
                   </div>
-                  <div className="h-4 bg-outline-variant/20 rounded w-16"></div>
+                  <Skeleton className="h-4 w-16" />
                 </div>
                 <div className="flex justify-between items-center">
                   <div className="flex gap-2">
-                    <div className="h-6 bg-outline-variant/20 rounded w-16"></div>
-                    <div className="h-6 bg-outline-variant/20 rounded w-16"></div>
+                    <Skeleton className="h-6 w-16" />
+                    <Skeleton className="h-6 w-16" />
                   </div>
-                  <div className="h-3 bg-outline-variant/20 rounded w-12"></div>
+                  <Skeleton className="h-3 w-12" />
                 </div>
-                <div className="h-12 bg-outline-variant/20 rounded-lg"></div>
+                <Skeleton className="h-12 rounded-lg" />
               </div>
             ))
           ) : orders.length > 0 ? (
