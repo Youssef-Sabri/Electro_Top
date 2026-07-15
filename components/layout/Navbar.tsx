@@ -14,7 +14,7 @@ export const Navbar = memo(function Navbar() {
   const router = useRouter();
   const searchParams = useSearchParams();
   
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState(() => searchParams?.get('search') || '');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);

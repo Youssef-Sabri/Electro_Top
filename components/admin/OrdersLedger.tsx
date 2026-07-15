@@ -1,7 +1,9 @@
 'use client';
 
-import { memo, useState, useCallback } from 'react';
+import { memo, useState, useCallback, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { supabase } from '@/lib/supabase/client';
+import { TABLES, ORDER_ITEM_SELECT_FIELDS } from '@/lib/constants';
 import { useOrders } from '@/hooks/useOrders';
 import { useProducts } from '@/hooks/useProducts';
 import { formatCurrency, getInitials } from '@/lib/utils/format';
@@ -18,7 +20,7 @@ import { PasswordConfirmModal } from '@/components/ui/PasswordConfirmModal';
 import { Toast } from '@/components/ui/Toast';
 
 export const OrdersLedger = memo(function OrdersLedger() {
-  const { orders, getOrderItems, clearAllOrders, deleteOrder, page, totalPages, filters, setFilters, goToPage, globalCounts } = useOrders();
+  const { orders, clearAllOrders, deleteOrder, page, totalPages, filters, setFilters, goToPage, globalCounts } = useOrders();
   const { getProductsMap } = useProducts();
   const router = useRouter();
 
@@ -28,7 +30,25 @@ export const OrdersLedger = memo(function OrdersLedger() {
   const [orderToDeleteId, setOrderToDeleteId] = useState<string | null>(null);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
-  const handleExportCSV = useCallback(() => {
+  const [searchValue, setSearchValue] = useState(filters.searchQuery);
+  const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const handleExportCSV = useCallback(async () => {
+    // Dynamically fetch items for CSV export on-demand
+    const orderIds = orders.map(o => o.id_unique_tracking);
+    const itemsMap = new Map<string, any[]>();
+    if (orderIds.length > 0) {
+      const { data, error } = await supabase
+        .from(TABLES.orderItems)
+        .select(ORDER_ITEM_SELECT_FIELDS)
+        .in('order_id', orderIds);
+      if (!error && data) {
+        for (const item of data) {
+          const existing = itemsMap.get(item.order_id) || [];
+          itemsMap.set(item.order_id, [...existing, item]);
+        }
+      }
+    }
     const headers = [
       'رقم التتبع',
       'اسم العميل',
@@ -42,7 +62,7 @@ export const OrdersLedger = memo(function OrdersLedger() {
 
     const productsById = getProductsMap();
     const rows = orders.map((order) => {
-      const items = getOrderItems(order.id_unique_tracking);
+      const items = itemsMap.get(order.id_unique_tracking) || [];
       const itemsStr = items
         .map((item) => {
           const product = productsById.get(item.product_id);
@@ -71,11 +91,29 @@ export const OrdersLedger = memo(function OrdersLedger() {
       headers,
       rows,
     });
-  }, [orders, getProductsMap, getOrderItems]);
+  }, [orders, getProductsMap]);
 
   const handleSearchChange = useCallback((value: string) => {
-    setFilters({ searchQuery: value, status: filters.status });
+    setSearchValue(value);
+
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+
+    searchTimeoutRef.current = setTimeout(() => {
+      setFilters({ searchQuery: value, status: filters.status });
+    }, 400);
   }, [filters.status, setFilters]);
+
+  useEffect(() => {
+    setSearchValue(filters.searchQuery);
+  }, [filters.searchQuery]);
+
+  useEffect(() => {
+    return () => {
+      if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
+    };
+  }, []);
 
   const handleStatusChange = useCallback((value: string) => {
     setFilters({ searchQuery: filters.searchQuery, status: value });
@@ -124,7 +162,7 @@ export const OrdersLedger = memo(function OrdersLedger() {
               className="pr-10 pl-4 py-2 bg-surface-container-lowest border border-outline-variant rounded-lg font-body-md text-body-md focus:outline-none focus:ring-2 focus:ring-primary/10 focus:border-primary w-full sm:w-64 text-on-surface text-right"
               placeholder="البحث برقم الطلب، اسم العميل..."
               type="text"
-              value={filters.searchQuery}
+              value={searchValue}
               onChange={(e) => handleSearchChange(e.target.value)}
             />
           </div>
@@ -146,7 +184,7 @@ export const OrdersLedger = memo(function OrdersLedger() {
       </div>
 
       <div className="bg-surface-container-lowest rounded-xl border border-outline-variant/30 shadow-sm overflow-hidden text-start">
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto lg:overflow-x-hidden">
           <table className="hidden lg:table w-full text-start border-collapse">
             <thead>
               <tr className="bg-surface-container-low border-b border-outline-variant/30 select-none text-start">
@@ -187,7 +225,7 @@ export const OrdersLedger = memo(function OrdersLedger() {
                     <tr
                       key={order.id_unique_tracking}
                       onClick={() => handleRowClick(order.id_unique_tracking)}
-                      className="hover:bg-surface-container-low/50 transition-all duration-200 cursor-pointer hover:scale-[1.002] origin-center"
+                      className="hover:bg-surface-container-low/50 transition-all duration-200 cursor-pointer origin-center"
                     >
                       <td className="px-6 py-4 font-headline-md text-label-md text-secondary-fixed-dim font-bold text-start">
                         #{order.id_unique_tracking}

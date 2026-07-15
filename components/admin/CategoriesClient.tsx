@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useMemo, useRef, useEffect } from 'react';
+import { useSearchParams, usePathname } from 'next/navigation';
 import { PaginationControls } from '@/components/ui/PaginationControls';
 import { useCategoryHierarchy } from '@/hooks/useCategoryHierarchy';
 import { useConfirmModal } from '@/hooks/useConfirmModal';
@@ -16,13 +17,20 @@ interface CategoryHierarchyItem {
 export function CategoriesClient() {
   const { hierarchy, refresh: refreshHierarchy } = useCategoryHierarchy();
 
-  const [searchQuery, setSearchQuery] = useState('');
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
+  const isInitialRef = useRef(true);
+
+  const [searchQuery, setSearchQuery] = useState(() => searchParams?.get('search') || '');
   const [newMainCatName, setNewMainCatName] = useState('');
   const [newSubCatNames, setNewSubCatNames] = useState<Record<string, string>>({});
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
-  const [currentPage, setCurrentPage] = useState(1);
+  const [currentPage, setCurrentPage] = useState(() => {
+    const p = searchParams?.get('page');
+    return p ? parseInt(p, 10) : 1;
+  });
   const itemsPerPage = 6;
 
   const { confirmModal, openConfirm, closeConfirm } = useConfirmModal();
@@ -47,6 +55,39 @@ export function CategoriesClient() {
       renameInputRef.current.select();
     }
   }, [renameModal.isOpen]);
+
+  useEffect(() => {
+    if (isInitialRef.current) {
+      isInitialRef.current = false;
+      return;
+    }
+    setCurrentPage(1);
+  }, [searchQuery]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const params = new URLSearchParams(window.location.search);
+
+    if (searchQuery === '') params.delete('search');
+    else params.set('search', searchQuery);
+
+    if (currentPage === 1) params.delete('page');
+    else params.set('page', currentPage.toString());
+
+    const nextUrl = `${pathname}?${params.toString()}`;
+    if (`?${params.toString()}` !== window.location.search) {
+      window.history.replaceState(null, '', nextUrl);
+    }
+  }, [searchQuery, currentPage, pathname]);
+
+  // Sync URL query params back to state (for back/forward navigation and link resets)
+  useEffect(() => {
+    const urlSearch = searchParams?.get('search') || '';
+    const urlPage = searchParams?.get('page') ? parseInt(searchParams.get('page')!, 10) : 1;
+
+    setSearchQuery((prev) => (prev === urlSearch ? prev : urlSearch));
+    setCurrentPage((prev) => (prev === urlPage ? prev : urlPage));
+  }, [searchParams]);
 
   const showToast = (msg: string) => {
     setToastMessage(msg);

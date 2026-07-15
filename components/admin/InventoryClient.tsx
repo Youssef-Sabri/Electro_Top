@@ -1,7 +1,8 @@
 'use client';
 
-import { memo, useState, useMemo, useEffect, useDeferredValue } from 'react';
+import { memo, useState, useMemo, useEffect, useDeferredValue, useRef } from 'react';
 import Image from 'next/image';
+import { useSearchParams, usePathname } from 'next/navigation';
 import { useProducts } from '@/hooks/useProducts';
 import { useCategoryHierarchy } from '@/hooks/useCategoryHierarchy';
 import { usePagination } from '@/hooks/usePagination';
@@ -26,12 +27,27 @@ export const InventoryClient = memo(function InventoryClient() {
   const { products, addProduct, updateProduct, deleteProduct, clearAllProducts } = useProducts();
   const { hierarchy } = useCategoryHierarchy();
 
-  const [searchQuery, setSearchQuery] = useState('');
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
+  const isInitialRef = useRef(true);
+
+  const [searchQuery, setSearchQuery] = useState(() => searchParams?.get('search') || '');
   const deferredSearchQuery = useDeferredValue(searchQuery);
-  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
-  const [stockFilter, setStockFilter] = useState<'all' | 'out' | 'low' | 'instock'>('all');
-  const [selectedMainCategoryFilter, setSelectedMainCategoryFilter] = useState('all');
-  const [selectedSubCategoryFilter, setSelectedSubCategoryFilter] = useState('all');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>(() => {
+    const val = searchParams?.get('status');
+    return (val === 'active' || val === 'inactive') ? val : 'all';
+  });
+  const [stockFilter, setStockFilter] = useState<'all' | 'out' | 'low' | 'instock'>(() => {
+    const val = searchParams?.get('stock');
+    return (val === 'out' || val === 'low' || val === 'instock') ? val : 'all';
+  });
+  const [selectedMainCategoryFilter, setSelectedMainCategoryFilter] = useState(() => searchParams?.get('mainCategory') || 'all');
+  const [selectedSubCategoryFilter, setSelectedSubCategoryFilter] = useState(() => searchParams?.get('subCategory') || 'all');
+
+  const initialPage = useMemo(() => {
+    const p = searchParams?.get('page');
+    return p ? parseInt(p, 10) : 1;
+  }, [searchParams]);
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
@@ -125,11 +141,60 @@ export const InventoryClient = memo(function InventoryClient() {
   }, [products, deferredSearchQuery, statusFilter, stockFilter, activeFilterCategories]);
 
   const itemsPerPage = 10;
-  const { currentPage, setCurrentPage, totalPages, paginatedItems: paginatedProducts, resetPage } = usePagination(filteredProducts, itemsPerPage);
+  const { currentPage, setCurrentPage, totalPages, paginatedItems: paginatedProducts, resetPage } = usePagination(filteredProducts, itemsPerPage, initialPage);
 
   useEffect(() => {
+    if (isInitialRef.current) {
+      isInitialRef.current = false;
+      return;
+    }
     resetPage();
   }, [searchQuery, statusFilter, stockFilter, selectedMainCategoryFilter, selectedSubCategoryFilter, resetPage]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const params = new URLSearchParams(window.location.search);
+
+    if (searchQuery === '') params.delete('search');
+    else params.set('search', searchQuery);
+
+    if (statusFilter === 'all') params.delete('status');
+    else params.set('status', statusFilter);
+
+    if (stockFilter === 'all') params.delete('stock');
+    else params.set('stock', stockFilter);
+
+    if (selectedMainCategoryFilter === 'all') params.delete('mainCategory');
+    else params.set('mainCategory', selectedMainCategoryFilter);
+
+    if (selectedSubCategoryFilter === 'all') params.delete('subCategory');
+    else params.set('subCategory', selectedSubCategoryFilter);
+
+    if (currentPage === 1) params.delete('page');
+    else params.set('page', currentPage.toString());
+
+    const nextUrl = `${pathname}?${params.toString()}`;
+    if (`?${params.toString()}` !== window.location.search) {
+      window.history.replaceState(null, '', nextUrl);
+    }
+  }, [searchQuery, statusFilter, stockFilter, selectedMainCategoryFilter, selectedSubCategoryFilter, currentPage, pathname]);
+
+  // Sync URL query params back to state (for back/forward navigation and link resets)
+  useEffect(() => {
+    const urlSearch = searchParams?.get('search') || '';
+    const urlStatus = (searchParams?.get('status') === 'active' || searchParams?.get('status') === 'inactive') ? searchParams.get('status') as 'all' | 'active' | 'inactive' : 'all';
+    const urlStock = (searchParams?.get('stock') === 'out' || searchParams?.get('stock') === 'low' || searchParams?.get('stock') === 'instock') ? searchParams.get('stock') as 'all' | 'out' | 'low' | 'instock' : 'all';
+    const urlMainCat = searchParams?.get('mainCategory') || 'all';
+    const urlSubCat = searchParams?.get('subCategory') || 'all';
+    const urlPage = searchParams?.get('page') ? parseInt(searchParams.get('page')!, 10) : 1;
+
+    setSearchQuery((prev) => (prev === urlSearch ? prev : urlSearch));
+    setStatusFilter((prev) => (prev === urlStatus ? prev : urlStatus));
+    setStockFilter((prev) => (prev === urlStock ? prev : urlStock));
+    setSelectedMainCategoryFilter((prev) => (prev === urlMainCat ? prev : urlMainCat));
+    setSelectedSubCategoryFilter((prev) => (prev === urlSubCat ? prev : urlSubCat));
+    setCurrentPage((prev) => (prev === urlPage ? prev : urlPage));
+  }, [searchParams, setCurrentPage]);
 
   const handleExportCSV = () => {
     const headers = [

@@ -47,6 +47,7 @@ export const OrderDetailClient = memo(function OrderDetailClient({ id }: OrderDe
   const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
   const [statusHistory, setStatusHistory] = useState<OrderStatusHistory[]>([]);
   const [loading, setLoading] = useState(true);
+  const fetchedIdRef = useRef<string | null>(null);
 
   const [selectedStatus, setSelectedStatus] = useState<OrderStatus>('Pending Review');
   const [notesValue, setNotesValue] = useState('');
@@ -93,38 +94,46 @@ export const OrderDetailClient = memo(function OrderDetailClient({ id }: OrderDe
       });
   }, [order?.instapay_screenshot, order?.id_unique_tracking]);
 
-  const contextOrder = getOrderById(id);
-  const contextItems = getOrderItems(id);
-  const contextHistory = getStatusHistory(id);
-
+  // Reset local state when id changes
   useEffect(() => {
-    if (contextOrder) {
-      setOrder(contextOrder);
-      setOrderItems(contextItems);
-      setStatusHistory(contextHistory);
-      setLoading(false);
-    }
-  }, [contextOrder, contextItems, contextHistory]);
+    setOrder(null);
+    setOrderItems([]);
+    setStatusHistory([]);
+    setLoading(true);
+    fetchedIdRef.current = null;
+  }, [id]);
 
+  // Load order details from context or database
   useEffect(() => {
+    if (fetchedIdRef.current === id) return;
+
     const fromContext = getOrderById(id);
-    if (fromContext) return;
+    const contextItems = getOrderItems(id);
+    if (fromContext && contextItems.length > 0) {
+      setOrder(fromContext);
+      setOrderItems(contextItems);
+      setStatusHistory(getStatusHistory(id));
+      setLoading(false);
+      fetchedIdRef.current = id;
+      return;
+    }
 
     const isValidId = isValidTrackingId(id);
+    if (!isValidId) {
+      setOrder(null);
+      setLoading(false);
+      fetchedIdRef.current = id;
+      return;
+    }
 
     async function loadFromDB() {
       try {
-        if (!isValidId) {
-          setOrder(null);
-          return;
-        }
-
+        fetchedIdRef.current = id;
         const { order, items, history } = await fetch(`/api/admin/orders/${id}`).then(r => r.json());
-
         if (order) {
           setOrder(order);
-          setOrderItems(items);
-          setStatusHistory(history);
+          setOrderItems(items || []);
+          setStatusHistory(history || []);
         } else {
           setOrder(null);
         }
@@ -136,20 +145,17 @@ export const OrderDetailClient = memo(function OrderDetailClient({ id }: OrderDe
     }
 
     loadFromDB();
-  }, [id, getOrderById]);
+  }, [id, getOrderById, getOrderItems, getStatusHistory]);
 
   // Ref to track last-saved notes value to prevent redundant Supabase writes
   const lastSavedNotes = useRef<string>('');
 
   useEffect(() => {
     if (order) {
-      const timer = setTimeout(() => {
-        setSelectedStatus(order.status);
-        const notes = order.admin_notes ?? '';
-        setNotesValue(notes);
-        lastSavedNotes.current = notes;
-      }, 0);
-      return () => clearTimeout(timer);
+      setSelectedStatus(order.status);
+      const notes = order.admin_notes ?? '';
+      setNotesValue(notes);
+      lastSavedNotes.current = notes;
     }
   }, [order]);
 

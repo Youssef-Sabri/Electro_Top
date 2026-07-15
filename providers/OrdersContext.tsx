@@ -1,11 +1,11 @@
 'use client';
 
 import { createContext, useState, useEffect, useMemo, useCallback, useRef, ReactNode } from 'react';
-import { usePathname } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
 import type { Order, OrderItem, OrderStatusHistory, OrderStatus } from '@/types';
 import type { Session } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase/client';
-import { TABLES, ORDER_SELECT_FIELDS, ORDER_ITEM_SELECT_FIELDS, STATUS_HISTORY_SELECT_FIELDS, VALID_ORDER_STATUSES, ADMIN_NOTES_MAX_LENGTH } from '@/lib/constants';
+import { TABLES, ORDER_SELECT_FIELDS, VALID_ORDER_STATUSES, ADMIN_NOTES_MAX_LENGTH } from '@/lib/constants';
 import { devLog, normalizeTrackingId } from '@/lib/utils/misc';
 
 function isValidOrderStatus(value: string): value is OrderStatus {
@@ -50,12 +50,21 @@ export const OrdersContext = createContext<OrdersContextType | undefined>(undefi
 
 export function OrdersProvider({ children }: { children: ReactNode }) {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [orders, setOrders] = useState<Order[]>([]);
   const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
   const [statusHistory, setStatusHistory] = useState<OrderStatusHistory[]>([]);
-  const [page, setPage] = useState(0);
+  const [page, setPage] = useState(() => {
+    const urlPage = searchParams?.get('page');
+    return urlPage ? parseInt(urlPage, 10) : 0;
+  });
   const [totalPages, setTotalPages] = useState(0);
-  const [filters, setFilters] = useState<OrderFilters>({ searchQuery: '', status: 'All' });
+  const [filters, setFilters] = useState<OrderFilters>(() => {
+    return {
+      searchQuery: searchParams?.get('search') || '',
+      status: searchParams?.get('status') || 'All',
+    };
+  });
   const [globalCounts, setGlobalCounts] = useState({
     totalCount: 0,
     pendingCount: 0,
@@ -105,12 +114,29 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
     filtersRef.current = filters;
   }, [filters]);
 
+
   const getOrderItems = useCallback((orderId: string) => {
     return orderItemsMapRef.current.get(orderId) || [];
   }, []);
 
   const getStatusHistory = useCallback((orderId: string) => {
     return statusHistoryMapRef.current.get(orderId) || [];
+  }, []);
+
+  const fetchGlobalCounts = useCallback(async () => {
+    try {
+      const res = await fetch('/api/admin/order-counts');
+      if (!res.ok) return;
+      const data = await res.json();
+      const countRows = Array.isArray(data) ? data : [];
+      const countMap = new Map(countRows.map(r => [r.status, r.count]));
+      setGlobalCounts({
+        totalCount: countRows.reduce((sum, r) => sum + r.count, 0),
+        pendingCount: countMap.get('Pending Review') || 0,
+        activeFulfillmentCount: (countMap.get('Processing') || 0) + (countMap.get('Accepted') || 0),
+        completedCount: countMap.get('Delivered') || 0,
+      });
+    } catch {}
   }, []);
 
   const loadData = useCallback(async (pageNum = 0, overrideFilters?: OrderFilters) => {
@@ -144,47 +170,63 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
 
       if (oError) throw oError;
 
-      const orderIds = (oData || []).map(o => o.id_unique_tracking);
-
-      const [oiResult, hResult, statusesResult] = await Promise.all([
-        orderIds.length > 0
-          ? supabase.from(TABLES.orderItems).select(ORDER_ITEM_SELECT_FIELDS).in('order_id', orderIds)
-          : { data: [] as OrderItem[], error: null },
-        orderIds.length > 0
-          ? supabase.from(TABLES.orderStatusHistory).select(STATUS_HISTORY_SELECT_FIELDS).in('order_id', orderIds)
-          : { data: [] as OrderStatusHistory[], error: null },
-        fetch('/api/admin/order-counts').then(async res => {
-          if (!res.ok) return { data: [] as { status: string; count: number }[], error: 'Failed' };
-          try {
-            const data = await res.json();
-            return { data: Array.isArray(data) ? data : [], error: null };
-          } catch {
-            return { data: [] as { status: string; count: number }[], error: 'Failed' };
-          }
-        }),
-      ]);
-
       setOrders(oData || []);
-      setOrderItems(oiResult.data || []);
-      setStatusHistory(hResult.data || []);
-      setTotalPages(oCount ? Math.ceil(oCount / PAGE_SIZE) : 0);
-      setPage(pageNum);
-
-      const countRows: { status: string; count: number }[] = Array.isArray(statusesResult.data) ? statusesResult.data : [];
-      const countMap = new Map(countRows.map(r => [r.status, r.count]));
-      setGlobalCounts({
-        totalCount: countRows.reduce((sum, r) => sum + r.count, 0),
-        pendingCount: countMap.get('Pending Review') || 0,
-        activeFulfillmentCount: (countMap.get('Processing') || 0) + (countMap.get('Accepted') || 0),
-        completedCount: countMap.get('Delivered') || 0,
-      });
-    } catch (error) {
-      devLog('Failed to load orders/items/logs from Supabase:', error);
-      setOrders([]);
       setOrderItems([]);
       setStatusHistory([]);
+      setTotalPages(oCount ? Math.ceil(oCount / PAGE_SIZE) : 0);
+    } catch (error) {
+      devLog('Failed to load orders/items/logs from Supabase:', error);
     }
   }, []);
+
+  useEffect(() => {
+    if (pathname?.startsWith('/admin')) {
+      fetchGlobalCounts();
+    }
+  }, [fetchGlobalCounts, pathname]);
+
+  // Synchronize URL changes back to state (handles back/forward navigation and layout page transitions)
+  useEffect(() => {
+    if (!pathname?.startsWith('/admin')) return;
+    const urlStatus = searchParams?.get('status') || 'All';
+    const urlSearch = searchParams?.get('search') || '';
+    const urlPage = parseInt(searchParams?.get('page') || '0', 10);
+
+    setFilters((prev) => {
+      if (prev.searchQuery === urlSearch && prev.status === urlStatus) return prev;
+      return { searchQuery: urlSearch, status: urlStatus };
+    });
+    setPage((prev) => {
+      if (prev === urlPage) return prev;
+      return urlPage;
+    });
+  }, [pathname, searchParams]);
+
+  // Synchronize state and trigger query
+  useEffect(() => {
+    if (typeof window === 'undefined' || !pathname?.startsWith('/admin')) return;
+    const params = new URLSearchParams(window.location.search);
+
+    if (filters.status === 'All') params.delete('status');
+    else params.set('status', filters.status);
+
+    if (filters.searchQuery === '') params.delete('search');
+    else params.set('search', filters.searchQuery);
+
+    if (page === 0) params.delete('page');
+    else params.set('page', page.toString());
+
+    const nextUrl = `${window.location.pathname}?${params.toString()}`;
+    if (`?${params.toString()}` !== window.location.search) {
+      window.history.replaceState(null, '', nextUrl);
+    }
+
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        loadData(page, filters);
+      }
+    });
+  }, [filters, page, loadData, pathname]);
 
   const refreshOrders = useCallback(async () => {
     await loadData(pageRef.current, filtersRef.current);
@@ -192,32 +234,36 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
 
   const nextPage = useCallback(() => {
     if (page < totalPages - 1) {
-      loadData(page + 1);
+      setPage(p => p + 1);
     }
-  }, [page, totalPages, loadData]);
+  }, [page, totalPages]);
 
   const prevPage = useCallback(() => {
     if (page > 0) {
-      loadData(page - 1);
+      setPage(p => p - 1);
     }
-  }, [page, loadData]);
+  }, [page]);
 
   const goToPage = useCallback((n: number) => {
     if (n >= 0 && n < totalPages) {
-      loadData(n);
+      setPage(n);
     }
-  }, [totalPages, loadData]);
+  }, [totalPages]);
+
+  const updateFilters = useCallback((newFilters: OrderFilters) => {
+    setFilters(newFilters);
+    setPage(0);
+  }, []);
 
   useEffect(() => {
     let channel: ReturnType<typeof supabase.channel> | null = null;
-    let subscribing = false;
 
-    async function subscribe(session: Session) {
-      if (channel || subscribing || !session) return;
-      subscribing = true;
+    function subscribe(session: Session) {
+      if (channel || !session) return;
+      const newChannel = supabase.channel('orders-realtime');
+      channel = newChannel;
+
       try {
-        const newChannel = supabase.channel('orders-realtime');
-
         newChannel
           .on(
             'postgres_changes',
@@ -300,10 +346,9 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
               setStatusHistory((prev) => prev.filter((h) => h.id !== deletedId));
             }
           );
-        channel = newChannel;
         newChannel.subscribe();
-      } finally {
-        subscribing = false;
+      } catch (err) {
+        devLog('Failed to subscribe to realtime channel:', err);
       }
     }
 
@@ -316,15 +361,16 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
 
     const isAdminRoute = pathname?.startsWith('/admin');
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (session && isAdminRoute) {
-        await loadData(0, filtersRef.current);
         await subscribe(session);
-      } else {
+      } else if (event === 'SIGNED_OUT') {
         unsubscribe();
         setOrders([]);
         setOrderItems([]);
         setStatusHistory([]);
+      } else {
+        unsubscribe();
       }
     });
 
@@ -334,7 +380,10 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
         const { data: { session } } = await supabase.auth.getSession();
         if (session) {
           await subscribe(session);
-          loadData(pageRef.current, filtersRef.current);
+          // Only refresh if the orders list is empty to prevent redundant focus-reloads.
+          if (ordersRef.current.length === 0) {
+            loadData(pageRef.current, filtersRef.current);
+          }
         }
       } else {
         unsubscribe();
@@ -379,11 +428,12 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
         const data = await response.json();
         throw new Error(data.error || 'Failed to update order status');
       }
+      fetchGlobalCounts();
     } catch (e) {
       setOrders(previousOrders);
       throw e;
     }
-  }, []);
+  }, [fetchGlobalCounts]);
 
   const updateAdminNotes = useCallback(async (orderId: string, notes: string) => {
     if (notes.length > ADMIN_NOTES_MAX_LENGTH) {
@@ -436,13 +486,14 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
         const data = await response.json();
         throw new Error(data.error || 'Failed to clear orders');
       }
+      fetchGlobalCounts();
     } catch (e) {
       setOrders(previousOrders);
       setOrderItems(previousItems);
       setStatusHistory(previousHistory);
       throw e;
     }
-  }, []);
+  }, [fetchGlobalCounts]);
 
   const deleteOrder = useCallback(async (orderId: string) => {
     const orderToDelete = ordersMapRef.current.get(orderId);
@@ -458,11 +509,12 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
         const data = await response.json();
         throw new Error(data.error || 'Failed to delete order');
       }
+      fetchGlobalCounts();
     } catch (e) {
       await loadData();
       throw e;
     }
-  }, [loadData]);
+  }, [loadData, fetchGlobalCounts]);
 
   const value = useMemo(
     () => ({
@@ -472,7 +524,7 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
       page,
       totalPages,
       filters,
-      setFilters,
+      setFilters: updateFilters,
       getOrderById,
       updateOrderStatus,
       updateAdminNotes,
@@ -493,6 +545,7 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
       page,
       totalPages,
       filters,
+      updateFilters,
       getOrderById,
       updateOrderStatus,
       updateAdminNotes,

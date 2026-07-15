@@ -1,7 +1,7 @@
 import { useState, useMemo, useCallback, useEffect } from 'react';
 
-export function usePagination<T>(items: T[], itemsPerPage: number) {
-  const [currentPage, setCurrentPage] = useState(1);
+export function usePagination<T>(items: T[], itemsPerPage: number, initialPage = 1) {
+  const [currentPage, setCurrentPage] = useState(initialPage);
 
   const totalPages = Math.max(1, Math.ceil(items.length / itemsPerPage));
 
