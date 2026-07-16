@@ -4,22 +4,53 @@ import { useState, useEffect, useCallback } from 'react';
 import type { CategoryGroup } from '@/types';
 import { devLog } from '@/lib/utils/misc';
 
-export function useCategoryHierarchy(initialHierarchy?: CategoryGroup[]) {
-  const [hierarchy, setHierarchy] = useState<CategoryGroup[]>(initialHierarchy || []);
-  const [loading, setLoading] = useState(!initialHierarchy);
+let cachedData: CategoryGroup[] | null = null;
+let inFlightPromise: Promise<CategoryGroup[] | null> | null = null;
 
-  const refresh = useCallback(async () => {
+async function fetchHierarchyDeduplicated(): Promise<CategoryGroup[] | null> {
+  if (cachedData) return cachedData;
+  if (inFlightPromise) return inFlightPromise;
+
+  inFlightPromise = (async () => {
     try {
       const res = await fetch('/api/category-hierarchy');
       if (res.ok) {
         const data = await res.json();
-        setHierarchy(data);
+        cachedData = data;
+        return data;
       }
+      return null;
     } catch (err) {
       devLog('Failed to load category hierarchy:', err);
+      return null;
     } finally {
-      setLoading(false);
+      inFlightPromise = null;
     }
+  })();
+
+  return inFlightPromise;
+}
+
+export function useCategoryHierarchy(initialHierarchy?: CategoryGroup[]) {
+  const [hierarchy, setHierarchy] = useState<CategoryGroup[]>(() => {
+    if (initialHierarchy && initialHierarchy.length > 0) {
+      cachedData = initialHierarchy;
+      return initialHierarchy;
+    }
+    return cachedData || [];
+  });
+  const [loading, setLoading] = useState(() => !initialHierarchy && !cachedData);
+
+  const refresh = useCallback(async (bypassCache = false) => {
+    if (bypassCache) {
+      cachedData = null;
+    }
+    setLoading(true);
+    const data = await fetchHierarchyDeduplicated();
+    if (data) {
+      setHierarchy(data);
+    }
+    setLoading(false);
   }, []);
 
   useEffect(() => {
@@ -28,7 +59,6 @@ export function useCategoryHierarchy(initialHierarchy?: CategoryGroup[]) {
         await refresh();
       })();
     } else {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setLoading(false);
     }
   }, [refresh, hierarchy.length]);

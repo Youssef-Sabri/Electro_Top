@@ -132,7 +132,11 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
     return statusHistoryMapRef.current.get(orderId) || [];
   }, []);
 
+  const lastCountsFetchRef = useRef<number>(0);
+
   const fetchGlobalCounts = useCallback(async () => {
+    const nowMs = Date.now();
+    if (nowMs - lastCountsFetchRef.current < 30_000) return;
     try {
       const res = await fetch('/api/admin/order-counts');
       if (!res.ok) return;
@@ -145,6 +149,7 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
         activeFulfillmentCount: (countMap.get('Processing') || 0) + (countMap.get('Accepted') || 0),
         completedCount: countMap.get('Delivered') || 0,
       });
+      lastCountsFetchRef.current = nowMs;
     } catch {}
   }, []);
 
@@ -221,40 +226,44 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
     });
   }, [pathname, searchParams]);
 
-  // Synchronize state and trigger query
+  // Synchronize state and trigger query with 300ms debouncing on search query updates
   useEffect(() => {
     if (typeof window === 'undefined' || !pathname?.startsWith('/admin')) return;
 
-    if (pathname !== '/admin/orders') {
+    const timer = setTimeout(() => {
+      if (pathname !== '/admin/orders') {
+        supabase.auth.getSession().then(({ data: { session } }) => {
+          if (session) {
+            loadData(page, filters);
+          }
+        });
+        return;
+      }
+
+      const params = new URLSearchParams(window.location.search);
+
+      if (filters.status === 'All') params.delete('status');
+      else params.set('status', filters.status);
+
+      if (filters.searchQuery === '') params.delete('search');
+      else params.set('search', filters.searchQuery);
+
+      if (page === 0) params.delete('page');
+      else params.set('page', page.toString());
+
+      const nextUrl = `${window.location.pathname}?${params.toString()}`;
+      if (`?${params.toString()}` !== window.location.search) {
+        window.history.replaceState(null, '', nextUrl);
+      }
+
       supabase.auth.getSession().then(({ data: { session } }) => {
         if (session) {
           loadData(page, filters);
         }
       });
-      return;
-    }
+    }, filters.searchQuery ? 300 : 0);
 
-    const params = new URLSearchParams(window.location.search);
-
-    if (filters.status === 'All') params.delete('status');
-    else params.set('status', filters.status);
-
-    if (filters.searchQuery === '') params.delete('search');
-    else params.set('search', filters.searchQuery);
-
-    if (page === 0) params.delete('page');
-    else params.set('page', page.toString());
-
-    const nextUrl = `${window.location.pathname}?${params.toString()}`;
-    if (`?${params.toString()}` !== window.location.search) {
-      window.history.replaceState(null, '', nextUrl);
-    }
-
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
-        loadData(page, filters);
-      }
-    });
+    return () => clearTimeout(timer);
   }, [filters, page, loadData, pathname]);
 
   const refreshOrders = useCallback(async () => {

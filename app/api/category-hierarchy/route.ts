@@ -25,7 +25,11 @@ export async function GET() {
         .map((c) => c.name),
     }));
 
-    return NextResponse.json(hierarchy);
+    return NextResponse.json(hierarchy, {
+      headers: {
+        'Cache-Control': 'public, max-age=60, s-maxage=60, stale-while-revalidate=120',
+      },
+    });
   } catch (error) {
     const msg = error instanceof Error ? error.message : 'Failed to read category hierarchy';
     return NextResponse.json({ error: msg }, { status: 500 });
