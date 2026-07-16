@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { useProducts } from '@/hooks/useProducts';
 import { useCategoryHierarchy } from '@/hooks/useCategoryHierarchy';
 import type { Product, CategoryGroup } from '@/types';
+import { shuffleArray } from '@/lib/utils/misc';
 
 interface CategorySlideshowCardProps {
   category: string;
@@ -25,7 +26,7 @@ function CategorySlideshowCard({ category, products, productCount }: CategorySli
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      setShuffledImages([...rawImages].sort(() => Math.random() - 0.5));
+      setShuffledImages(shuffleArray(rawImages));
     }, 0);
     return () => clearTimeout(timer);
   }, [rawImages]);
@@ -127,9 +128,9 @@ export const LandingPage = memo(function LandingPage({
     if (hierarchy.length > 0) {
       const mainCatNames = hierarchy.map(h => h.name);
       const filtered = list.filter(cat => mainCatNames.includes(cat));
-      if (filtered.length > 0) return filtered;
+      if (filtered.length > 0) return Array.from(new Set(filtered));
     }
-    return list;
+    return Array.from(new Set(list));
   }, [categories, hierarchy]);
 
   const activeProds = products.length > 0 ? products : initialProducts;
@@ -137,14 +138,16 @@ export const LandingPage = memo(function LandingPage({
   const categoryProducts = useMemo(() => {
     const mapping: Record<string, Product[]> = {};
     activeCategories.forEach((category) => {
-      const group = hierarchy.find(h => h.name === category);
+      const group = hierarchy.find((h) => h.name === category);
       const targetCategories = group 
         ? [category, ...group.subcategories] 
         : [category];
 
-      mapping[category] = activeProds.filter(
+      const prods = activeProds.filter(
         (p) => p.category && targetCategories.includes(p.category) && p.is_active
       );
+
+      mapping[category] = shuffleArray(prods);
     });
     return mapping;
   }, [activeCategories, activeProds, hierarchy]);
@@ -164,11 +167,21 @@ export const LandingPage = memo(function LandingPage({
     return counts;
   }, [activeCategories, activeProds, hierarchy]);
 
+  const [randomizedCategories, setRandomizedCategories] = useState<string[]>([]);
   const [shiftOffset, setShiftOffset] = useState(0);
   const [fadeCategories, setFadeCategories] = useState(true);
 
+  // Shuffle categories on initial client mount to randomize category presentation per session
   useEffect(() => {
-    if (activeCategories.length <= 3) return;
+    if (activeCategories.length > 0) {
+      setRandomizedCategories(shuffleArray(activeCategories));
+    }
+  }, [activeCategories]);
+
+  const effectiveCategories = randomizedCategories.length > 0 ? randomizedCategories : activeCategories;
+
+  useEffect(() => {
+    if (effectiveCategories.length <= 3) return;
 
     const timeoutRef = { current: undefined as ReturnType<typeof setTimeout> | undefined };
 
@@ -176,7 +189,7 @@ export const LandingPage = memo(function LandingPage({
       setFadeCategories(false);
 
       timeoutRef.current = setTimeout(() => {
-        setShiftOffset((prev) => (prev + 1) % activeCategories.length);
+        setShiftOffset((prev) => (prev + 1) % effectiveCategories.length);
         setFadeCategories(true);
       }, 500);
     }, 9000);
@@ -185,18 +198,18 @@ export const LandingPage = memo(function LandingPage({
       clearInterval(interval);
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
     };
-  }, [activeCategories.length]);
+  }, [effectiveCategories.length]);
 
   const displayedCategories = useMemo(() => {
-    if (activeCategories.length <= 3) return activeCategories;
+    if (effectiveCategories.length <= 3) return effectiveCategories;
 
     const list: string[] = [];
     for (let i = 0; i < 3; i++) {
-      const idx = (shiftOffset + i) % activeCategories.length;
-      list.push(activeCategories[idx]);
+      const idx = (shiftOffset + i) % effectiveCategories.length;
+      list.push(effectiveCategories[idx]);
     }
     return list;
-  }, [activeCategories, shiftOffset]);
+  }, [effectiveCategories, shiftOffset]);
 
   return (
     <div className="w-full font-tajawal text-on-surface bg-white">
