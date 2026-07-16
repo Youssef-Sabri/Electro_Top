@@ -112,11 +112,11 @@ export function CategoriesClient() {
         body: JSON.stringify(updated),
       });
       if (!res.ok) throw new Error('Save failed');
-      await refreshHierarchy();
+      await refreshHierarchy(true);
       showToast(successMsg);
     } catch {
       showToast('فشل حفظ هيكل الأقسام. يرجى المحاولة مرة أخرى.');
-      refreshHierarchy();
+      refreshHierarchy(true);
     }
   };
 

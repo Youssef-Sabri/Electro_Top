@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { requireAdminGuard } from '@/lib/auth';
 import { parseJsonBody } from '@/lib/utils/misc';
+import { revalidateShopPaths } from '@/lib/api-helpers';
 import { createSupabaseAdminClient } from '@/lib/supabase/server';
 import { TABLES } from '@/lib/constants';
 
@@ -104,6 +105,8 @@ export async function POST(request: Request) {
     const updateResults = await Promise.all(updatePromises);
     const firstErr = updateResults.find((res) => res.error)?.error;
     if (firstErr) throw firstErr;
+
+    revalidateShopPaths();
 
     return NextResponse.json({ success: true });
   } catch (error) {
