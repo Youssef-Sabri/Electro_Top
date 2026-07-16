@@ -10,7 +10,11 @@ async function cleanupOrphanedReceipts(adminClient: SupabaseClient) {
     const { data: files, error } = await adminClient.storage.from(STORAGE_BUCKETS.receipts).list()
     if (error || !files || files.length === 0) return
 
-    const { data: orders, error: ordersErr } = await adminClient.from(TABLES.orders).select('instapay_screenshot')
+    const { data: orders, error: ordersErr } = await adminClient
+      .from(TABLES.orders)
+      .select('instapay_screenshot')
+      .not('instapay_screenshot', 'is', null)
+      .neq('instapay_screenshot', '')
     if (ordersErr || !orders) return
 
     const activeScreenshots = new Set(

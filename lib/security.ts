@@ -2,6 +2,43 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
 import { devLog } from '@/lib/utils/misc';
 
+// Browser fingerprint generation for rate limiting
+export function generateFingerprint(request: Request): string {
+  const components: string[] = [];
+  
+  // User-Agent
+  const ua = request.headers.get('user-agent') || '';
+  components.push(ua);
+  
+  // Accept-Language
+  const lang = request.headers.get('accept-language') || '';
+  components.push(lang);
+  
+  // Accept-Encoding
+  const encoding = request.headers.get('accept-encoding') || '';
+  components.push(encoding);
+  
+  // Sec-CH-UA headers (client hints)
+  const chUa = request.headers.get('sec-ch-ua') || '';
+  components.push(chUa);
+  
+  const chUaPlatform = request.headers.get('sec-ch-ua-platform') || '';
+  components.push(chUaPlatform);
+  
+  // Create a simple hash from the components
+  const fingerprint = components.join('|');
+  
+  // Use crypto.subtle for consistent hashing
+  let hash = 0;
+  for (let i = 0; i < fingerprint.length; i++) {
+    const char = fingerprint.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash; // Convert to 32-bit integer
+  }
+  
+  return `fp-${Math.abs(hash).toString(36)}`;
+}
+
 // CSRF Origin / Referrer validation
 export function validateRequestOrigin(request: Request): boolean {
   const origin = request.headers.get('origin');

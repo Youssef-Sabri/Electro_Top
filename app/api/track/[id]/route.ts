@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createSupabaseAdminClient } from '@/lib/supabase/server'
-import { getClientIp, isValidTrackingId, normalizeTrackingId } from '@/lib/utils/misc'
-import { checkAndIncrementRateLimit, setRateLimitHeaders } from '@/lib/security'
+import { isValidTrackingId, normalizeTrackingId } from '@/lib/utils/misc'
+import { checkAndIncrementRateLimit, setRateLimitHeaders, generateFingerprint } from '@/lib/security'
 import { RATE_LIMIT_CONFIGS } from '@/lib/constants'
 
 const TRACKING_RATE_LIMIT = RATE_LIMIT_CONFIGS.tracking;
@@ -46,10 +46,10 @@ export async function GET(
     return NextResponse.json({ error: 'Invalid tracking ID format' }, { status: 400 })
   }
 
-  const ip = getClientIp(request)
+  const fingerprint = generateFingerprint(request)
   const adminClient = createSupabaseAdminClient()
 
-  const rateLimit = await checkAndIncrementRateLimit(adminClient, ip, TRACKING_RATE_LIMIT)
+  const rateLimit = await checkAndIncrementRateLimit(adminClient, fingerprint, TRACKING_RATE_LIMIT)
   if (rateLimit.blocked) {
     const res = NextResponse.json(
       { error: 'Too many lookups', retryAfter: rateLimit.cooldown },

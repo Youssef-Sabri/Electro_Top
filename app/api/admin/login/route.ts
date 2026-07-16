@@ -2,20 +2,19 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createSupabaseAdminClient } from '@/lib/supabase/server'
 import { getServerSupabase } from '@/lib/supabase/server'
 import { validateRequestOrigin } from '@/lib/security'
-import { getClientIp } from '@/lib/utils/misc'
-import { checkAndIncrementRateLimit, setRateLimitHeaders } from '@/lib/security'
+import { checkAndIncrementRateLimit, setRateLimitHeaders, generateFingerprint } from '@/lib/security'
 import { RATE_LIMIT_CONFIGS } from '@/lib/constants'
 import { parseJsonBody } from '@/lib/utils/misc'
 import { isAdminRole } from '@/lib/constants'
 
 export async function GET(request: NextRequest) {
-  const ip = getClientIp(request);
+  const fingerprint = generateFingerprint(request);
   const supabaseClient = createSupabaseAdminClient()
   
   const { data, error } = await supabaseClient
     .from(RATE_LIMIT_CONFIGS.login.table)
     .select('attempt_count, first_attempt_at')
-    .eq('ip_address', ip)
+    .eq('ip_address', fingerprint)
     .maybeSingle();
   
   if (error || !data) {
@@ -35,11 +34,11 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
 
-  const ip = getClientIp(request);
+  const fingerprint = generateFingerprint(request);
   const supabaseClient = createSupabaseAdminClient()
 
   // Atomic check-and-increment — prevents TOCTOU race under concurrent serverless invocations
-  const rateLimit = await checkAndIncrementRateLimit(supabaseClient, ip, RATE_LIMIT_CONFIGS.login);
+  const rateLimit = await checkAndIncrementRateLimit(supabaseClient, fingerprint, RATE_LIMIT_CONFIGS.login);
   if (rateLimit.blocked) {
     const res = NextResponse.json({
       blocked: true,
@@ -86,7 +85,7 @@ export async function POST(request: NextRequest) {
   await supabaseClient
     .from(RATE_LIMIT_CONFIGS.login.table)
     .delete()
-    .eq('ip_address', ip);
+    .eq('ip_address', fingerprint);
 
   // Return success response. Note: createServerClient writes directly to the cookies via the proxy setters.
   return NextResponse.json({ success: true });

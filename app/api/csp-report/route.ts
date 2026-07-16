@@ -1,15 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { checkAndIncrementRateLimit, setRateLimitHeaders } from '@/lib/security';
+import { checkAndIncrementRateLimit, setRateLimitHeaders, generateFingerprint } from '@/lib/security';
 import { createSupabaseAdminClient } from '@/lib/supabase/server';
-import { getClientIp, parseJsonBody } from '@/lib/utils/misc';
+import { parseJsonBody } from '@/lib/utils/misc';
 import { RATE_LIMIT_CONFIGS } from '@/lib/constants';
 
 
 const CSP_RATE_LIMIT = RATE_LIMIT_CONFIGS.cspReport;
 
 export async function POST(request: NextRequest) {
-  const ip = getClientIp(request);
-  const rateCheck = await checkAndIncrementRateLimit(createSupabaseAdminClient(), ip, CSP_RATE_LIMIT);
+  const fingerprint = generateFingerprint(request);
+  const rateCheck = await checkAndIncrementRateLimit(createSupabaseAdminClient(), fingerprint, CSP_RATE_LIMIT);
   if (rateCheck.blocked) {
     const res = new NextResponse(null, { status: 429 });
     setRateLimitHeaders(res, rateCheck);

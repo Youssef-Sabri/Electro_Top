@@ -30,7 +30,6 @@ export const TABLES = {
   loginAttempts: 'login_attempts',
   trackingLookups: 'tracking_lookups',
   orderRateLimits: 'order_rate_limits',
-  receiptUploadLimits: 'receipt_upload_limits',
   cspReportLimits: 'csp_report_limits',
 } as const;
 
@@ -54,14 +53,6 @@ export const RATE_LIMIT_CONFIGS = {
     lastColumn: 'last_request_at',
     firstColumn: 'first_request_at',
     maxAttempts: 5,
-    windowMs: 60_000,
-  },
-  receiptUpload: {
-    table: TABLES.receiptUploadLimits,
-    countColumn: 'request_count',
-    lastColumn: 'last_request_at',
-    firstColumn: 'first_request_at',
-    maxAttempts: 3,
     windowMs: 60_000,
   },
   tracking: {

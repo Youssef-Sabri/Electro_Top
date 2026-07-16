@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createSupabaseAdminClient } from '@/lib/supabase/server'
 import { validateRequestOrigin } from '@/lib/security'
 import { checkoutSchema, SAFE_FILENAME_RE } from '@/lib/validations'
-import { generateOrderId, getClientIp, parseJsonBody, devLog } from '@/lib/utils/misc'
-import { checkAndIncrementRateLimit, setRateLimitHeaders } from '@/lib/security'
+import { generateOrderId, parseJsonBody, devLog } from '@/lib/utils/misc'
+import { checkAndIncrementRateLimit, setRateLimitHeaders, generateFingerprint } from '@/lib/security'
 import { RATE_LIMIT_CONFIGS } from '@/lib/constants'
 import { now } from '@/lib/utils/date'
 
@@ -14,9 +14,11 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
 
-  const ip = getClientIp(request)
+  const fingerprint = generateFingerprint(request)
   const adminClient = createSupabaseAdminClient()
-  const rateLimit = await checkAndIncrementRateLimit(adminClient, ip, ORDER_RATE_LIMIT)
+  
+  // Check fingerprint-based rate limit (3 per minute)
+  const rateLimit = await checkAndIncrementRateLimit(adminClient, fingerprint, ORDER_RATE_LIMIT)
   if (rateLimit.blocked) {
     const res = NextResponse.json({
       error: `محاولات كثيرة جداً. يرجى الانتظار ${rateLimit.cooldown} ثانية ثم المحاولة مرة أخرى.`,
@@ -132,7 +134,7 @@ export async function POST(request: NextRequest) {
     
     if (errorMsg.includes('Too many orders from this phone number')) {
       return NextResponse.json(
-        { error: 'لقد قمت بإنشاء عدد كبير جداً من الطلبات من هذا الرقم مؤخراً. يرجى الانتظار 15 دقيقة والمحاولة مرة أخرى.' },
+        { error: 'لقد قمت بإنشاء عدد كبير جداً من الطلبات من هذا الرقم مؤخراً. يرجى الانتظار 15 دقيقة والمحاولة مرة أخرى.', cooldown: 900 },
         { status: 429 }
       )
     }

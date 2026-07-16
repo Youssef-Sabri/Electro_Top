@@ -88,15 +88,18 @@ export async function POST(request: Request) {
       .neq('name', '');
     if (resetErr) throw resetErr;
 
-    for (const group of body) {
-      if (group.subcategories.length > 0) {
-        const { error: updateErr } = await supabase
+    const updatePromises = body
+      .filter((group) => group.subcategories.length > 0)
+      .map((group) =>
+        supabase
           .from(TABLES.categories)
           .update({ parent_category: group.name.trim() })
-          .in('name', group.subcategories.map((s: string) => s.trim()));
-        if (updateErr) throw updateErr;
-      }
-    }
+          .in('name', group.subcategories.map((s: string) => s.trim()))
+      );
+
+    const updateResults = await Promise.all(updatePromises);
+    const firstErr = updateResults.find((res) => res.error)?.error;
+    if (firstErr) throw firstErr;
 
     return NextResponse.json({ success: true });
   } catch (error) {
