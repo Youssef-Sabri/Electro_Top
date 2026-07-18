@@ -45,6 +45,10 @@ export const InventoryClient = memo(function InventoryClient() {
   });
   const [selectedMainCategoryFilter, setSelectedMainCategoryFilter] = useState(() => searchParams?.get('mainCategory') || 'all');
   const [selectedSubCategoryFilter, setSelectedSubCategoryFilter] = useState(() => searchParams?.get('subCategory') || 'all');
+  const [sortBy, setSortBy] = useState<'default' | 'name-asc' | 'name-desc'>(() => {
+    const val = searchParams?.get('sort');
+    return (val === 'name-asc' || val === 'name-desc') ? val : 'default';
+  });
 
   const initialPage = useMemo(() => {
     const p = searchParams?.get('page');
@@ -125,7 +129,7 @@ export const InventoryClient = memo(function InventoryClient() {
   }, [selectedMainCategoryFilter, selectedSubCategoryFilter, hierarchy]);
 
   const filteredProducts = useMemo(() => {
-    return products.filter((p) => {
+    const filtered = products.filter((p) => {
       const matchesSearch =
         p.name.toLowerCase().includes(deferredSearchQuery.toLowerCase()) ||
         p.description.toLowerCase().includes(deferredSearchQuery.toLowerCase()) ||
@@ -148,7 +152,15 @@ export const InventoryClient = memo(function InventoryClient() {
 
       return matchesSearch && matchesStatus && matchesStock && matchesCategory;
     });
-  }, [products, deferredSearchQuery, statusFilter, stockFilter, activeFilterCategories]);
+
+    if (sortBy === 'name-asc') {
+      return [...filtered].sort((a, b) => a.name.localeCompare(b.name, 'ar'));
+    } else if (sortBy === 'name-desc') {
+      return [...filtered].sort((a, b) => b.name.localeCompare(a.name, 'ar'));
+    }
+
+    return filtered;
+  }, [products, deferredSearchQuery, statusFilter, stockFilter, activeFilterCategories, sortBy]);
 
   const itemsPerPage = 10;
   const { currentPage, setCurrentPage, totalPages, paginatedItems: paginatedProducts, resetPage } = usePagination(filteredProducts, itemsPerPage, initialPage);
@@ -159,7 +171,7 @@ export const InventoryClient = memo(function InventoryClient() {
       return;
     }
     resetPage();
-  }, [searchQuery, statusFilter, stockFilter, selectedMainCategoryFilter, selectedSubCategoryFilter, resetPage]);
+  }, [searchQuery, statusFilter, stockFilter, selectedMainCategoryFilter, selectedSubCategoryFilter, sortBy, resetPage]);
 
   // Synchronize state to URL
   useEffect(() => {
@@ -182,6 +194,9 @@ export const InventoryClient = memo(function InventoryClient() {
     if (selectedSubCategoryFilter === 'all') params.delete('subCategory');
     else params.set('subCategory', selectedSubCategoryFilter);
 
+    if (sortBy === 'default') params.delete('sort');
+    else params.set('sort', sortBy);
+
     if (currentPage === 1) params.delete('page');
     else params.set('page', currentPage.toString());
 
@@ -189,7 +204,7 @@ export const InventoryClient = memo(function InventoryClient() {
     if (`?${params.toString()}` !== window.location.search) {
       window.history.replaceState(null, '', nextUrl);
     }
-  }, [searchQuery, statusFilter, stockFilter, selectedMainCategoryFilter, selectedSubCategoryFilter, currentPage, pathname]);
+  }, [searchQuery, statusFilter, stockFilter, selectedMainCategoryFilter, selectedSubCategoryFilter, sortBy, currentPage, pathname]);
 
   // Sync URL query params back to state (for back/forward navigation and link resets)
   useEffect(() => {
@@ -199,6 +214,7 @@ export const InventoryClient = memo(function InventoryClient() {
     const urlStock = (searchParams?.get('stock') === 'out' || searchParams?.get('stock') === 'low' || searchParams?.get('stock') === 'instock') ? searchParams.get('stock') as 'all' | 'out' | 'low' | 'instock' : 'all';
     const urlMainCat = searchParams?.get('mainCategory') || 'all';
     const urlSubCat = searchParams?.get('subCategory') || 'all';
+    const urlSort = (searchParams?.get('sort') === 'name-asc' || searchParams?.get('sort') === 'name-desc') ? searchParams.get('sort') as 'default' | 'name-asc' | 'name-desc' : 'default';
     const urlPage = searchParams?.get('page') ? parseInt(searchParams.get('page')!, 10) : 1;
 
     setSearchQuery((prev) => (prev === urlSearch ? prev : urlSearch));
@@ -206,6 +222,7 @@ export const InventoryClient = memo(function InventoryClient() {
     setStockFilter((prev) => (prev === urlStock ? prev : urlStock));
     setSelectedMainCategoryFilter((prev) => (prev === urlMainCat ? prev : urlMainCat));
     setSelectedSubCategoryFilter((prev) => (prev === urlSubCat ? prev : urlSubCat));
+    setSortBy((prev) => (prev === urlSort ? prev : urlSort));
     setCurrentPage((prev) => (prev === urlPage ? prev : urlPage));
   }, [searchParams, pathname, setCurrentPage]);
 
@@ -675,6 +692,17 @@ export const InventoryClient = memo(function InventoryClient() {
               ]}
               value={stockFilter}
               onChange={(val) => setStockFilter(val as 'all' | 'out' | 'low' | 'instock')}
+            />
+
+            <CustomDropdown
+              labelPrefix="الترتيب الأبجدي:"
+              options={[
+                { value: 'default', label: 'الافتراضي' },
+                { value: 'name-asc', label: 'الاسم (أ - ي)' },
+                { value: 'name-desc', label: 'الاسم (ي - أ)' }
+              ]}
+              value={sortBy}
+              onChange={(val) => setSortBy(val as 'default' | 'name-asc' | 'name-desc')}
             />
           </div>
         </div>

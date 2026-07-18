@@ -49,3 +49,11 @@ supabase_setup.html
 .eslintcache
 /public/images/
 
+# agent customizations
+.agents/
+
+# price lists
+/mitsubishi_price_list_2024.md
+/لسته السعدنى و حبيب 1-2-2024.pdf
+
+

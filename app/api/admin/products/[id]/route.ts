@@ -18,14 +18,14 @@ async function deleteProductImageIfUnreferenced(
   productId: string
 ) {
   try {
-    const { data, error } = await supabaseClient
-      .from(TABLES.products)
-      .select('id')
-      .or(`image_url.eq."${url}",image_url_2.eq."${url}",image_url_3.eq."${url}"`)
-      .neq('id', productId)
-      .limit(1)
+    const columnChecks = await Promise.all([
+      supabaseClient.from(TABLES.products).select('id').eq('image_url', url).neq('id', productId).limit(1),
+      supabaseClient.from(TABLES.products).select('id').eq('image_url_2', url).neq('id', productId).limit(1),
+      supabaseClient.from(TABLES.products).select('id').eq('image_url_3', url).neq('id', productId).limit(1),
+    ])
 
-    if (!error && (!data || data.length === 0)) {
+    const isReferenced = columnChecks.some(({ data, error }) => !error && data && data.length > 0)
+    if (!isReferenced) {
       await deleteStorageFile(adminClient, STORAGE_BUCKETS.productImages, url)
     }
   } catch (err) {
