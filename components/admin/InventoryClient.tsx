@@ -45,9 +45,9 @@ export const InventoryClient = memo(function InventoryClient() {
   });
   const [selectedMainCategoryFilter, setSelectedMainCategoryFilter] = useState(() => searchParams?.get('mainCategory') || 'all');
   const [selectedSubCategoryFilter, setSelectedSubCategoryFilter] = useState(() => searchParams?.get('subCategory') || 'all');
-  const [sortBy, setSortBy] = useState<'default' | 'name-asc' | 'name-desc'>(() => {
+  const [sortBy, setSortBy] = useState<'name-asc' | 'name-desc'>(() => {
     const val = searchParams?.get('sort');
-    return (val === 'name-asc' || val === 'name-desc') ? val : 'default';
+    return (val === 'name-desc') ? 'name-desc' : 'name-asc';
   });
 
   const initialPage = useMemo(() => {
@@ -153,13 +153,11 @@ export const InventoryClient = memo(function InventoryClient() {
       return matchesSearch && matchesStatus && matchesStock && matchesCategory;
     });
 
-    if (sortBy === 'name-asc') {
-      return [...filtered].sort((a, b) => a.name.localeCompare(b.name, 'ar'));
-    } else if (sortBy === 'name-desc') {
-      return [...filtered].sort((a, b) => b.name.localeCompare(a.name, 'ar'));
+    if (sortBy === 'name-desc') {
+      return [...filtered].sort((a, b) => b.name.localeCompare(a.name, 'ar', { numeric: true, sensitivity: 'base' }));
     }
 
-    return filtered;
+    return [...filtered].sort((a, b) => a.name.localeCompare(b.name, 'ar', { numeric: true, sensitivity: 'base' }));
   }, [products, deferredSearchQuery, statusFilter, stockFilter, activeFilterCategories, sortBy]);
 
   const itemsPerPage = 10;
@@ -194,7 +192,7 @@ export const InventoryClient = memo(function InventoryClient() {
     if (selectedSubCategoryFilter === 'all') params.delete('subCategory');
     else params.set('subCategory', selectedSubCategoryFilter);
 
-    if (sortBy === 'default') params.delete('sort');
+    if (sortBy === 'name-asc') params.delete('sort');
     else params.set('sort', sortBy);
 
     if (currentPage === 1) params.delete('page');
@@ -214,7 +212,7 @@ export const InventoryClient = memo(function InventoryClient() {
     const urlStock = (searchParams?.get('stock') === 'out' || searchParams?.get('stock') === 'low' || searchParams?.get('stock') === 'instock') ? searchParams.get('stock') as 'all' | 'out' | 'low' | 'instock' : 'all';
     const urlMainCat = searchParams?.get('mainCategory') || 'all';
     const urlSubCat = searchParams?.get('subCategory') || 'all';
-    const urlSort = (searchParams?.get('sort') === 'name-asc' || searchParams?.get('sort') === 'name-desc') ? searchParams.get('sort') as 'default' | 'name-asc' | 'name-desc' : 'default';
+    const urlSort = (searchParams?.get('sort') === 'name-desc') ? 'name-desc' : 'name-asc';
     const urlPage = searchParams?.get('page') ? parseInt(searchParams.get('page')!, 10) : 1;
 
     setSearchQuery((prev) => (prev === urlSearch ? prev : urlSearch));
@@ -697,12 +695,11 @@ export const InventoryClient = memo(function InventoryClient() {
             <CustomDropdown
               labelPrefix="الترتيب الأبجدي:"
               options={[
-                { value: 'default', label: 'الافتراضي' },
                 { value: 'name-asc', label: 'الاسم (أ - ي)' },
                 { value: 'name-desc', label: 'الاسم (ي - أ)' }
               ]}
               value={sortBy}
-              onChange={(val) => setSortBy(val as 'default' | 'name-asc' | 'name-desc')}
+              onChange={(val) => setSortBy(val as 'name-asc' | 'name-desc')}
             />
           </div>
         </div>

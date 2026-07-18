@@ -16,7 +16,7 @@ const ProductDetailsModal = dynamic(
 );
 
 const ALL_CATEGORIES = 'All';
-type SortByType = 'name-asc' | 'price-asc' | 'price-desc';
+type SortByType = 'name-asc' | 'name-desc' | 'price-asc' | 'price-desc';
 
 interface ShopPageContentProps {
   initialProducts: Product[];
@@ -30,6 +30,11 @@ export const ShopPageContent = memo(function ShopPageContent({ initialProducts, 
   const searchParams = useSearchParams();
   const router = useRouter();
   const isInitialSync = useRef(false);
+
+  const initialPage = useMemo(() => {
+    const p = searchParams.get('page');
+    return p ? parseInt(p, 10) : 1;
+  }, [searchParams]);
 
   useEffect(() => {
     if (!isLoaded && initialProducts && initialProducts.length > 0) {
@@ -79,43 +84,6 @@ export const ShopPageContent = memo(function ShopPageContent({ initialProducts, 
     return () => clearTimeout(timer);
   }, [searchInput]);
 
-  useEffect(() => {
-    if (!isInitialSync.current) return;
-    if (typeof window === 'undefined') return;
-    const params = new URLSearchParams(window.location.search);
-
-    if (category === ALL_CATEGORIES) params.delete('category');
-    else params.set('category', category);
-
-    if (debouncedSearch === '') params.delete('search');
-    else params.set('search', debouncedSearch);
-
-    if (!hideOutOfStock) params.delete('hideOut');
-    else params.set('hideOut', 'true');
-
-    if (sortBy === 'name-asc') params.delete('sort');
-    else params.set('sort', sortBy);
-
-    const nextUrl = `${window.location.pathname}?${params.toString()}`;
-    if (`?${params.toString()}` !== window.location.search) {
-      window.history.replaceState(null, '', nextUrl);
-    }
-  }, [category, debouncedSearch, hideOutOfStock, sortBy, router]);
-
-  useEffect(() => {
-    const urlCategory = searchParams.get('category') || ALL_CATEGORIES;
-    const urlSearch = searchParams.get('search') || '';
-    const urlHideOut = searchParams.get('hideOut') === 'true';
-    const urlSort = (searchParams.get('sort') as SortByType) || 'name-asc';
-
-    if (urlCategory !== category) setCategory(urlCategory);
-    if (urlSearch !== searchInput) setSearchInput(urlSearch);
-    if (urlHideOut !== hideOutOfStock) setHideOutOfStock(urlHideOut);
-    if (urlSort !== sortBy) setSortBy(urlSort);
-    isInitialSync.current = true;
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchParams]);
-
   const filteredProducts = useMemo(() => {
     const normalizeArabic = (text: string) => {
       return text
@@ -156,7 +124,9 @@ export const ShopPageContent = memo(function ShopPageContent({ initialProducts, 
   const sortedProducts = useMemo(() => {
     const list = [...filteredProducts];
     if (sortBy === 'name-asc') {
-      list.sort((a, b) => a.name.localeCompare(b.name, 'ar'));
+      list.sort((a, b) => a.name.localeCompare(b.name, 'ar', { numeric: true, sensitivity: 'base' }));
+    } else if (sortBy === 'name-desc') {
+      list.sort((a, b) => b.name.localeCompare(a.name, 'ar', { numeric: true, sensitivity: 'base' }));
     } else if (sortBy === 'price-asc') {
       list.sort((a, b) => a.price - b.price);
     } else if (sortBy === 'price-desc') {
@@ -172,11 +142,54 @@ export const ShopPageContent = memo(function ShopPageContent({ initialProducts, 
     totalPages,
     paginatedItems: paginatedProducts,
     resetPage,
-  } = usePagination(sortedProducts, itemsPerPage);
+  } = usePagination(sortedProducts, itemsPerPage, initialPage);
 
   useEffect(() => {
+    if (!isInitialSync.current) return;
     resetPage();
   }, [category, debouncedSearch, hideOutOfStock, resetPage]);
+
+  useEffect(() => {
+    if (!isInitialSync.current) return;
+    if (typeof window === 'undefined') return;
+    const params = new URLSearchParams(window.location.search);
+
+    if (category === ALL_CATEGORIES) params.delete('category');
+    else params.set('category', category);
+
+    if (debouncedSearch === '') params.delete('search');
+    else params.set('search', debouncedSearch);
+
+    if (!hideOutOfStock) params.delete('hideOut');
+    else params.set('hideOut', 'true');
+
+    if (sortBy === 'name-asc') params.delete('sort');
+    else params.set('sort', sortBy);
+
+    if (currentPage === 1) params.delete('page');
+    else params.set('page', currentPage.toString());
+
+    const nextUrl = `${window.location.pathname}?${params.toString()}`;
+    if (`?${params.toString()}` !== window.location.search) {
+      window.history.replaceState(null, '', nextUrl);
+    }
+  }, [category, debouncedSearch, hideOutOfStock, sortBy, currentPage, router]);
+
+  useEffect(() => {
+    const urlCategory = searchParams.get('category') || ALL_CATEGORIES;
+    const urlSearch = searchParams.get('search') || '';
+    const urlHideOut = searchParams.get('hideOut') === 'true';
+    const urlSort = (searchParams.get('sort') as SortByType) || 'name-asc';
+    const urlPage = searchParams.get('page') ? parseInt(searchParams.get('page')!, 10) : 1;
+
+    if (urlCategory !== category) setCategory(urlCategory);
+    if (urlSearch !== searchInput) setSearchInput(urlSearch);
+    if (urlHideOut !== hideOutOfStock) setHideOutOfStock(urlHideOut);
+    if (urlSort !== sortBy) setSortBy(urlSort);
+    if (urlPage !== currentPage) setCurrentPage(urlPage);
+    isInitialSync.current = true;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
 
   const handleClearFilters = useCallback(() => {
     setCategory(ALL_CATEGORIES);
@@ -412,6 +425,7 @@ export const ShopPageContent = memo(function ShopPageContent({ initialProducts, 
                 <CustomDropdown
                   options={[
                     { value: 'name-asc', label: 'أبجدي (أ - ي)' },
+                    { value: 'name-desc', label: 'أبجدي (ي - أ)' },
                     { value: 'price-asc', label: 'السعر: من الأقل للأعلى' },
                     { value: 'price-desc', label: 'السعر: من الأعلى للأقل' },
                   ]}
