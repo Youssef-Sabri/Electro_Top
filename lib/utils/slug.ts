@@ -1,12 +1,12 @@
 const ARABIC_TO_LATIN: Record<string, string> = {
-  'ا': 'a', 'أ': 'a', 'إ': 'i', 'آ': 'aa',
+  'ا': 'a', 'أ': 'a', 'إ': 'i', 'آ': 'aa', 'ء': 'a', 'ئ': 'a', 'ؤ': 'o',
   'ب': 'b', 'ت': 't', 'ث': 'th', 'ج': 'g',
   'ح': 'h', 'خ': 'kh', 'د': 'd', 'ذ': 'dh',
   'ر': 'r', 'ز': 'z', 'س': 's', 'ش': 'sh',
   'ع': 'a', 'غ': 'gh', 'ف': 'f', 'ق': 'q',
   'ك': 'k', 'ل': 'l', 'م': 'm', 'ن': 'n',
   'ه': 'h', 'و': 'w', 'ي': 'y', 'ة': 'h',
-  'ى': 'a', 'ء': 'a',
+  'ى': 'a',
   '٠': '0', '١': '1', '٢': '2', '٣': '3',
   '٤': '4', '٥': '5', '٦': '6', '٧': '7',
   '٨': '8', '٩': '9',
@@ -24,7 +24,7 @@ export function slugify(text: string, id?: string): string {
       result += HEAVY_MAP[char];
     } else if (ARABIC_TO_LATIN[char]) {
       result += ARABIC_TO_LATIN[char];
-    } else if (/[a-zA-Z0-9\u0600-\u06FF]/.test(char)) {
+    } else if (/[a-zA-Z0-9]/.test(char)) {
       result += char;
     } else if (char === ' ' || char === '-' || char === '_') {
       result += '-';

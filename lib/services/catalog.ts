@@ -53,6 +53,7 @@ export async function fetchProductBySlug(slug: string): Promise<Product | null> 
   const supabase = createPublicClient();
 
   try {
+    // 1. Try exact slug match
     const { data, error } = await supabase
       .from(TABLES.products)
       .select(PRODUCT_SELECT_FIELDS)
@@ -60,8 +61,49 @@ export async function fetchProductBySlug(slug: string): Promise<Product | null> 
       .eq('is_active', true)
       .maybeSingle();
 
-    if (error || !data) return null;
-    return data;
+    if (data && !error) return data;
+
+    // 2. Decode URL slug if encoded
+    const decodedSlug = decodeURIComponent(slug);
+    if (decodedSlug !== slug) {
+      const { data: decodedData, error: decodedError } = await supabase
+        .from(TABLES.products)
+        .select(PRODUCT_SELECT_FIELDS)
+        .eq('slug', decodedSlug)
+        .eq('is_active', true)
+        .maybeSingle();
+
+      if (decodedData && !decodedError) return decodedData;
+    }
+
+    // 3. Fallback: extract UUID from end of slug (e.g. 33d99e7d-de24-46ff-a688-9c5c71b13c47)
+    const uuidMatch = slug.match(/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$/i);
+    if (uuidMatch) {
+      const fullId = `p-${uuidMatch[1]}`;
+      const { data: idData, error: idError } = await supabase
+        .from(TABLES.products)
+        .select(PRODUCT_SELECT_FIELDS)
+        .eq('id', fullId)
+        .eq('is_active', true)
+        .maybeSingle();
+
+      if (idData && !idError) return idData;
+    }
+
+    // 4. Fallback: match by product ID directly
+    const directIdMatch = slug.match(/(p-[a-z0-9-]+)$/i);
+    if (directIdMatch) {
+      const { data: directData, error: directError } = await supabase
+        .from(TABLES.products)
+        .select(PRODUCT_SELECT_FIELDS)
+        .eq('id', directIdMatch[1])
+        .eq('is_active', true)
+        .maybeSingle();
+
+      if (directData && !directError) return directData;
+    }
+
+    return null;
   } catch {
     return null;
   }
