@@ -7,6 +7,9 @@ import { SITE_METADATA } from '@/lib/constants';
 export const metadata: Metadata = {
   title: SITE_METADATA.title,
   description: SITE_METADATA.description,
+  alternates: {
+    canonical: '/',
+  },
 };
 
 export const revalidate = 60;

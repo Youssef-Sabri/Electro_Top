@@ -1,27 +1,63 @@
 import type { MetadataRoute } from 'next';
 import { SITE_METADATA } from '@/lib/constants';
+import { fetchAllProductSlugs } from '@/lib/services/catalog';
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = SITE_METADATA.url;
 
-  return [
+  const productEntries = await fetchAllProductSlugs();
+
+  const staticPages = [
     {
       url: baseUrl,
       lastModified: new Date(),
-      changeFrequency: 'weekly',
+      changeFrequency: 'weekly' as const,
       priority: 1.0,
     },
     {
       url: `${baseUrl}/shop`,
       lastModified: new Date(),
-      changeFrequency: 'daily',
+      changeFrequency: 'daily' as const,
       priority: 0.9,
     },
     {
       url: `${baseUrl}/track`,
       lastModified: new Date(),
-      changeFrequency: 'monthly',
+      changeFrequency: 'monthly' as const,
       priority: 0.4,
     },
+    {
+      url: `${baseUrl}/support`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly' as const,
+      priority: 0.6,
+    },
+    {
+      url: `${baseUrl}/about`,
+      lastModified: new Date(),
+      changeFrequency: 'yearly' as const,
+      priority: 0.5,
+    },
+    {
+      url: `${baseUrl}/terms`,
+      lastModified: new Date(),
+      changeFrequency: 'yearly' as const,
+      priority: 0.3,
+    },
+    {
+      url: `${baseUrl}/privacy`,
+      lastModified: new Date(),
+      changeFrequency: 'yearly' as const,
+      priority: 0.3,
+    },
   ];
+
+  const productPages = productEntries.map((p) => ({
+    url: `${baseUrl}/products/${p.slug}`,
+    lastModified: new Date(p.updated_at),
+    changeFrequency: 'weekly' as const,
+    priority: 0.7,
+  }));
+
+  return [...staticPages, ...productPages];
 }

@@ -1,10 +1,21 @@
 import { Metadata } from 'next';
 import { TrackingDetailClient } from '@/components/tracking/TrackingDetailClient';
 
-export const metadata: Metadata = {
-  title: 'حالة الطلب | إلكترو توب',
-  description: 'تتبع حالة طلبك واطلع على آخر التحديثات.',
-};
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const { id } = await params;
+  const trackingId = id.toUpperCase();
+  return {
+    title: `طلب #${trackingId} | تتبع الحالة`,
+    description: `تتبع حالة طلبك رقم ${trackingId} والاطلاع على آخر التحديثات من إلكترو توب.`,
+    alternates: {
+      canonical: `/track/${id}`,
+    },
+    robots: {
+      index: false,
+      follow: true,
+    },
+  };
+}
 
 export default async function TrackDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;

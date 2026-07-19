@@ -52,10 +52,5 @@ supabase_setup.html
 # agent customizations
 .agents/
 
-# price lists
-/لسته السعدنى و حبيب 1-2-2024.pdf
-/SIEMENS P.L - 1.9.2024.pdf
-/Himel P.L 01.10.2024 MCB.pdf
-/all_products_catalog.md
 
-
+data_files/

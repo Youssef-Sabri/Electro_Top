@@ -23,6 +23,8 @@ import { exportToCSV } from '@/lib/utils/csv';
 import { uploadProductImage, processAndCompressImage, deleteProductImage } from '@/lib/utils/image';
 import { ALL_COLORS } from '@/lib/utils/color';
 import { ImageUploadField } from '@/components/admin/ImageUploadField';
+import { sortByRelevance } from '@/lib/utils/search';
+import { defaultProductSort } from '@/lib/utils/sort';
 
 export const InventoryClient = memo(function InventoryClient() {
 
@@ -45,9 +47,10 @@ export const InventoryClient = memo(function InventoryClient() {
   });
   const [selectedMainCategoryFilter, setSelectedMainCategoryFilter] = useState(() => searchParams?.get('mainCategory') || 'all');
   const [selectedSubCategoryFilter, setSelectedSubCategoryFilter] = useState(() => searchParams?.get('subCategory') || 'all');
-  const [sortBy, setSortBy] = useState<'name-asc' | 'name-desc'>(() => {
+  const [sortBy, setSortBy] = useState<'default' | 'price-asc' | 'price-desc'>(() => {
     const val = searchParams?.get('sort');
-    return (val === 'name-desc') ? 'name-desc' : 'name-asc';
+    if (val === 'price-asc' || val === 'price-desc') return val;
+    return 'default';
   });
 
   const initialPage = useMemo(() => {
@@ -60,8 +63,6 @@ export const InventoryClient = memo(function InventoryClient() {
   useEffect(() => {
     setIsMounted(true);
   }, []);
-
-
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
@@ -93,8 +94,6 @@ export const InventoryClient = memo(function InventoryClient() {
   });
   const [formErrors, setFormErrors] = useState<Partial<Record<keyof ProductFormData, string>>>({});
 
-
-
   const [isClearProductsPasswordOpen, setIsClearProductsPasswordOpen] = useState(false);
 
   const { confirmModal, openConfirm, closeConfirm } = useConfirmModal();
@@ -104,9 +103,7 @@ export const InventoryClient = memo(function InventoryClient() {
     setToastMessage(msg);
   };
 
-  const [selectedMainCategory, setSelectedMainCategory] = useState('');
-
-
+  const [formMainCategory, setFormMainCategory] = useState('');
 
   const metrics = useMemo(() => {
     const total = products.length;
@@ -129,11 +126,13 @@ export const InventoryClient = memo(function InventoryClient() {
   }, [selectedMainCategoryFilter, selectedSubCategoryFilter, hierarchy]);
 
   const filteredProducts = useMemo(() => {
+    const q = deferredSearchQuery.toLowerCase();
+
     const filtered = products.filter((p) => {
       const matchesSearch =
-        p.name.toLowerCase().includes(deferredSearchQuery.toLowerCase()) ||
-        p.description.toLowerCase().includes(deferredSearchQuery.toLowerCase()) ||
-        p.id.toLowerCase().includes(deferredSearchQuery.toLowerCase());
+        p.name.toLowerCase().includes(q) ||
+        p.description.toLowerCase().includes(q) ||
+        p.id.toLowerCase().includes(q);
 
       const matchesStatus =
         statusFilter === 'all' ||
@@ -153,11 +152,20 @@ export const InventoryClient = memo(function InventoryClient() {
       return matchesSearch && matchesStatus && matchesStock && matchesCategory;
     });
 
-    if (sortBy === 'name-desc') {
-      return [...filtered].sort((a, b) => b.name.localeCompare(a.name, 'ar', { numeric: true, sensitivity: 'base' }));
+    if (q) {
+      return sortByRelevance(filtered, deferredSearchQuery, (p) => p.name);
     }
 
-    return [...filtered].sort((a, b) => a.name.localeCompare(b.name, 'ar', { numeric: true, sensitivity: 'base' }));
+    const list = [...filtered];
+    if (sortBy === 'default') {
+      list.sort(defaultProductSort);
+    } else if (sortBy === 'price-asc') {
+      list.sort((a, b) => a.price - b.price);
+    } else if (sortBy === 'price-desc') {
+      list.sort((a, b) => b.price - a.price);
+    }
+
+    return list;
   }, [products, deferredSearchQuery, statusFilter, stockFilter, activeFilterCategories, sortBy]);
 
   const itemsPerPage = 10;
@@ -192,7 +200,7 @@ export const InventoryClient = memo(function InventoryClient() {
     if (selectedSubCategoryFilter === 'all') params.delete('subCategory');
     else params.set('subCategory', selectedSubCategoryFilter);
 
-    if (sortBy === 'name-asc') params.delete('sort');
+    if (sortBy === 'default') params.delete('sort');
     else params.set('sort', sortBy);
 
     if (currentPage === 1) params.delete('page');
@@ -212,7 +220,7 @@ export const InventoryClient = memo(function InventoryClient() {
     const urlStock = (searchParams?.get('stock') === 'out' || searchParams?.get('stock') === 'low' || searchParams?.get('stock') === 'instock') ? searchParams.get('stock') as 'all' | 'out' | 'low' | 'instock' : 'all';
     const urlMainCat = searchParams?.get('mainCategory') || 'all';
     const urlSubCat = searchParams?.get('subCategory') || 'all';
-    const urlSort = (searchParams?.get('sort') === 'name-desc') ? 'name-desc' : 'name-asc';
+    const urlSort = (searchParams?.get('sort') === 'price-asc' || searchParams?.get('sort') === 'price-desc') ? searchParams.get('sort') as 'price-asc' | 'price-desc' : 'default';
     const urlPage = searchParams?.get('page') ? parseInt(searchParams.get('page')!, 10) : 1;
 
     setSearchQuery((prev) => (prev === urlSearch ? prev : urlSearch));
@@ -271,7 +279,7 @@ export const InventoryClient = memo(function InventoryClient() {
     setSelectedImageFile(null);
     setSelectedImageFile2(null);
     setSelectedImageFile3(null);
-    setSelectedMainCategory('');
+    setFormMainCategory('');
     setFormData({
       name: '',
       description: '',
@@ -303,7 +311,7 @@ export const InventoryClient = memo(function InventoryClient() {
       g.name === product.category ||
       (g.subcategories || []).includes(product.category || '')
     );
-    setSelectedMainCategory(parentGroup ? parentGroup.name : '');
+    setFormMainCategory(parentGroup ? parentGroup.name : '');
 
     setFormData({
       name: product.name,
@@ -353,6 +361,7 @@ export const InventoryClient = memo(function InventoryClient() {
     setCompressionInfo(null);
     setCompressionInfo2(null);
     setCompressionInfo3(null);
+    setFormMainCategory('');
     setIsAddModalOpen(false);
     setEditingProduct(null);
   };
@@ -388,6 +397,34 @@ export const InventoryClient = memo(function InventoryClient() {
     } finally {
       setCompressing(false);
     }
+  };
+
+  const handleSetAsMainImage = (slot: 1 | 2) => {
+    const fieldKey = slot === 1 ? 'image_url_2' : 'image_url_3';
+    const additionalUrl = formData[fieldKey];
+    if (!additionalUrl) return;
+
+    setFormData((prev) => ({
+      ...prev,
+      [fieldKey]: prev.image_url,
+      image_url: additionalUrl,
+    }));
+
+    const file = slot === 1 ? selectedImageFile2 : selectedImageFile3;
+    const setMainFile = setSelectedImageFile;
+    const setAdditionalFile = slot === 1 ? setSelectedImageFile2 : setSelectedImageFile3;
+
+    const mainFile = selectedImageFile;
+    setMainFile(file);
+    setAdditionalFile(mainFile);
+
+    const info = slot === 1 ? compressionInfo2 : compressionInfo3;
+    const setMainInfo = setCompressionInfo;
+    const setAdditionalInfo = slot === 1 ? setCompressionInfo2 : setCompressionInfo3;
+
+    const mainInfo = compressionInfo;
+    setMainInfo(info);
+    setAdditionalInfo(mainInfo);
   };
 
   const uploadImageFiles = async (uploadedUrls: string[]) => {
@@ -693,13 +730,14 @@ export const InventoryClient = memo(function InventoryClient() {
             />
 
             <CustomDropdown
-              labelPrefix="الترتيب الأبجدي:"
+              labelPrefix="الترتيب:"
               options={[
-                { value: 'name-asc', label: 'الاسم (أ - ي)' },
-                { value: 'name-desc', label: 'الاسم (ي - أ)' }
+                { value: 'default', label: 'الترتيب الافتراضي' },
+                { value: 'price-asc', label: 'السعر: من الأقل للأعلى' },
+                { value: 'price-desc', label: 'السعر: من الأعلى للأقل' }
               ]}
               value={sortBy}
-              onChange={(val) => setSortBy(val as 'name-asc' | 'name-desc')}
+              onChange={(val) => setSortBy(val as 'default' | 'price-asc' | 'price-desc')}
             />
           </div>
         </div>
@@ -1014,6 +1052,7 @@ export const InventoryClient = memo(function InventoryClient() {
                     previewUrl={isCompressing2 ? null : formData.image_url_2 || null}
                     isUploading={isCompressing2}
                     onFileChange={(e) => handleImageFileChange(e, 1)}
+                    onSetAsMain={formData.image_url_2 ? () => handleSetAsMainImage(1) : undefined}
                   />
                   {compressionInfo2 && !formErrors.image_url_2 && (
                     <p className="text-[11px] text-green-600 font-medium flex items-center gap-1 mt-1">
@@ -1034,6 +1073,7 @@ export const InventoryClient = memo(function InventoryClient() {
                     previewUrl={isCompressing3 ? null : formData.image_url_3 || null}
                     isUploading={isCompressing3}
                     onFileChange={(e) => handleImageFileChange(e, 2)}
+                    onSetAsMain={formData.image_url_3 ? () => handleSetAsMainImage(2) : undefined}
                   />
                   {compressionInfo3 && !formErrors.image_url_3 && (
                     <p className="text-[11px] text-green-600 font-medium flex items-center gap-1 mt-1">
@@ -1088,9 +1128,9 @@ export const InventoryClient = memo(function InventoryClient() {
                       { value: '', label: 'اختر القسم الرئيسي' },
                       ...hierarchy.map(g => ({ value: g.name, label: g.name }))
                     ]}
-                    value={selectedMainCategory}
+                    value={formMainCategory}
                     onChange={(val) => {
-                      setSelectedMainCategory(val);
+                      setFormMainCategory(val);
                       setFormData(prev => ({ ...prev, category: val }));
                       if (formErrors.category) {
                         setFormErrors(prev => ({ ...prev, category: undefined }));
@@ -1105,7 +1145,7 @@ export const InventoryClient = memo(function InventoryClient() {
                   <CustomDropdown
                     options={[
                       { value: '', label: 'اختر الفئة الفرعية' },
-                      ...((hierarchy.find(g => g.name === selectedMainCategory)?.subcategories || []).map((sub: string) => ({ value: sub, label: sub })))
+                      ...((hierarchy.find(g => g.name === formMainCategory)?.subcategories || []).map((sub: string) => ({ value: sub, label: sub })))
                     ]}
                     value={formData.category || ''}
                     onChange={(val) => {

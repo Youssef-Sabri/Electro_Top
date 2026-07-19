@@ -82,7 +82,7 @@ function CategorySlideshowCard({ category, products, productCount }: CategorySli
       </div>
 
       <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-transparent flex flex-col justify-end p-6 text-start z-10">
-        <h3 className="font-headline-md text-white font-bold text-[20px]">{category}</h3>
+        <h2 className="font-headline-md text-white font-bold text-[20px]">{category}</h2>
         {productCount > 0 && (
           <span className="text-white/60 text-xs mt-1 font-semibold">
             {productCount} منتج

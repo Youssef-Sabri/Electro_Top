@@ -9,6 +9,7 @@ interface ImageUploadFieldProps {
   previewUrl: string | null;
   isUploading: boolean;
   onFileChange: (e: React.ChangeEvent<HTMLInputElement>, slot: string) => void;
+  onSetAsMain?: () => void;
 }
 
 export const ImageUploadField = memo(function ImageUploadField({
@@ -18,6 +19,7 @@ export const ImageUploadField = memo(function ImageUploadField({
   previewUrl,
   isUploading,
   onFileChange,
+  onSetAsMain,
 }: ImageUploadFieldProps) {
   return (
     <div className="space-y-2">
@@ -43,6 +45,16 @@ export const ImageUploadField = memo(function ImageUploadField({
       </div>
       {isUploading && (
         <p className="text-[10px] text-primary font-semibold animate-pulse">جاري رفع الصورة...</p>
+      )}
+      {(previewUrl || currentUrl) && onSetAsMain && (
+        <button
+          type="button"
+          onClick={onSetAsMain}
+          className="text-[10px] text-primary hover:text-primary-container font-bold flex items-center gap-1 mt-1 cursor-pointer hover:underline"
+        >
+          <span className="material-symbols-outlined text-[13px] select-none">star</span>
+          جعلها الصورة الرئيسية
+        </button>
       )}
     </div>
   );

@@ -26,7 +26,7 @@ export async function fetchCatalog(): Promise<{
       { data: prodData, error: prodError },
     ] = await Promise.all([
       supabase.from(TABLES.categories).select('name, parent_category').order('name'),
-      supabase.from(TABLES.products).select(PRODUCT_SELECT_FIELDS).eq('is_active', true).order('created_at'),
+      supabase.from(TABLES.products).select(PRODUCT_SELECT_FIELDS).eq('is_active', true).order('sort_order', { ascending: true }),
     ]);
 
     if (catData && !catError) {
@@ -47,4 +47,43 @@ export async function fetchCatalog(): Promise<{
   }
 
   return { categories, products, hierarchy };
+}
+
+export async function fetchProductBySlug(slug: string): Promise<Product | null> {
+  const supabase = createPublicClient();
+
+  try {
+    const { data, error } = await supabase
+      .from(TABLES.products)
+      .select(PRODUCT_SELECT_FIELDS)
+      .eq('slug', slug)
+      .eq('is_active', true)
+      .maybeSingle();
+
+    if (error || !data) return null;
+    return data;
+  } catch {
+    return null;
+  }
+}
+
+export async function fetchAllProductSlugs(): Promise<{ slug: string; updated_at: string }[]> {
+  const supabase = createPublicClient();
+
+  try {
+    const { data, error } = await supabase
+      .from(TABLES.products)
+      .select('slug, updated_at, created_at')
+      .eq('is_active', true);
+
+    if (error || !data) return [];
+    return data
+      .filter((p: { slug: string | null }) => p.slug && p.slug.trim() !== '')
+      .map((p: { slug: string; updated_at?: string | null; created_at: string }) => ({
+        slug: p.slug,
+        updated_at: p.updated_at || p.created_at,
+      }));
+  } catch {
+    return [];
+  }
 }

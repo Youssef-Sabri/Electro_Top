@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { SupabaseClient } from '@supabase/supabase-js'
+import type { SupabaseClient } from '@supabase/supabase-js'
 import { createSupabaseAdminClient } from '@/lib/supabase/server'
 import { requireAdminGuard } from '@/lib/auth'
 import { productFormPartialSchema } from '@/lib/validations'
@@ -8,6 +8,7 @@ import { TABLES, STORAGE_BUCKETS } from '@/lib/constants'
 import { parseJsonBody } from '@/lib/utils/misc'
 import { devLog } from '@/lib/utils/misc'
 import { revalidateShopPaths } from '@/lib/api-helpers'
+import { slugify } from '@/lib/utils/slug'
 
 const ALLOWED_UPDATE_FIELDS = ['name', 'description', 'price', 'stock', 'image_url', 'image_url_2', 'image_url_3', 'is_active', 'category', 'has_colors', 'colors'] as const
 
@@ -51,6 +52,11 @@ export async function PATCH(
     if (key in body) {
       allowed[key] = body[key]
     }
+  }
+
+  // Regenerate slug when name changes
+  if ('name' in allowed && typeof allowed.name === 'string') {
+    allowed.slug = slugify(allowed.name, id)
   }
 
   // Parse and validate PATCH data against partial productFormSchema

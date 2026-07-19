@@ -12,14 +12,12 @@ export function Footer() {
         {/* Column 1: Brand Info */}
         <div className="space-y-5">
           <div className="flex items-center gap-3">
-            <div className="bg-white rounded-xl p-1.5 shadow-sm">
+            <div className="bg-white rounded-xl p-1.5 shadow-sm relative w-8 h-8">
                <Image
                 alt="شعار إلكترو توب"
-                className="h-8 w-auto"
                 src="/logo.png"
-                width={32}
-                height={32}
-                style={{ width: 'auto' }}
+                fill
+                className="object-contain"
               />
             </div>
             <span className="font-headline-md text-headline-md text-secondary-fixed font-extrabold tracking-tighter">

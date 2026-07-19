@@ -4,6 +4,13 @@ import { CartClient } from '@/components/cart/CartClient';
 export const metadata: Metadata = {
   title: 'عربة التسوق الخاصة بك | إلكترو توب',
   description: 'راجع العناصر الموجودة في عربة التسوق قبل إتمام الشراء.',
+  alternates: {
+    canonical: '/cart',
+  },
+  robots: {
+    index: false,
+    follow: true,
+  },
 };
 
 export default function CartPage() {

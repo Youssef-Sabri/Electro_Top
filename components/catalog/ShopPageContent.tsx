@@ -1,12 +1,14 @@
 'use client';
 
-import { memo, useState, useMemo, useEffect, useCallback, useRef } from 'react';
+import { memo, useState, useMemo, useEffect, useCallback, useRef, useDeferredValue } from 'react';
 import dynamic from 'next/dynamic';
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { useProducts } from '@/hooks/useProducts';
 import { useCategoryHierarchy } from '@/hooks/useCategoryHierarchy';
 import { usePagination } from '@/hooks/usePagination';
 import { ProductCard } from '@/components/catalog/ProductCard';
+import { sortByRelevance } from '@/lib/utils/search';
+import { defaultProductSort } from '@/lib/utils/sort';
 import type { Product, CategoryGroup } from '@/types';
 import { CustomDropdown } from '@/components/ui/CustomDropdown';
 
@@ -16,7 +18,7 @@ const ProductDetailsModal = dynamic(
 );
 
 const ALL_CATEGORIES = 'All';
-type SortByType = 'name-asc' | 'name-desc' | 'price-asc' | 'price-desc';
+type SortByType = 'default' | 'price-asc' | 'price-desc';
 
 interface ShopPageContentProps {
   initialProducts: Product[];
@@ -28,8 +30,6 @@ export const ShopPageContent = memo(function ShopPageContent({ initialProducts, 
   const { products: contextProducts, initializeData, isLoaded } = useProducts();
   const { hierarchy: categoryHierarchy } = useCategoryHierarchy(initialHierarchy);
   const searchParams = useSearchParams();
-  const router = useRouter();
-  const isInitialSync = useRef(false);
 
   const initialPage = useMemo(() => {
     const p = searchParams.get('page');
@@ -49,7 +49,7 @@ export const ShopPageContent = memo(function ShopPageContent({ initialProducts, 
   const [selectedSubCategory, setSelectedSubCategory] = useState(ALL_CATEGORIES);
   const [searchInput, setSearchInput] = useState(() => searchParams.get('search') || '');
   const [hideOutOfStock, setHideOutOfStock] = useState(() => searchParams.get('hideOut') === 'true');
-  const [sortBy, setSortBy] = useState<SortByType>(() => (searchParams.get('sort') as SortByType) || 'name-asc');
+  const [sortBy, setSortBy] = useState<SortByType>(() => (searchParams.get('sort') as SortByType) || 'default');
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false);
 
@@ -76,35 +76,19 @@ export const ShopPageContent = memo(function ShopPageContent({ initialProducts, 
     }
   }, [category, categoryHierarchy]);
 
-  const [debouncedSearch, setDebouncedSearch] = useState(searchInput);
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedSearch(searchInput);
-    }, 300);
-    return () => clearTimeout(timer);
-  }, [searchInput]);
+  const deferredSearch = useDeferredValue(searchInput);
 
   const filteredProducts = useMemo(() => {
-    const normalizeArabic = (text: string) => {
-      return text
-        .replace(/[أإآ]/g, 'ا')
-        .replace(/ة/g, 'ه')
-        .replace(/ى/g, 'ي')
-        .replace(/[\u064B-\u0652]/g, '') // remove diacritics
-        .toLowerCase();
-    };
+    const q = deferredSearch.toLowerCase();
 
     return products.filter((p) => {
       if (!p.is_active) return false;
       if (hideOutOfStock && p.stock === 0) return false;
 
-      const query = debouncedSearch.trim().toLowerCase();
-      const normQuery = normalizeArabic(query);
       const matchesSearch =
-        !query ||
-        normalizeArabic(p.name).includes(normQuery) ||
-        normalizeArabic(p.description).includes(normQuery) ||
-        p.id.toLowerCase().includes(query);
+        p.name.toLowerCase().includes(q) ||
+        p.description.toLowerCase().includes(q) ||
+        p.id.toLowerCase().includes(q);
 
       let matchesCategory = true;
       if (category !== ALL_CATEGORIES) {
@@ -119,21 +103,23 @@ export const ShopPageContent = memo(function ShopPageContent({ initialProducts, 
 
       return matchesSearch && matchesCategory;
     });
-  }, [products, debouncedSearch, category, hideOutOfStock, categoryHierarchy]);
+  }, [products, deferredSearch, category, hideOutOfStock, categoryHierarchy]);
 
   const sortedProducts = useMemo(() => {
+    if (deferredSearch.trim()) {
+      return sortByRelevance(filteredProducts, deferredSearch, (p) => p.name);
+    }
+
     const list = [...filteredProducts];
-    if (sortBy === 'name-asc') {
-      list.sort((a, b) => a.name.localeCompare(b.name, 'ar', { numeric: true, sensitivity: 'base' }));
-    } else if (sortBy === 'name-desc') {
-      list.sort((a, b) => b.name.localeCompare(a.name, 'ar', { numeric: true, sensitivity: 'base' }));
+    if (sortBy === 'default') {
+      list.sort(defaultProductSort);
     } else if (sortBy === 'price-asc') {
       list.sort((a, b) => a.price - b.price);
     } else if (sortBy === 'price-desc') {
       list.sort((a, b) => b.price - a.price);
     }
     return list;
-  }, [filteredProducts, sortBy]);
+  }, [filteredProducts, sortBy, deferredSearch]);
 
   const itemsPerPage = 12;
   const {
@@ -144,42 +130,32 @@ export const ShopPageContent = memo(function ShopPageContent({ initialProducts, 
     resetPage,
   } = usePagination(sortedProducts, itemsPerPage, initialPage);
 
+  const initialSyncDone = useRef(false);
   useEffect(() => {
-    if (!isInitialSync.current) return;
+    if (!initialSyncDone.current) return;
     resetPage();
-  }, [category, debouncedSearch, hideOutOfStock, resetPage]);
+  }, [category, deferredSearch, hideOutOfStock, resetPage]);
 
   useEffect(() => {
-    if (!isInitialSync.current) return;
-    if (typeof window === 'undefined') return;
-    const params = new URLSearchParams(window.location.search);
-
-    if (category === ALL_CATEGORIES) params.delete('category');
-    else params.set('category', category);
-
-    if (debouncedSearch === '') params.delete('search');
-    else params.set('search', debouncedSearch);
-
-    if (!hideOutOfStock) params.delete('hideOut');
-    else params.set('hideOut', 'true');
-
-    if (sortBy === 'name-asc') params.delete('sort');
-    else params.set('sort', sortBy);
-
-    if (currentPage === 1) params.delete('page');
-    else params.set('page', currentPage.toString());
-
-    const nextUrl = `${window.location.pathname}?${params.toString()}`;
-    if (`?${params.toString()}` !== window.location.search) {
+    if (!initialSyncDone.current) return;
+    const params = new URLSearchParams();
+    if (category !== ALL_CATEGORIES) params.set('category', category);
+    if (deferredSearch) params.set('search', deferredSearch);
+    if (hideOutOfStock) params.set('hideOut', 'true');
+    if (sortBy !== 'default') params.set('sort', sortBy);
+    if (currentPage > 1) params.set('page', currentPage.toString());
+    const qs = params.toString();
+    const nextUrl = qs ? `${window.location.pathname}?${qs}` : window.location.pathname;
+    if (nextUrl !== `${window.location.pathname}${window.location.search}`) {
       window.history.replaceState(null, '', nextUrl);
     }
-  }, [category, debouncedSearch, hideOutOfStock, sortBy, currentPage, router]);
+  }, [category, deferredSearch, hideOutOfStock, sortBy, currentPage]);
 
   useEffect(() => {
     const urlCategory = searchParams.get('category') || ALL_CATEGORIES;
     const urlSearch = searchParams.get('search') || '';
     const urlHideOut = searchParams.get('hideOut') === 'true';
-    const urlSort = (searchParams.get('sort') as SortByType) || 'name-asc';
+    const urlSort = (searchParams.get('sort') as SortByType) || 'default';
     const urlPage = searchParams.get('page') ? parseInt(searchParams.get('page')!, 10) : 1;
 
     if (urlCategory !== category) setCategory(urlCategory);
@@ -187,7 +163,7 @@ export const ShopPageContent = memo(function ShopPageContent({ initialProducts, 
     if (urlHideOut !== hideOutOfStock) setHideOutOfStock(urlHideOut);
     if (urlSort !== sortBy) setSortBy(urlSort);
     if (urlPage !== currentPage) setCurrentPage(urlPage);
-    isInitialSync.current = true;
+    initialSyncDone.current = true;
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams]);
 
@@ -195,7 +171,7 @@ export const ShopPageContent = memo(function ShopPageContent({ initialProducts, 
     setCategory(ALL_CATEGORIES);
     setSearchInput('');
     setHideOutOfStock(false);
-    setSortBy('name-asc');
+    setSortBy('default');
   }, []);
 
   return (
@@ -231,7 +207,7 @@ export const ShopPageContent = memo(function ShopPageContent({ initialProducts, 
 
           {/* Action trigger button */}
           <div className="flex items-center gap-3">
-            {(category !== ALL_CATEGORIES || searchInput || hideOutOfStock || sortBy !== 'name-asc') && (
+            {(category !== ALL_CATEGORIES || searchInput || hideOutOfStock || sortBy !== 'default') && (
               <button
                 type="button"
                 onClick={handleClearFilters}
@@ -248,7 +224,7 @@ export const ShopPageContent = memo(function ShopPageContent({ initialProducts, 
             >
               <span className="material-symbols-outlined text-[16px]">filter_list</span>
               تصفية وتصنيف
-              {(category !== ALL_CATEGORIES || searchInput || hideOutOfStock || sortBy !== 'name-asc') && (
+              {(category !== ALL_CATEGORIES || searchInput || hideOutOfStock || sortBy !== 'default') && (
                 <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
               )}
             </button>
@@ -418,21 +394,30 @@ export const ShopPageContent = memo(function ShopPageContent({ initialProducts, 
                   className="w-full"
                 />
               </div>
-
               {/* Sort By */}
               <div className="space-y-2">
-                <label className="text-xs font-bold text-on-surface-variant">ترتيب المنتجات</label>
+                <label className="text-xs font-bold text-on-surface-variant">
+                  ترتيب المنتجات
+                  {searchInput.trim() && (
+                    <span className="text-[10px] text-on-surface-variant/60 font-medium ms-1">(أثناء البحث)</span>
+                  )}
+                </label>
                 <CustomDropdown
                   options={[
-                    { value: 'name-asc', label: 'أبجدي (أ - ي)' },
-                    { value: 'name-desc', label: 'أبجدي (ي - أ)' },
+                    { value: 'default', label: 'الترتيب الافتراضي' },
                     { value: 'price-asc', label: 'السعر: من الأقل للأعلى' },
                     { value: 'price-desc', label: 'السعر: من الأعلى للأقل' },
                   ]}
                   value={sortBy}
                   onChange={(val: string) => setSortBy(val as SortByType)}
+                  disabled={!!searchInput.trim()}
                   className="w-full"
                 />
+                {searchInput.trim() && (
+                  <p className="text-[10px] text-on-surface-variant/50 font-medium">
+                    ترتيب حسب الأهمية أثناء البحث
+                  </p>
+                )}
               </div>
 
               {/* Hide Out of Stock Checkbox */}
@@ -450,7 +435,7 @@ export const ShopPageContent = memo(function ShopPageContent({ initialProducts, 
             </div>
 
             {/* Clear filters Button */}
-            {(category !== ALL_CATEGORIES || searchInput || hideOutOfStock || sortBy !== 'name-asc') && (
+            {(category !== ALL_CATEGORIES || searchInput || hideOutOfStock || sortBy !== 'default') && (
               <button
                 type="button"
                 onClick={handleClearFilters}

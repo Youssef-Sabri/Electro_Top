@@ -8,6 +8,7 @@ export type OrderStatus =
 
 export interface Product {
   id: string;
+  slug?: string | null;
   name: string;
   description: string;
   price: number;
@@ -18,8 +19,10 @@ export interface Product {
   is_active: boolean;
   category?: string | null;
   created_at: string;
+  updated_at?: string | null;
   has_colors: boolean;
   colors: string[];
+  sort_order?: number;
 }
 
 

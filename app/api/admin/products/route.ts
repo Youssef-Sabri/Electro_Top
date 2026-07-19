@@ -7,6 +7,7 @@ import { TABLES, STORAGE_BUCKETS } from '@/lib/constants'
 import { clearStorageBucket } from '@/lib/utils/file'
 import { parseJsonBody } from '@/lib/utils/misc'
 import { requirePasswordVerification, revalidateShopPaths } from '@/lib/api-helpers'
+import { slugify } from '@/lib/utils/slug'
 
 export async function POST(request: Request) {
   const guard = await requireAdminGuard(request)
@@ -22,8 +23,10 @@ export async function POST(request: Request) {
   }
 
   const id = `p-${crypto.randomUUID()}`
+  const slug = slugify(validation.data.name, id)
   const newProduct = {
     id,
+    slug,
     created_at: now(),
     ...validation.data
   }

@@ -4,6 +4,9 @@ import { getSupportEnv } from '@/lib/utils/misc';
 export const metadata: Metadata = {
   title: 'الاتصال والدعم | إلكترو توب',
   description: 'تواصل مع فريق الدعم للاستفسارات والمساعدة.',
+  alternates: {
+    canonical: '/support',
+  },
 };
 
 export default function SupportPage() {

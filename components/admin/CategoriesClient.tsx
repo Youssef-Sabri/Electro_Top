@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo, useRef, useEffect } from 'react';
+import React, { useState, useMemo, useRef, useEffect, useDeferredValue } from 'react';
 import { useSearchParams, usePathname } from 'next/navigation';
 import { PaginationControls } from '@/components/ui/PaginationControls';
 import { useCategoryHierarchy } from '@/hooks/useCategoryHierarchy';
@@ -24,6 +24,7 @@ export function CategoriesClient() {
   const isInitialRef = useRef(true);
 
   const [searchQuery, setSearchQuery] = useState(() => searchParams?.get('search') || '');
+  const deferredSearch = useDeferredValue(searchQuery);
   const [newMainCatName, setNewMainCatName] = useState('');
   const [newSubCatNames, setNewSubCatNames] = useState<Record<string, string>>({});
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
@@ -276,13 +277,22 @@ export function CategoriesClient() {
   };
 
   const filteredHierarchy = useMemo(() => {
-    if (!searchQuery.trim()) return hierarchy;
-    const q = searchQuery.toLowerCase();
-    return hierarchy.filter(g =>
-      g.name.toLowerCase().includes(q) ||
-      g.subcategories.some(s => s.toLowerCase().includes(q))
-    );
-  }, [hierarchy, searchQuery]);
+    const q = deferredSearch.trim().toLowerCase();
+    if (!q) return hierarchy;
+
+    const mainMatches = (g: CategoryHierarchyItem) => g.name.toLowerCase().includes(q);
+    const subMatches = (g: CategoryHierarchyItem) => g.subcategories.some(s => s.toLowerCase().includes(q));
+    const mainStarts = (g: CategoryHierarchyItem) => g.name.toLowerCase().startsWith(q);
+
+    const matched = hierarchy.filter(g => mainMatches(g) || subMatches(g));
+    matched.sort((a, b) => {
+      const aScore = mainStarts(a) ? 0 : mainMatches(a) ? 1 : 2;
+      const bScore = mainStarts(b) ? 0 : mainMatches(b) ? 1 : 2;
+      if (aScore !== bScore) return aScore - bScore;
+      return a.name.localeCompare(b.name, 'ar', { numeric: true, sensitivity: 'base' });
+    });
+    return matched;
+  }, [hierarchy, deferredSearch]);
 
   const totalPages = Math.ceil(filteredHierarchy.length / itemsPerPage);
   const paginatedHierarchy = useMemo(() => {

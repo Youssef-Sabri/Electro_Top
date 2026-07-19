@@ -7,7 +7,7 @@ export const SITE_METADATA = {
   url: process.env.NEXT_PUBLIC_SITE_URL || '',
 } as const;
 
-export const PRODUCT_SELECT_FIELDS = 'id, name, description, price, image_url, image_url_2, image_url_3, stock, is_active, category, created_at, has_colors, colors';
+export const PRODUCT_SELECT_FIELDS = 'id, slug, name, description, price, image_url, image_url_2, image_url_3, stock, is_active, category, created_at, updated_at, has_colors, colors, sort_order';
 
 export const ORDER_SELECT_FIELDS = 'id_unique_tracking, status, customer_name, phone_number, shipping_address, total_amount, created_at, admin_notes, location_link, instapay_screenshot, instapay_phone_number, payment_method';
 

@@ -8,6 +8,9 @@ import { SITE_METADATA } from '@/lib/constants';
 export const metadata: Metadata = {
   title: 'المتجر والمنتجات | إلكترو توب',
   description: 'تصفح تشكيلتنا الواسعة من المنتجات الكهربائية عالية الجودة من السويدي، ميتسوبيشي، هيمل، ABB، وفينوس.',
+  alternates: {
+    canonical: '/shop',
+  },
 };
 
 export const revalidate = 60;

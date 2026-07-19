@@ -31,6 +31,24 @@ export const metadata: Metadata = {
     template: `%s | ${SITE_METADATA.title}`,
   },
   description: SITE_METADATA.description,
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
+  alternates: {
+    canonical: SITE_METADATA.url || undefined,
+    languages: {
+      'ar': SITE_METADATA.url || undefined,
+      'x-default': SITE_METADATA.url || undefined,
+    },
+  },
   openGraph: {
     title: SITE_METADATA.title,
     description: SITE_METADATA.description,
@@ -38,11 +56,20 @@ export const metadata: Metadata = {
     siteName: 'إلكترو توب',
     locale: 'ar_EG',
     type: 'website',
+    images: [
+      {
+        url: '/og-image.png',
+        width: 1200,
+        height: 630,
+        alt: 'إلكترو توب - مستلزمات كهربائية معتمدة',
+      },
+    ],
   },
   twitter: {
-    card: 'summary',
+    card: 'summary_large_image',
     title: SITE_METADATA.title,
     description: SITE_METADATA.description,
+    images: ['/og-image.png'],
   },
 };
 
@@ -91,6 +118,45 @@ export default async function RootLayout({
                 '@type': 'OfferCatalog',
                 name: 'المستلزمات الكهربائية',
               },
+            }).replace(/</g, '\\u003c'),
+          }}
+        />
+        <script
+          nonce={nonce}
+          suppressHydrationWarning
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'WebSite',
+              name: 'إلكترو توب',
+              url: process.env.NEXT_PUBLIC_SITE_URL || undefined,
+              potentialAction: {
+                '@type': 'SearchAction',
+                target: {
+                  '@type': 'EntryPoint',
+                  urlTemplate: `${process.env.NEXT_PUBLIC_SITE_URL || ''}/shop?search={search_term_string}`,
+                },
+                'query-input': 'required name=search_term_string',
+              },
+            }).replace(/</g, '\\u003c'),
+          }}
+        />
+        <script
+          nonce={nonce}
+          suppressHydrationWarning
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'SiteNavigationElement',
+              name: ['الرئيسية', 'المتجر', 'تتبع الطلب', 'الدعم'],
+              url: [
+                `${process.env.NEXT_PUBLIC_SITE_URL || ''}/`,
+                `${process.env.NEXT_PUBLIC_SITE_URL || ''}/shop`,
+                `${process.env.NEXT_PUBLIC_SITE_URL || ''}/track`,
+                `${process.env.NEXT_PUBLIC_SITE_URL || ''}/support`,
+              ],
             }).replace(/</g, '\\u003c'),
           }}
         />

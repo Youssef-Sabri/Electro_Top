@@ -51,6 +51,7 @@ export const Navbar = memo(function Navbar() {
   }, []);
 
   const searchParam = searchParams.get('search');
+  const isOnShop = pathname.startsWith('/shop');
 
   useEffect(() => {
     setSearchQuery((current) => {
@@ -58,6 +59,22 @@ export const Navbar = memo(function Navbar() {
       return current === next ? current : next;
     });
   }, [searchParam]);
+
+  const shopReplaceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const handleSearchChange = useCallback((value: string) => {
+    setSearchQuery(value);
+    if (isOnShop) {
+      if (shopReplaceTimer.current) clearTimeout(shopReplaceTimer.current);
+      shopReplaceTimer.current = setTimeout(() => {
+        const params = new URLSearchParams(window.location.search);
+        if (value.trim()) params.set('search', value.trim());
+        else params.delete('search');
+        const newUrl = `${pathname}?${params.toString()}`;
+        window.history.replaceState(null, '', newUrl);
+      }, 150);
+    }
+  }, [isOnShop, pathname]);
 
   const handleSearchSubmit = useCallback((e: React.FormEvent) => {
     e.preventDefault();
@@ -67,6 +84,10 @@ export const Navbar = memo(function Navbar() {
       router.push('/shop');
     }
   }, [router]);
+
+  useEffect(() => {
+    if (shopReplaceTimer.current) clearTimeout(shopReplaceTimer.current);
+  }, [isOnShop]);
 
   const isHomeActive = pathname === '/';
   const isTrackActive = pathname.startsWith('/track');
@@ -101,7 +122,7 @@ export const Navbar = memo(function Navbar() {
               placeholder="البحث عن المنتجات والمستلزمات الكهربائية..."
               type="text"
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => handleSearchChange(e.target.value)}
             />
             <span className="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-on-surface-variant select-none pointer-events-none">
               search
@@ -203,7 +224,7 @@ export const Navbar = memo(function Navbar() {
                 placeholder="البحث عن المنتجات..."
                 type="text"
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={(e) => handleSearchChange(e.target.value)}
               />
               <span className="material-symbols-outlined absolute right-3.5 top-1/2 -translate-y-1/2 text-on-surface-variant select-none">
                 search

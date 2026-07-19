@@ -1,4 +1,4 @@
-import { NextResponse, type NextRequest } from 'next/server';
+import { NextResponse } from 'next/server';
 
 const TRACKING_ID_REGEX = /^ET-[A-Z0-9]{10}$/i;
 
