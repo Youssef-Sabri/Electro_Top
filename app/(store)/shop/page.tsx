@@ -1,9 +1,9 @@
 import { Suspense } from 'react';
 import { Metadata } from 'next';
 import { ShopPageContent } from '@/components/catalog/ShopPageContent';
-import { Spinner } from '@/components/ui/Spinner';
 import { fetchCatalog } from '@/lib/services/catalog';
 import { SITE_METADATA } from '@/lib/constants';
+import StoreLoading from '@/app/(store)/loading';
 
 export const metadata: Metadata = {
   title: 'المتجر والمنتجات | إلكترو توب',
@@ -53,17 +53,9 @@ async function ShopCatalogLoader() {
     </>
   );
 }
-
 export default function ShopPage() {
   return (
-    <Suspense fallback={
-      <div className="min-h-[60vh] flex items-center justify-center font-tajawal bg-white">
-        <div className="flex flex-col items-center">
-          <Spinner className="h-10 w-10 mb-4" />
-          <p className="text-on-surface-variant text-sm">جاري تحميل كتالوج إلكترو توب...</p>
-        </div>
-      </div>
-    }>
+    <Suspense fallback={<StoreLoading />}>
       <ShopCatalogLoader />
     </Suspense>
   );

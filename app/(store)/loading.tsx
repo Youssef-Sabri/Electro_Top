@@ -1,12 +1,13 @@
+import { memo } from 'react';
 import { Spinner } from '@/components/ui/Spinner';
 
-export default function StoreLoading() {
+export default memo(function StoreLoading() {
   return (
-    <div className="min-h-[60vh] flex items-center justify-center font-tajawal bg-white">
+    <div className="w-full min-h-[70vh] flex flex-col items-center justify-center font-tajawal bg-white text-on-surface select-none">
       <div className="flex flex-col items-center">
-        <Spinner className="h-10 w-10 mb-4" />
-        <p className="text-on-surface-variant text-sm">جاري تحميل المتجر...</p>
+        <Spinner className="h-9 w-9 text-primary mb-3" />
+        <p className="text-xs font-bold text-on-surface-variant tracking-wide">جاري التحميل...</p>
       </div>
     </div>
   );
-}
+});

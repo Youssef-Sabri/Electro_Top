@@ -1,10 +1,13 @@
+import { memo } from 'react';
 import { Spinner } from '@/components/ui/Spinner';
 
-export default function AdminLoading() {
+export default memo(function AdminLoading() {
   return (
-    <div className="w-full py-20 text-center font-tajawal text-on-surface-variant">
-      <Spinner className="h-10 w-10 mx-auto mb-4" />
-      <p className="text-sm">جاري التحميل...</p>
+    <div className="w-full min-h-[500px] flex flex-col items-center justify-center font-tajawal text-on-surface select-none">
+      <div className="flex flex-col items-center">
+        <Spinner className="h-9 w-9 text-primary mb-3" />
+        <p className="text-xs font-bold text-surface-variant tracking-wide">جاري تحميل لوحة التحكم...</p>
+      </div>
     </div>
   );
-}
+});

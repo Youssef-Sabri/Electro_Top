@@ -10,7 +10,7 @@ export default function StoreLayout({ children }: { children: ReactNode }) {
       <Suspense fallback={<div className="h-16 w-full bg-surface" />}>
         <Navbar />
       </Suspense>
-      <main className="flex-grow">
+      <main className="flex-grow min-h-[70vh]">
         <ErrorBoundary>{children}</ErrorBoundary>
       </main>
       <Footer />
