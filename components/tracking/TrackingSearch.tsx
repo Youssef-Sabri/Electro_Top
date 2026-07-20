@@ -57,10 +57,11 @@ export const TrackingSearch = memo(function TrackingSearch() {
           
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label className="block text-xs font-bold mb-2.5 text-on-surface-variant uppercase tracking-wider">
+              <label htmlFor="tracking-id-input" className="block text-xs font-bold mb-2.5 text-on-surface-variant uppercase tracking-wider">
                 رقم الطلب (التتبع)
               </label>
               <input
+                id="tracking-id-input"
                 className={`w-full bg-surface-container-low border rounded-xl p-4 focus:ring-2 focus:ring-primary/10 focus:border-primary outline-none transition-all placeholder:text-on-surface-variant/50 uppercase tracking-widest text-center font-mono font-semibold text-on-surface text-sm ${
                   error ? 'border-error ring-1 ring-error/20' : 'border-outline-variant'
                 }`}

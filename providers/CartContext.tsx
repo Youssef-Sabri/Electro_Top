@@ -7,9 +7,9 @@ export interface CartContextType {
   items: CartItem[];
   addToCart: (product: Product, quantity?: number, selectedColor?: string | null) => void;
   removeFromCart: (productId: string, selectedColor?: string | null) => void;
-  updateQuantity: (productId: string, quantity: number, selectedColor?: string | null) => void;
+  updateQuantity: (productId: string, quantity: number, selectedColor?: string | null, freshProduct?: Product) => void;
   clearCart: () => void;
-  reconcileCart: (productsById: Map<string, Product>) => void;
+  reconcileCart: (productsById: ReadonlyMap<string, Product>) => void;
   total: number;
   itemCount: number;
 }
@@ -106,12 +106,14 @@ export function CartProvider({ children }: { children: ReactNode }) {
       if (existingIndex > -1) {
         const existingItem = prevItems[existingIndex];
         const newQuantity = existingItem.quantity + quantity;
-        const clampedQuantity = Math.min(newQuantity, product.stock);
+        const currentStock = product.stock;
+        const clampedQuantity = Math.min(newQuantity, currentStock);
 
         const updatedItems = [...prevItems];
         updatedItems[existingIndex] = {
           ...existingItem,
           quantity: clampedQuantity,
+          product: { ...existingItem.product, stock: currentStock },
         };
         return updatedItems;
       } else {
@@ -125,14 +127,15 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setItems((prevItems) => prevItems.filter((item) => !(item.product.id === productId && item.selectedColor === selectedColor)));
   }, []);
 
-  const updateQuantity = useCallback((productId: string, quantity: number, selectedColor: string | null = null) => {
+  const updateQuantity = useCallback((productId: string, quantity: number, selectedColor: string | null = null, freshProduct?: Product) => {
     if (quantity < 1) return;
 
     setItems((prevItems) =>
       prevItems.map((item) => {
         if (item.product.id === productId && item.selectedColor === selectedColor) {
-          const clampedQuantity = Math.min(quantity, item.product.stock);
-          return { ...item, quantity: clampedQuantity };
+          const currentProduct = freshProduct ?? item.product;
+          const clampedQuantity = Math.min(quantity, currentProduct.stock);
+          return { ...item, quantity: clampedQuantity, product: currentProduct };
         }
         return item;
       })
@@ -143,7 +146,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setItems([]);
   }, []);
 
-  const reconcileCart = useCallback((productsById: Map<string, Product>) => {
+  const reconcileCart = useCallback((productsById: ReadonlyMap<string, Product>) => {
     setItems((prevItems) => {
       let changed = false;
       const next = prevItems.filter((item) => {
@@ -182,7 +185,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const total = useMemo(
-    () => items.reduce((acc, item) => acc + item.product.price * item.quantity, 0),
+    () => Math.round(items.reduce((acc, item) => acc + item.product.price * item.quantity, 0) * 100) / 100,
     [items]
   );
 

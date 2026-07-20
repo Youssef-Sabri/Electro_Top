@@ -7,7 +7,7 @@ export function Footer() {
   return (
     <footer className="bg-on-background text-secondary-fixed w-full border-t border-surface-variant/10 font-tajawal">
       {/* Upper Grid Area */}
-      <div className="max-w-max-width mx-auto px-margin-mobile md:px-margin-desktop py-16 grid grid-cols-1 md:grid-cols-2 gap-12 text-start">
+      <div className="max-w-max-width mx-auto px-margin-mobile md:px-margin-desktop py-16 grid grid-cols-1 md:grid-cols-3 gap-12 text-start">
         
         {/* Column 1: Brand Info */}
         <div className="space-y-5">
@@ -42,7 +42,20 @@ export function Footer() {
           </div>
         </div>
 
-        {/* Column 2: Contact & Support */}
+        {/* Column 2: Quick Links */}
+        <div className="space-y-5">
+          <h4 className="text-secondary-fixed font-bold text-sm tracking-wide border-b border-surface-variant/10 pb-2 w-fit">
+            روابط سريعة
+          </h4>
+          <ul className="flex flex-col gap-3 text-sm list-none p-0 m-0">
+            <li><a href="/about" className="text-surface-variant hover:text-secondary-fixed transition-colors font-medium block">من نحن</a></li>
+            <li><a href="/shop" className="text-surface-variant hover:text-secondary-fixed transition-colors font-medium block">المتجر</a></li>
+            <li><a href="/terms" className="text-surface-variant hover:text-secondary-fixed transition-colors font-medium block">الشروط والأحكام</a></li>
+            <li><a href="/privacy" className="text-surface-variant hover:text-secondary-fixed transition-colors font-medium block">سياسة الخصوصية</a></li>
+          </ul>
+        </div>
+
+        {/* Column 3: Contact & Support */}
         <div className="space-y-5">
           <h4 className="text-secondary-fixed font-bold text-sm tracking-wide border-b border-surface-variant/10 pb-2 w-fit">
             الاتصال والدعم
@@ -54,7 +67,7 @@ export function Footer() {
                 <span className="material-symbols-outlined text-[18px]">phone</span>
               </div>
               <div className="space-y-0.5">
-                <span className="block text-[10px] text-surface-variant/50 font-bold uppercase tracking-wider">اتصل بنا</span>
+                <span className="block text-[10px] text-surface-variant/70 font-bold uppercase tracking-wider">اتصل بنا</span>
                 <div className="flex flex-col gap-0.5">
                   {phoneNumbers.map((number, index) => (
                     <a
@@ -76,7 +89,7 @@ export function Footer() {
                 <span className="material-symbols-outlined text-[18px]">chat</span>
               </div>
               <div className="space-y-0.5">
-                <span className="block text-[10px] text-surface-variant/50 font-bold uppercase tracking-wider">مراسلتنا واتساب</span>
+                <span className="block text-[10px] text-surface-variant/70 font-bold uppercase tracking-wider">مراسلتنا واتساب</span>
                 <div className="flex flex-col gap-0.5">
                   {whatsappNumbers.map((number, index) => (
                     <a
@@ -100,7 +113,7 @@ export function Footer() {
                   <span className="material-symbols-outlined text-[18px]">mail</span>
                 </div>
                 <div className="space-y-0.5">
-                  <span className="block text-[10px] text-surface-variant/50 font-bold uppercase tracking-wider">البريد الإلكتروني</span>
+                  <span className="block text-[10px] text-surface-variant/70 font-bold uppercase tracking-wider">البريد الإلكتروني</span>
                   <a
                     href={`mailto:${supportEmail}`}
                     className="text-surface-variant hover:text-secondary-fixed transition-colors font-mono font-medium block"
@@ -118,7 +131,7 @@ export function Footer() {
 
       {/* Bottom Copyright Bar */}
       <div className="border-t border-surface-variant/10 py-6 text-center text-xs text-surface-variant/60 max-w-max-width mx-auto px-margin-desktop">
-        <span>© 2026 إلكترو توب. جميع الحقوق محفوظة.</span>
+        <span>© {new Date().getFullYear()} إلكترو توب. جميع الحقوق محفوظة.</span>
       </div>
     </footer>
   );

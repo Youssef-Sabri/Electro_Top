@@ -42,10 +42,11 @@ export async function clearStorageBucket(
   bucketName: string
 ): Promise<void> {
   try {
-    let allFiles: { name: string }[] = [];
+    const allFiles: { name: string }[] = [];
     let offset = 0;
+    const MAX_ITERATIONS = 100; // Safety guard against infinite loops
 
-    while (true) {
+    for (let i = 0; i < MAX_ITERATIONS; i++) {
       const { data: files, error: listError } = await client.storage
         .from(bucketName)
         .list(undefined, { limit: STORAGE_LIST_LIMIT, offset });
@@ -56,7 +57,7 @@ export async function clearStorageBucket(
       }
 
       if (!files || files.length === 0) break;
-      allFiles = allFiles.concat(files);
+      allFiles.push(...files);
       if (files.length < STORAGE_LIST_LIMIT) break;
       offset += STORAGE_LIST_LIMIT;
     }

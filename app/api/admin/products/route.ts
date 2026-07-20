@@ -33,7 +33,7 @@ export async function POST(request: Request) {
 
   const { error: insertError } = await supabaseClient.from(TABLES.products).insert([newProduct])
   if (insertError) {
-    return NextResponse.json({ error: insertError.message || 'Failed to add product' }, { status: 500 })
+    return NextResponse.json({ error: 'Failed to add product.' }, { status: 500 })
   }
 
   revalidateShopPaths()
@@ -50,12 +50,12 @@ export async function DELETE(request: Request) {
 
   const { error: prodError } = await supabaseClient.from(TABLES.products).delete().neq('id', '')
   if (prodError) {
-    return NextResponse.json({ error: prodError.message || 'Failed to clear products' }, { status: 500 })
+    return NextResponse.json({ error: 'Failed to clear products.' }, { status: 500 })
   }
 
   const { error: catError } = await supabaseClient.from(TABLES.categories).delete().neq('name', '')
   if (catError) {
-    return NextResponse.json({ error: catError.message || 'Failed to clear categories' }, { status: 500 })
+    return NextResponse.json({ error: 'Failed to clear categories.' }, { status: 500 })
   }
 
   await clearStorageBucket(clearClient, STORAGE_BUCKETS.productImages)

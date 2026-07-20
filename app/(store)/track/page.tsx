@@ -4,6 +4,9 @@ import { TrackingSearch } from '@/components/tracking/TrackingSearch';
 export const metadata: Metadata = {
   title: 'تتبع طلبك | إلكترو توب',
   description: 'تتبع طلبك ومعرفة حالة التوصيل الحالية.',
+  alternates: {
+    canonical: '/track',
+  },
 };
 
 export default function TrackPage() {

@@ -156,7 +156,7 @@ export function ConfirmationClient() {
 
       {/* Sleek success code box (Warm dark themed) */}
       <div className="bg-on-background p-10 rounded-2xl shadow-md mb-12 transform hover:scale-[1.01] transition-transform duration-300 relative text-center">
-        <p className="text-surface-variant/80 text-xs uppercase tracking-widest mb-3 font-semibold">رقم التتبع الخاص بك</p>
+        <p className="text-white/60 text-xs uppercase tracking-widest mb-3 font-semibold">رقم التتبع الخاص بك</p>
         <div className="flex items-center justify-center gap-3 flex-wrap">
           <h2 className="font-bold text-[32px] md:text-[40px] text-electro-gold tracking-widest uppercase leading-none">
             {displayOrder.id_unique_tracking}
@@ -166,6 +166,7 @@ export function ConfirmationClient() {
             onClick={() => handleCopy(displayOrder.id_unique_tracking)}
             className="flex items-center justify-center p-2 rounded-xl bg-white/10 hover:bg-white/20 text-white transition-all cursor-pointer border border-white/5 active:scale-95 shrink-0"
             title="نسخ رقم التتبع"
+            aria-label="نسخ رقم التتبع"
           >
             <span className="material-symbols-outlined text-[18px]">
               {copied ? 'check' : 'content_copy'}
@@ -230,7 +231,7 @@ export function ConfirmationClient() {
           <h3 className="font-bold text-[18px] text-on-surface">
             تفاصيل الطلب
           </h3>
-          <div className="text-left">
+          <div className="text-end">
             <p className="text-on-surface-variant text-[10px] uppercase font-bold tracking-wider mb-0.5">رقم الطلب</p>
             <p className="font-mono text-xs font-bold text-on-surface tracking-wider">{displayOrder.id_unique_tracking}</p>
           </div>
@@ -273,11 +274,12 @@ export function ConfirmationClient() {
           {items.length > 0 ? (
             items.map((item) => {
               const product = productsById.get(item.product_id);
+              const productName = product?.name ?? 'منتج غير معروف';
               return (
                 <div key={item.id} className="flex justify-between items-center text-sm">
                   <div>
                     <span className="text-on-surface font-semibold">
-                      {product ? product.name : item.product_id}
+                      {productName}
                     </span>
                     {item.selected_color && (
                       <p className="text-on-surface-variant text-[11px] mt-0.5">اللون: {item.selected_color}</p>

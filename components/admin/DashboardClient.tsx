@@ -116,7 +116,7 @@ export const DashboardClient = memo(function DashboardClient() {
           <h3 className="font-headline-md text-headline-md font-bold text-on-surface">حالة شحن وتوصيل الطلبات</h3>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             <div className="bg-surface p-4 rounded-lg text-center border border-outline-variant/10">
-              <p className="text-2xl font-black text-[var(--color-status-pending)]">{stats.pendingCount}</p>
+              <p className="text-2xl font-black text-[#A16207]">{stats.pendingCount}</p>
               <p className="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant mt-1">قيد المراجعة</p>
             </div>
             <div className="bg-surface p-4 rounded-lg text-center border border-outline-variant/10">
@@ -146,10 +146,10 @@ export const DashboardClient = memo(function DashboardClient() {
             </div>
             <div className="flex justify-between items-center">
               <div className="flex items-center gap-2">
-                <span className="w-2.5 h-2.5 rounded-full bg-[var(--color-status-pending)]"></span>
+                <span className="w-2.5 h-2.5 rounded-full bg-[#A16207]"></span>
                 <span className="text-body-md text-on-surface font-medium">مخزون منخفض (≤5)</span>
               </div>
-              <span className="bg-[var(--color-status-pending)]/10 text-[var(--color-status-pending)] px-2.5 py-1 rounded text-xs font-bold">{stats.lowStockCount}</span>
+              <span className="bg-[#A16207]/10 text-[#A16207] px-2.5 py-1 rounded text-xs font-bold">{stats.lowStockCount}</span>
             </div>
             <div className="flex justify-between items-center">
               <div className="flex items-center gap-2">
@@ -197,10 +197,10 @@ export const DashboardClient = memo(function DashboardClient() {
             <table className="w-full text-start">
               <thead>
                 <tr className="border-b border-outline-variant/10 text-on-surface-variant select-none">
-                  <th className="pb-3 text-xs uppercase tracking-wider font-bold">رقم التتبع</th>
-                  <th className="pb-3 text-xs uppercase tracking-wider font-bold">العميل</th>
-                  <th className="pb-3 text-xs uppercase tracking-wider font-bold">الإجمالي</th>
-                  <th className="pb-3 text-xs uppercase tracking-wider font-bold text-end">الحالة</th>
+                  <th scope="col" className="pb-3 text-xs uppercase tracking-wider font-bold">رقم التتبع</th>
+                  <th scope="col" className="pb-3 text-xs uppercase tracking-wider font-bold">العميل</th>
+                  <th scope="col" className="pb-3 text-xs uppercase tracking-wider font-bold">الإجمالي</th>
+                  <th scope="col" className="pb-3 text-xs uppercase tracking-wider font-bold text-end">الحالة</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-outline-variant/5">

@@ -79,7 +79,7 @@ export function validateRequestOrigin(request: Request): boolean {
   } catch {
     // Ignore URL parsing errors
   }
-  if (vercelUrl) {
+  if (vercelUrl && vercelUrl.trim()) {
     allowedHosts.push(vercelUrl);
   }
 
@@ -121,7 +121,7 @@ export function validateRequestOrigin(request: Request): boolean {
 }
 
 // Rate limiting types and functions
-interface RateLimitConfig {
+export interface RateLimitConfig {
   table: string;
   countColumn: string;
   lastColumn: string;

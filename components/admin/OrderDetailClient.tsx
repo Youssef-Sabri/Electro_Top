@@ -1,17 +1,15 @@
 'use client';
 
-import { memo, useEffect, useState, useMemo, useRef } from 'react';
+import { memo, useEffect, useState, useMemo, useRef, useCallback } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { useOrders } from '@/hooks/useOrders';
 import { useProducts } from '@/hooks/useProducts';
 import { z } from 'zod';
 import type { OrderStatus, Order, OrderItem, OrderStatusHistory } from '@/types';
 import { formatCurrency, getInitials } from '@/lib/utils/format';
 import { formatOrderDate } from '@/lib/utils/date';
-import { STATUS_OPTIONS, translateStatus, translateHistoryStatus } from '@/lib/utils/status';
+import { STATUS_OPTIONS, translateStatus } from '@/lib/utils/status';
 import { getSafeUrl, devLog, getSupportEnv, isValidTrackingId } from '@/lib/utils/misc';
-import { ColorSwatch } from '@/components/ui/ColorSwatch';
 import { SAFE_FILENAME_RE } from '@/lib/validations';
 
 import { Toast } from '@/components/ui/Toast';
@@ -19,6 +17,8 @@ import { Spinner } from '@/components/ui/Spinner';
 import { CustomDropdown } from '@/components/ui/CustomDropdown';
 import { ConfirmationModal } from '@/components/ui/ConfirmationModal';
 import { PrintableInvoice } from '@/components/admin/PrintableInvoice';
+import { OrderItemsCard } from '@/components/admin/OrderItemsCard';
+import { StatusHistoryTimeline } from '@/components/admin/StatusHistoryTimeline';
 
 
 const MAX_NOTES_LENGTH = 2000;
@@ -166,7 +166,7 @@ export const OrderDetailClient = memo(function OrderDetailClient({ id }: OrderDe
     );
   }, [statusHistory]);
 
-  const handleOpenScreenshot = async () => {
+  const handleOpenScreenshot = useCallback(async () => {
     const screenshot = order?.instapay_screenshot;
     if (!screenshot) return;
 
@@ -191,14 +191,15 @@ export const OrderDetailClient = memo(function OrderDetailClient({ id }: OrderDe
     } catch (err) {
       if (process.env.NODE_ENV !== 'production') console.error('Error fetching fresh signed URL:', err);
     }
-  };
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- fetchSignedUrl is a module-level function, stable across renders
+  }, [order, fetchSignedUrl]);
 
-  const handleSaveChanges = () => {
+  const handleSaveChanges = useCallback(() => {
     if (!order) return;
     setIsConfirmOpen(true);
-  };
+  }, [order]);
 
-  const handleConfirmSave = async () => {
+  const handleConfirmSave = useCallback(async () => {
     if (!order) return;
     setIsConfirmOpen(false);
     setIsSaving(true);
@@ -226,9 +227,9 @@ export const OrderDetailClient = memo(function OrderDetailClient({ id }: OrderDe
     } finally {
       setIsSaving(false);
     }
-  };
+  }, [order, selectedStatus, updateOrderStatus]);
 
-  const handleNotesBlur = async () => {
+  const handleNotesBlur = useCallback(async () => {
     if (!order) return;
     // Only save if the notes value actually changed — avoids redundant DB writes on every click away
     if (notesValue === lastSavedNotes.current) return;
@@ -248,7 +249,31 @@ export const OrderDetailClient = memo(function OrderDetailClient({ id }: OrderDe
     } catch (err) {
       devLog(err);
     }
-  };
+  }, [order, notesValue, updateAdminNotes]);
+
+  const handleToastClose = useCallback(() => setShowToast(false), []);
+
+  const handleConfirmCancel = useCallback(() => setIsConfirmOpen(false), []);
+
+  const handleStatusChange = useCallback((val: string) => setSelectedStatus(val as OrderStatus), []);
+
+  const handlePrintInvoice = useCallback(() => {
+    if (!order) return;
+    const originalTitle = document.title;
+    document.title = `فاتورة-${order.id_unique_tracking}`;
+
+    if (printTimerRef.current) clearTimeout(printTimerRef.current);
+    printTimerRef.current = setTimeout(() => {
+      window.print();
+
+      const restoreTitle = () => {
+        document.title = originalTitle;
+        window.removeEventListener('focus', restoreTitle);
+      };
+      window.addEventListener('focus', restoreTitle);
+      setTimeout(restoreTitle, 1000);
+    }, 150);
+  }, [order]);
 
   if (loading) {
     return (
@@ -345,92 +370,11 @@ export const OrderDetailClient = memo(function OrderDetailClient({ id }: OrderDe
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-gutter">
         <div className="lg:col-span-2 space-y-gutter">
-          <div className="bg-surface-container-lowest rounded-xl border border-outline-variant/30 shadow-sm p-6 overflow-hidden text-start">
-            <h3 className="font-headline-md text-headline-md mb-6 text-on-surface">عناصر الطلب</h3>
-            <div className="overflow-x-auto w-full">
-              <table className="w-full text-start">
-                <thead>
-                  <tr className="border-b border-outline-variant/30 select-none">
-                    <th className="pb-4 font-label-md text-label-md text-on-surface-variant text-start">المنتج</th>
-                    <th className="pb-4 font-label-md text-label-md text-on-surface-variant text-center">الكمية</th>
-                    <th className="pb-4 font-label-md text-label-md text-on-surface-variant text-end">السعر</th>
-                    <th className="pb-4 font-label-md text-label-md text-on-surface-variant text-end">المجموع الفرعي</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-outline-variant/10">
-                  {orderItems.map((item) => {
-                    const product = productsById.get(item.product_id);
-                    const itemSubtotal = item.unit_price * item.quantity;
-
-                    return (
-                      <tr key={item.id} className="group">
-                        <td className="py-4">
-                          <div className="flex items-center gap-4">
-                            <div className="w-16 h-16 rounded-lg bg-surface border border-outline-variant/30 flex items-center justify-center p-2 overflow-hidden relative shrink-0">
-                              {product?.image_url ? (
-                                <Image
-                                  src={product.image_url}
-                                  alt={product.name}
-                                  fill
-                                  className="object-cover group-hover:scale-110 transition-transform duration-300 pointer-events-none select-none"
-                                  sizes="64px"
-                                  quality={75}
-                                  loading="lazy"
-                                  draggable={false}
-                                />
-                              ) : (
-                                <span className="material-symbols-outlined text-on-surface-variant text-[28px] select-none">inventory_2</span>
-                              )}
-                            </div>
-                            <div>
-                              <p className="font-label-md text-label-md text-on-surface font-semibold">
-                                {product ? product.name : 'عنصر غير معروف'}
-                              </p>
-                              {item.selected_color && (
-                                <span className="inline-flex items-center gap-1.5 bg-surface-container-low border border-outline-variant text-on-surface-variant text-[11px] font-bold px-2.5 py-0.5 mt-1 rounded">
-                                  <ColorSwatch color={item.selected_color} />
-                                  اللون: {item.selected_color}
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                        </td>
-                        <td className="py-4 text-center font-body-md text-body-md text-on-surface font-bold">
-                          {item.quantity}
-                        </td>
-                        <td className="py-4 text-end font-body-md text-body-md text-on-surface">
-                          {formatCurrency(item.unit_price)}
-                        </td>
-                        <td className="py-4 text-end font-headline-md text-label-md text-secondary-fixed-dim font-bold">
-                          {formatCurrency(itemSubtotal)}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-
-            {/* Pricing calculations */}
-            <div className="mt-8 pt-6 border-t border-outline-variant/30 space-y-2 text-sm">
-              <div className="flex justify-between font-body-md text-body-md">
-                <span className="text-on-surface-variant">المجموع الفرعي</span>
-                <span className="text-on-surface font-semibold">{formatCurrency(order.total_amount)}</span>
-              </div>
-              <div className="flex justify-between font-body-md text-body-md">
-                <span className="text-on-surface-variant">الشحن (عادي)</span>
-                <span className="text-green-600 font-bold text-xs">مجاني</span>
-              </div>
-
-              
-              <div className="flex justify-between pt-4 font-headline-md text-headline-md border-t border-outline-variant/10 items-end">
-                <span className="text-on-surface font-bold text-base">الإجمالي</span>
-                <span className="text-secondary-fixed-dim font-tajawal font-bold text-xl">
-                  {formatCurrency(order.total_amount)}
-                </span>
-              </div>
-            </div>
-          </div>
+          <OrderItemsCard
+            order={order}
+            orderItems={orderItems}
+            productsById={productsById}
+          />
 
           <div className="bg-surface-container-lowest rounded-xl border border-outline-variant/30 shadow-sm p-6 text-start">
             <h3 className="font-headline-md text-headline-md mb-4 text-on-surface">ملاحظات المسؤول الداخلية</h3>
@@ -464,7 +408,7 @@ export const OrderDetailClient = memo(function OrderDetailClient({ id }: OrderDe
               <CustomDropdown
                 options={STATUS_OPTIONS}
                 value={selectedStatus}
-                onChange={(val) => setSelectedStatus(val as OrderStatus)}
+                onChange={handleStatusChange}
                 className="w-full"
               />
             </div>
@@ -556,42 +500,7 @@ export const OrderDetailClient = memo(function OrderDetailClient({ id }: OrderDe
             </div>
           </div>
 
-          <div className="bg-surface-container-lowest rounded-xl border border-outline-variant/30 shadow-sm p-6">
-            <h3 className="font-label-md text-label-md uppercase tracking-widest text-on-surface-variant mb-6 font-bold border-b border-outline-variant/10 pb-2 select-none">
-              سجل الحالة
-            </h3>
-            
-            {sortedHistory.length > 0 ? (
-              <div className="space-y-6 relative before:content-[''] before:absolute before:right-[7px] before:top-2 before:bottom-2 before:w-[2px] before:bg-outline-variant/30 pr-1 text-start max-h-[260px] overflow-y-auto pl-2">
-                {sortedHistory.map((h, idx) => {
-                  const logDate = formatOrderDate(h.created_at);
-                  const logTime = new Date(h.created_at).toLocaleTimeString('ar-EG', {
-                    hour: '2-digit',
-                    minute: '2-digit',
-                  });
-
-                  return (
-                    <div key={h.id} className="relative pr-8">
-                      {/* Right Dot node */}
-                      <div
-                        className={`absolute right-0 top-1.5 w-[16px] h-[16px] rounded-full border-4 border-surface shadow-sm ${
-                          idx === 0 ? 'bg-primary' : 'bg-secondary-fixed-dim'
-                        }`}
-                      ></div>
-                      <p className="font-label-md text-label-md text-on-surface font-semibold">
-                        {translateHistoryStatus(h.status)}
-                      </p>
-                      <p className="font-body-md text-label-sm text-on-surface-variant mt-0.5">
-                        {logDate} - {logTime}
-                      </p>
-                    </div>
-                  );
-                })}
-              </div>
-            ) : (
-              <p className="text-xs text-on-surface-variant italic">لم يتم تسجيل أي تحديثات للحالة بعد.</p>
-            )}
-          </div>
+          <StatusHistoryTimeline history={sortedHistory} />
         </div>
       </div>
 
@@ -599,7 +508,7 @@ export const OrderDetailClient = memo(function OrderDetailClient({ id }: OrderDe
         <Toast
           message={toastMessage}
           type={toastType}
-          onClose={() => setShowToast(false)}
+          onClose={handleToastClose}
           duration={3000}
         />
       )}
@@ -609,7 +518,7 @@ export const OrderDetailClient = memo(function OrderDetailClient({ id }: OrderDe
         title="تأكيد تحديث الطلب"
         message={`هل أنت متأكد من رغبتك في تحديث حالة الطلب #${order?.id_unique_tracking} إلى "${translateStatus(selectedStatus)}"؟`}
         onConfirm={handleConfirmSave}
-        onCancel={() => setIsConfirmOpen(false)}
+        onCancel={handleConfirmCancel}
         confirmLabel="حفظ التغييرات"
         cancelLabel="إلغاء"
       />

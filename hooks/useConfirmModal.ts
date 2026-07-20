@@ -4,7 +4,7 @@ interface ConfirmModalState {
   isOpen: boolean;
   title: string;
   message: string;
-  onConfirm: () => void;
+  onConfirm: () => void | Promise<void>;
   isDestructive?: boolean;
   confirmLabel?: string;
   cancelLabel?: string;

@@ -1,17 +1,37 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createSupabaseAdminClient } from '@/lib/supabase/server'
-import { validateRequestOrigin } from '@/lib/security'
+import { validateRequestOrigin, checkAndIncrementRateLimit, generateFingerprint } from '@/lib/security'
 import { detectImageMimeType } from '@/lib/utils/file'
 import { TABLES, STORAGE_BUCKETS, MAX_FILE_SIZE_BYTES } from '@/lib/constants'
 import { parseJsonBody } from '@/lib/utils/misc'
 import { SAFE_FILENAME_RE } from '@/lib/validations'
+
+const RECEIPT_RATE_LIMIT = {
+  table: TABLES.orderRateLimits,
+  countColumn: 'request_count',
+  lastColumn: 'last_request_at',
+  firstColumn: 'first_request_at',
+  maxAttempts: 5,
+  windowMs: 60_000,
+}
 
 export async function POST(request: NextRequest) {
   if (!validateRequestOrigin(request)) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
 
+  const referer = request.headers.get('referer') || ''
+  const isCheckoutPage = referer.includes('/checkout') || referer.includes('/cart')
+  if (!isCheckoutPage) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  }
+
+  const fingerprint = generateFingerprint(request)
   const adminClient = createSupabaseAdminClient()
+  const rateLimit = await checkAndIncrementRateLimit(adminClient, fingerprint, RECEIPT_RATE_LIMIT)
+  if (rateLimit.blocked) {
+    return NextResponse.json({ error: 'تم تجاوز حد الطلبات. يرجى المحاولة لاحقاً.' }, { status: 429 })
+  }
 
   const body = await parseJsonBody<{ file?: string; filename?: string }>(request)
   if (body instanceof NextResponse) return body
@@ -85,14 +105,19 @@ export async function DELETE(request: NextRequest) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
 
+  const fingerprint = generateFingerprint(request)
+  const adminClient = createSupabaseAdminClient()
+  const rateLimit = await checkAndIncrementRateLimit(adminClient, fingerprint, RECEIPT_RATE_LIMIT)
+  if (rateLimit.blocked) {
+    return NextResponse.json({ error: 'تم تجاوز حد الطلبات.' }, { status: 429 })
+  }
+
   const { searchParams } = new URL(request.url)
   const filename = searchParams.get('filename') ?? ''
 
   if (!filename || !SAFE_FILENAME_RE.test(filename)) {
     return NextResponse.json({ error: 'Invalid filename' }, { status: 400 })
   }
-
-  const adminClient = createSupabaseAdminClient()
 
   // Verify the receipt does not belong to an active order
   const { data: linkedOrder, error: checkError } = await adminClient

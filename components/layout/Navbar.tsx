@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useCart } from '@/hooks/useCart';
+import { useHydrated } from '@/hooks/useHydrated';
 import { supabase } from '@/lib/supabase/client';
 import { isAdminRole } from '@/lib/constants';
 
@@ -16,7 +17,7 @@ export const Navbar = memo(function Navbar() {
   
   const [searchQuery, setSearchQuery] = useState(() => searchParams?.get('search') || '');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isMounted, setIsMounted] = useState(false);
+  const isMounted = useHydrated();
   const [isAdmin, setIsAdmin] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const searchRef = useRef(searchQuery);
@@ -26,8 +27,6 @@ export const Navbar = memo(function Navbar() {
   }, [searchQuery]);
 
   useEffect(() => {
-    setIsMounted(true);
-
     const handleScroll = () => setIsScrolled(window.scrollY > 20);
     window.addEventListener('scroll', handleScroll, { passive: true });
 
@@ -49,6 +48,15 @@ export const Navbar = memo(function Navbar() {
       window.removeEventListener('scroll', handleScroll);
     };
   }, []);
+
+  useEffect(() => {
+    if (!isMobileMenuOpen) return;
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setIsMobileMenuOpen(false);
+    };
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, [isMobileMenuOpen]);
 
   const searchParam = searchParams.get('search');
   const isOnShop = pathname.startsWith('/shop');
@@ -106,9 +114,8 @@ export const Navbar = memo(function Navbar() {
                 alt="شعار إلكترو توب"
                 className="h-8 w-auto mix-blend-multiply"
                 src="/logo.png"
-                width={0}
-                height={0}
-                sizes="100vw"
+                width={120}
+                height={32}
               />
             <span className="font-headline-md text-headline-md font-extrabold text-primary tracking-tighter">
               إلكترو توب
@@ -117,8 +124,10 @@ export const Navbar = memo(function Navbar() {
 
           {/* Centered Wide Search Bar */}
           <form onSubmit={handleSearchSubmit} className="relative flex-grow max-w-xl hidden md:block">
+            <label htmlFor="navbar-search" className="sr-only">بحث عن المنتجات</label>
             <input
-              className="w-full bg-surface-container-low border border-outline-variant/50 rounded-full pr-11 pl-4 py-2.5 text-label-md focus:ring-2 focus:ring-primary/15 focus:border-primary outline-none transition-all text-on-surface text-right"
+              id="navbar-search"
+              className="w-full bg-surface-container-low border border-outline-variant/50 rounded-full pr-11 pl-4 py-2.5 text-label-md focus:ring-2 focus:ring-primary/15 focus:border-primary outline-none transition-all text-on-surface text-start"
               placeholder="البحث عن المنتجات والمستلزمات الكهربائية..."
               type="text"
               value={searchQuery}
@@ -141,8 +150,8 @@ export const Navbar = memo(function Navbar() {
               </Link>
             )}
 
-            <Link href="/cart" className="relative hover:opacity-85 transition-all flex items-center p-2 rounded-full hover:bg-surface-container-low">
-              <span className="material-symbols-outlined text-primary text-[28px] select-none">
+            <Link href="/cart" className="relative hover:opacity-85 transition-all flex items-center p-2 rounded-full hover:bg-surface-container-low" aria-label={`سلة التسوق${itemCount > 0 ? ` - ${itemCount} منتجات` : ''}`}>
+              <span className="material-symbols-outlined text-primary text-[28px] select-none" aria-hidden="true">
                 shopping_cart
               </span>
               {isMounted && itemCount > 0 && (
@@ -158,7 +167,9 @@ export const Navbar = memo(function Navbar() {
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               className="md:hidden text-on-surface hover:text-primary transition-colors flex items-center p-2 rounded-full hover:bg-surface-container-low cursor-pointer"
-              aria-label="Toggle menu"
+              aria-label={isMobileMenuOpen ? 'إغلاق القائمة' : 'فتح القائمة'}
+              aria-expanded={isMobileMenuOpen}
+              aria-controls="mobile-menu"
             >
               <span className="material-symbols-outlined text-[28px] select-none">
                 {isMobileMenuOpen ? 'close' : 'menu'}
@@ -172,6 +183,7 @@ export const Navbar = memo(function Navbar() {
           <div className="max-w-max-width mx-auto flex justify-center items-center gap-10 py-3">
             <Link
               href="/"
+              aria-current={isHomeActive ? 'page' : undefined}
               className={`font-label-md text-sm font-semibold transition-colors duration-[250ms] pb-1 ${
                 isHomeActive
                   ? 'text-primary active-nav-glow'
@@ -182,6 +194,7 @@ export const Navbar = memo(function Navbar() {
             </Link>
             <Link
               href="/shop"
+              aria-current={pathname.startsWith('/shop') ? 'page' : undefined}
               className={`font-label-md text-sm font-semibold transition-colors duration-[250ms] pb-1 ${
                 pathname.startsWith('/shop')
                   ? 'text-primary active-nav-glow'
@@ -192,6 +205,7 @@ export const Navbar = memo(function Navbar() {
             </Link>
             <Link
               href="/track"
+              aria-current={isTrackActive ? 'page' : undefined}
               className={`font-label-md text-sm font-semibold transition-colors duration-[250ms] pb-1 ${
                 isTrackActive
                   ? 'text-primary active-nav-glow'
@@ -202,6 +216,7 @@ export const Navbar = memo(function Navbar() {
             </Link>
             <Link
               href="/support"
+              aria-current={pathname.startsWith('/support') ? 'page' : undefined}
               className={`font-label-md text-sm font-semibold transition-colors duration-[250ms] pb-1 ${
                 pathname.startsWith('/support')
                   ? 'text-primary active-nav-glow'
@@ -215,12 +230,14 @@ export const Navbar = memo(function Navbar() {
 
         {/* Mobile Dropdown */}
         {isMobileMenuOpen && (
-          <div className="md:hidden bg-white border-t border-outline-variant/20 py-4 px-margin-mobile space-y-4"
+          <div id="mobile-menu" className="md:hidden bg-white border-t border-outline-variant/10 py-4 px-margin-mobile space-y-4"
             style={{ animation: 'slideDown 0.2s ease-out forwards' }}
           >
             <form onSubmit={handleSearchSubmit} className="relative w-full">
+              <label htmlFor="navbar-mobile-search" className="sr-only">بحث عن المنتجات</label>
               <input
-                className="w-full bg-surface-container-low border border-outline-variant/50 rounded-full pr-10 pl-4 py-2 text-label-md focus:ring-2 focus:ring-primary/10 focus:border-primary outline-none transition-all text-on-surface text-right"
+                id="navbar-mobile-search"
+                className="w-full bg-surface-container-low border border-outline-variant/50 rounded-full pr-10 pl-4 py-2 text-label-md focus:ring-2 focus:ring-primary/10 focus:border-primary outline-none transition-all text-on-surface text-start"
                 placeholder="البحث عن المنتجات..."
                 type="text"
                 value={searchQuery}

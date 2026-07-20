@@ -6,6 +6,7 @@ import StoreLoading from '@/app/(store)/loading';
 export const metadata: Metadata = {
   title: 'تم تأكيد الطلب | إلكترو توب',
   description: 'تم تأكيد طلبك بنجاح. شكراً لاختياركم إلكترو توب.',
+  robots: { index: false },
 };
 
 export default function ConfirmationPage() {

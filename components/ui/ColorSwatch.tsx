@@ -12,6 +12,8 @@ export const ColorSwatch = memo(function ColorSwatch({ color, size = 'sm' }: Col
     <span
       className={`${sizeClass} rounded-full border border-white/10 shadow-sm inline-block shrink-0`}
       style={{ background: getColorHex(color) }}
+      aria-label={color}
+      role="img"
     />
   );
 });

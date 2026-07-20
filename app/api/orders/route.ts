@@ -9,6 +9,18 @@ import { now } from '@/lib/utils/date'
 
 const ORDER_RATE_LIMIT = RATE_LIMIT_CONFIGS.order;
 
+const recentIdempotencyKeys = new Map<string, number>()
+const IDEMPOTENCY_WINDOW_MS = 10 * 60 * 1000
+
+function cleanupIdempotencyKeys() {
+  const now = Date.now()
+  for (const [key, timestamp] of recentIdempotencyKeys) {
+    if (now - timestamp > IDEMPOTENCY_WINDOW_MS) {
+      recentIdempotencyKeys.delete(key)
+    }
+  }
+}
+
 export async function POST(request: NextRequest) {
   if (!validateRequestOrigin(request)) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
@@ -43,6 +55,18 @@ export async function POST(request: NextRequest) {
 
   delete body.honeypot
   delete body.submission_time
+
+  const idempotencyKey = (body.idempotency_key as string) || ''
+  delete body.idempotency_key
+  if (idempotencyKey) {
+    cleanupIdempotencyKeys()
+    const existingTimestamp = recentIdempotencyKeys.get(idempotencyKey)
+    if (existingTimestamp && Date.now() - existingTimestamp < IDEMPOTENCY_WINDOW_MS) {
+      return NextResponse.json({ error: 'تم إرسال هذا الطلب بالفعل.' }, { status: 409 })
+    }
+    recentIdempotencyKeys.set(idempotencyKey, Date.now())
+  }
+
   const { cartItems, ...formData } = body
 
   const validation = checkoutSchema.safeParse(formData)

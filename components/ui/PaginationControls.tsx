@@ -24,6 +24,7 @@ export const PaginationControls = memo(function PaginationControls({
         <button
           onClick={() => onPageChange(currentPage - 1)}
           disabled={currentPage === 1}
+          aria-label="الصفحة السابقة"
           className={`p-2 border border-outline-variant rounded transition-all duration-200 flex items-center bg-white ${
             currentPage === 1
               ? 'opacity-40 cursor-not-allowed'
@@ -35,6 +36,7 @@ export const PaginationControls = memo(function PaginationControls({
         <button
           onClick={() => onPageChange(currentPage + 1)}
           disabled={currentPage === totalPages}
+          aria-label="الصفحة التالية"
           className={`p-2 border border-outline-variant rounded transition-all duration-200 flex items-center bg-white ${
             currentPage === totalPages
               ? 'opacity-40 cursor-not-allowed'

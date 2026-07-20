@@ -1,4 +1,5 @@
 import { Suspense } from 'react';
+import { headers } from 'next/headers';
 import { Metadata } from 'next';
 import { ShopPageContent } from '@/components/catalog/ShopPageContent';
 import { fetchCatalog } from '@/lib/services/catalog';
@@ -17,10 +18,13 @@ export const revalidate = 60;
 
 async function ShopCatalogLoader() {
   const { categories, products, hierarchy } = await fetchCatalog();
+  const requestHeaders = await headers();
+  const nonce = requestHeaders.get('x-nonce') || undefined;
 
   return (
     <>
       <script
+        nonce={nonce}
         type="application/ld+json"
         dangerouslySetInnerHTML={{
           __html: JSON.stringify({

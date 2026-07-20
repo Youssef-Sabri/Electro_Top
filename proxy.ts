@@ -5,6 +5,9 @@ import { validateRequestOrigin } from '@/lib/security'
 import { isAdminRole } from '@/lib/constants'
 
 const HMAC_SECRET = process.env.ADMIN_SESSION_SECRET
+if (!HMAC_SECRET) {
+  throw new Error('Missing ADMIN_SESSION_SECRET environment variable')
+}
 
 async function signValue(value: string): Promise<string> {
   const encoder = new TextEncoder()

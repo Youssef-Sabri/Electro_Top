@@ -3,10 +3,10 @@
 import { createContext, useState, useEffect, useMemo, useCallback, useRef, ReactNode } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
 import type { Order, OrderItem, OrderStatusHistory, OrderStatus } from '@/types';
-import type { Session } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase/client';
 import { TABLES, ORDER_SELECT_FIELDS, VALID_ORDER_STATUSES, ADMIN_NOTES_MAX_LENGTH } from '@/lib/constants';
 import { devLog, normalizeTrackingId } from '@/lib/utils/misc';
+import { useRealtimeOrders } from '@/hooks/useRealtimeOrders';
 
 function isValidOrderStatus(value: string): value is OrderStatus {
   return (VALID_ORDER_STATUSES as readonly string[]).includes(value);
@@ -29,12 +29,12 @@ export interface OrdersContextType {
   filters: OrderFilters;
   setFilters: (filters: OrderFilters) => void;
   getOrderById: (id: string) => Order | undefined;
-  updateOrderStatus: (orderId: string, status: OrderStatus) => void;
-  updateAdminNotes: (orderId: string, notes: string) => void;
+  updateOrderStatus: (orderId: string, status: OrderStatus) => Promise<void>;
+  updateAdminNotes: (orderId: string, notes: string) => Promise<void>;
   getOrderItems: (orderId: string) => OrderItem[];
   getStatusHistory: (orderId: string) => OrderStatusHistory[];
   clearAllOrders: (password: string) => Promise<void>;
-  deleteOrder: (orderId: string) => void;
+  deleteOrder: (orderId: string) => Promise<void>;
   refreshOrders: () => Promise<void>;
   nextPage: () => void;
   prevPage: () => void;
@@ -56,23 +56,11 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
   const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
   const [statusHistory, setStatusHistory] = useState<OrderStatusHistory[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [page, setPage] = useState(() => {
-    if (typeof window !== 'undefined' && window.location.pathname === '/admin/orders') {
-      const urlPage = new URLSearchParams(window.location.search).get('page');
-      return urlPage ? parseInt(urlPage, 10) : 0;
-    }
-    return 0;
-  });
+  const [page, setPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
-  const [filters, setFilters] = useState<OrderFilters>(() => {
-    if (typeof window !== 'undefined' && window.location.pathname === '/admin/orders') {
-      const params = new URLSearchParams(window.location.search);
-      return {
-        searchQuery: params.get('search') || '',
-        status: params.get('status') || 'All',
-      };
-    }
-    return { searchQuery: '', status: 'All' };
+  const [filters, setFilters] = useState<OrderFilters>({
+    searchQuery: '',
+    status: 'All',
   });
   const [globalCounts, setGlobalCounts] = useState({
     totalCount: 0,
@@ -81,56 +69,40 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
     completedCount: 0,
   });
 
-  const ordersMapRef = useRef<Map<string, Order>>(new Map());
-  const orderItemsMapRef = useRef<Map<string, OrderItem[]>>(new Map());
-  const statusHistoryMapRef = useRef<Map<string, OrderStatusHistory[]>>(new Map());
-  const ordersRef = useRef<Order[]>([]);
-  const orderItemsRef = useRef<OrderItem[]>([]);
-  const statusHistoryRef = useRef<OrderStatusHistory[]>([]);
-  const pageRef = useRef(0);
-  const filtersRef = useRef(filters);
-
-  useEffect(() => {
-    const oMap = new Map<string, Order>();
+  // Derived maps via useMemo instead of ref-mirroring-state
+  const ordersMap = useMemo(() => {
+    const map = new Map<string, Order>();
     for (const o of orders) {
-      oMap.set(normalizeTrackingId(o.id_unique_tracking), o);
+      map.set(normalizeTrackingId(o.id_unique_tracking), o);
     }
-    ordersMapRef.current = oMap;
+    return map;
+  }, [orders]);
 
-    const oiMap = new Map<string, OrderItem[]>();
+  const orderItemsMap = useMemo(() => {
+    const map = new Map<string, OrderItem[]>();
     for (const item of orderItems) {
-      const existing = oiMap.get(item.order_id);
-      oiMap.set(item.order_id, existing ? [...existing, item] : [item]);
+      const existing = map.get(item.order_id);
+      map.set(item.order_id, existing ? [...existing, item] : [item]);
     }
-    orderItemsMapRef.current = oiMap;
+    return map;
+  }, [orderItems]);
 
-    const shMap = new Map<string, OrderStatusHistory[]>();
+  const statusHistoryMap = useMemo(() => {
+    const map = new Map<string, OrderStatusHistory[]>();
     for (const h of statusHistory) {
-      const existing = shMap.get(h.order_id);
-      shMap.set(h.order_id, existing ? [...existing, h] : [h]);
+      const existing = map.get(h.order_id);
+      map.set(h.order_id, existing ? [...existing, h] : [h]);
     }
-    statusHistoryMapRef.current = shMap;
-    ordersRef.current = orders;
-    orderItemsRef.current = orderItems;
-    statusHistoryRef.current = statusHistory;
-  }, [orders, orderItems, statusHistory]);
-
-  useEffect(() => {
-    pageRef.current = page;
-  }, [page]);
-
-  useEffect(() => {
-    filtersRef.current = filters;
-  }, [filters]);
-
+    return map;
+  }, [statusHistory]);
 
   const getOrderItems = useCallback((orderId: string) => {
-    return orderItemsMapRef.current.get(orderId) || [];
-  }, []);
+    return orderItemsMap.get(orderId) || [];
+  }, [orderItemsMap]);
 
   const getStatusHistory = useCallback((orderId: string) => {
-    return statusHistoryMapRef.current.get(orderId) || [];
-  }, []);
+    return statusHistoryMap.get(orderId) || [];
+  }, [statusHistoryMap]);
 
   const lastCountsFetchRef = useRef<number>(0);
 
@@ -142,15 +114,17 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
       if (!res.ok) return;
       const data = await res.json();
       const countRows = Array.isArray(data) ? data : [];
-      const countMap = new Map(countRows.map(r => [r.status, r.count]));
+      const countMap = new Map(countRows.map((r: { status: string; count: number }) => [r.status, r.count]));
       setGlobalCounts({
-        totalCount: countRows.reduce((sum, r) => sum + r.count, 0),
+        totalCount: countRows.reduce((sum: number, r: { count: number }) => sum + r.count, 0),
         pendingCount: countMap.get('Pending Review') || 0,
         activeFulfillmentCount: (countMap.get('Processing') || 0) + (countMap.get('Accepted') || 0),
         completedCount: countMap.get('Delivered') || 0,
       });
       lastCountsFetchRef.current = nowMs;
-    } catch {}
+    } catch {
+      // Silently fail — counts are non-critical
+    }
   }, []);
 
   const loadData = useCallback(async (pageNum = 0, overrideFilters?: OrderFilters) => {
@@ -158,12 +132,12 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
     try {
       const from = pageNum * PAGE_SIZE;
       const to = from + PAGE_SIZE - 1;
-      const activeFilters = overrideFilters ?? filtersRef.current;
 
       let query = supabase
         .from(TABLES.orders)
         .select(ORDER_SELECT_FIELDS, { count: 'exact', head: false });
 
+      const activeFilters = overrideFilters ?? filters;
       const searchTerm = activeFilters.searchQuery.trim().toLowerCase();
       if (searchTerm) {
         query = query.or(
@@ -186,27 +160,28 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
       if (oError) throw oError;
 
       setOrders(oData || []);
-      setOrderItems([]);
-      setStatusHistory([]);
       setTotalPages(oCount ? Math.ceil(oCount / PAGE_SIZE) : 0);
-      setIsLoading(false);
     } catch (error) {
-      devLog('Failed to load orders/items/logs from Supabase:', error);
+      devLog('Failed to load orders from Supabase:', error);
+    } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [filters]);
 
+  // Fetch global counts when on admin routes
   useEffect(() => {
     if (pathname?.startsWith('/admin')) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- legitimate async data fetch
       fetchGlobalCounts();
     }
   }, [fetchGlobalCounts, pathname]);
 
-  // Synchronize URL changes back to state (handles back/forward navigation and layout page transitions)
+  // Synchronize URL changes back to state (handles back/forward navigation)
   useEffect(() => {
     if (!pathname?.startsWith('/admin')) return;
 
     if (pathname !== '/admin/orders') {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- legitimate URL-to-state sync
       setFilters({ searchQuery: '', status: 'All' });
       setPage(0);
       return;
@@ -226,36 +201,25 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
     });
   }, [pathname, searchParams]);
 
-  // Synchronize state and trigger query with 300ms debouncing on search query updates
+  // Debounced data fetching and URL state sync
   useEffect(() => {
-    if (typeof window === 'undefined' || !pathname?.startsWith('/admin')) return;
+    if (!pathname?.startsWith('/admin')) return;
 
     const timer = setTimeout(() => {
-      if (pathname !== '/admin/orders') {
-        supabase.auth.getSession().then(({ data: { session } }) => {
-          if (session) {
-            loadData(page, filters);
-          }
-        });
-        return;
+      // Sync URL state on admin/orders page
+      if (pathname === '/admin/orders') {
+        const params = new URLSearchParams();
+        if (filters.status !== 'All') params.set('status', filters.status);
+        if (filters.searchQuery) params.set('search', filters.searchQuery);
+        if (page > 0) params.set('page', page.toString());
+
+        const nextSearch = params.toString() ? `?${params.toString()}` : '';
+        if (nextSearch !== window.location.search) {
+          window.history.replaceState(null, '', `${window.location.pathname}${nextSearch}`);
+        }
       }
 
-      const params = new URLSearchParams(window.location.search);
-
-      if (filters.status === 'All') params.delete('status');
-      else params.set('status', filters.status);
-
-      if (filters.searchQuery === '') params.delete('search');
-      else params.set('search', filters.searchQuery);
-
-      if (page === 0) params.delete('page');
-      else params.set('page', page.toString());
-
-      const nextUrl = `${window.location.pathname}?${params.toString()}`;
-      if (`?${params.toString()}` !== window.location.search) {
-        window.history.replaceState(null, '', nextUrl);
-      }
-
+      // Fetch data if authenticated
       supabase.auth.getSession().then(({ data: { session } }) => {
         if (session) {
           loadData(page, filters);
@@ -267,186 +231,39 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
   }, [filters, page, loadData, pathname]);
 
   const refreshOrders = useCallback(async () => {
-    await loadData(pageRef.current, filtersRef.current);
-  }, [loadData]);
+    await loadData(page, filters);
+  }, [loadData, page, filters]);
 
   const nextPage = useCallback(() => {
-    if (page < totalPages - 1) {
-      setPage(p => p + 1);
-    }
-  }, [page, totalPages]);
+    setPage(p => p + 1);
+  }, []);
 
   const prevPage = useCallback(() => {
-    if (page > 0) {
-      setPage(p => p - 1);
-    }
-  }, [page]);
+    setPage(p => Math.max(0, p - 1));
+  }, []);
 
   const goToPage = useCallback((n: number) => {
-    if (n >= 0 && n < totalPages) {
+    if (n >= 0) {
       setPage(n);
     }
-  }, [totalPages]);
+  }, []);
 
   const updateFilters = useCallback((newFilters: OrderFilters) => {
     setFilters(newFilters);
     setPage(0);
   }, []);
 
-  useEffect(() => {
-    let channel: ReturnType<typeof supabase.channel> | null = null;
-
-    function subscribe(session: Session) {
-      if (channel || !session) return;
-      const newChannel = supabase.channel('orders-realtime');
-      channel = newChannel;
-
-      try {
-        newChannel
-          .on(
-            'postgres_changes',
-            { event: 'INSERT', schema: 'public', table: TABLES.orders },
-            (payload) => {
-              const newOrder = payload.new as Order;
-              setOrders((prev) => {
-                if (prev.some((o) => o.id_unique_tracking === newOrder.id_unique_tracking)) return prev;
-                return [newOrder, ...prev];
-              });
-            }
-          )
-          .on(
-            'postgres_changes',
-            { event: 'UPDATE', schema: 'public', table: TABLES.orders },
-            (payload) => {
-              const updatedOrder = payload.new as Order;
-              setOrders((prev) =>
-                prev.map((o) =>
-                  o.id_unique_tracking === updatedOrder.id_unique_tracking ? updatedOrder : o
-                )
-              );
-            }
-          )
-          .on(
-            'postgres_changes',
-            { event: 'DELETE', schema: 'public', table: TABLES.orders },
-            (payload) => {
-              const deletedOrder = payload.old as { id_unique_tracking: string };
-              setOrders((prev) =>
-                prev.filter((o) => o.id_unique_tracking !== deletedOrder.id_unique_tracking)
-              );
-            }
-          )
-          .on(
-            'postgres_changes',
-            { event: 'INSERT', schema: 'public', table: TABLES.orderItems },
-            (payload) => {
-              const newItem = payload.new as OrderItem;
-              setOrderItems((prev) => {
-                if (prev.some((item) => item.id === newItem.id)) return prev;
-                return [...prev, newItem];
-              });
-            }
-          )
-          .on(
-            'postgres_changes',
-            { event: 'UPDATE', schema: 'public', table: TABLES.orderItems },
-            (payload) => {
-              const updatedItem = payload.new as OrderItem;
-              setOrderItems((prev) =>
-                prev.map((item) => (item.id === updatedItem.id ? updatedItem : item))
-              );
-            }
-          )
-          .on(
-            'postgres_changes',
-            { event: 'DELETE', schema: 'public', table: TABLES.orderItems },
-            (payload) => {
-              const deletedId = payload.old.id;
-              setOrderItems((prev) => prev.filter((item) => item.id !== deletedId));
-            }
-          )
-          .on(
-            'postgres_changes',
-            { event: 'INSERT', schema: 'public', table: TABLES.orderStatusHistory },
-            (payload) => {
-              const newHistory = payload.new as OrderStatusHistory;
-              setStatusHistory((prev) => {
-                if (prev.some((h) => h.id === newHistory.id)) return prev;
-                return [...prev, newHistory];
-              });
-            }
-          )
-          .on(
-            'postgres_changes',
-            { event: 'DELETE', schema: 'public', table: TABLES.orderStatusHistory },
-            (payload) => {
-              const deletedId = payload.old.id;
-              setStatusHistory((prev) => prev.filter((h) => h.id !== deletedId));
-            }
-          );
-        newChannel.subscribe();
-      } catch (err) {
-        devLog('Failed to subscribe to realtime channel:', err);
-      }
-    }
-
-    function unsubscribe() {
-      if (channel) {
-        supabase.removeChannel(channel);
-        channel = null;
-      }
-    }
-
-    const isAdminRoute = pathname?.startsWith('/admin');
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (session && isAdminRoute) {
-        await subscribe(session);
-      } else if (event === 'SIGNED_OUT') {
-        unsubscribe();
-        setOrders([]);
-        setOrderItems([]);
-        setStatusHistory([]);
-      } else {
-        unsubscribe();
-      }
-    });
-
-    const handleVisibility = async () => {
-      if (document.visibilityState === 'visible') {
-        if (!isAdminRoute) return;
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session) {
-          await subscribe(session);
-          // Only refresh if the orders list is empty to prevent redundant focus-reloads.
-          if (ordersRef.current.length === 0) {
-            loadData(pageRef.current, filtersRef.current);
-          }
-        }
-      } else {
-        unsubscribe();
-      }
-    };
-    document.addEventListener('visibilitychange', handleVisibility);
-
-    return () => {
-      document.removeEventListener('visibilitychange', handleVisibility);
-      unsubscribe();
-      subscription.unsubscribe();
-    };
-  }, [loadData, pathname]);
+  useRealtimeOrders({ setOrders, setOrderItems, setStatusHistory, pathname });
 
   const getOrderById = useCallback((id: string) => {
-    return ordersMapRef.current.get(normalizeTrackingId(id));
-  }, []);
+    return ordersMap.get(normalizeTrackingId(id));
+  }, [ordersMap]);
 
   const updateOrderStatus = useCallback(async (orderId: string, status: OrderStatus) => {
     if (!isValidOrderStatus(status)) {
       devLog(`Invalid order status: "${status}"`);
       return;
     }
-
-    const previousOrders = ordersRef.current;
 
     setOrders((prevOrders) =>
       prevOrders.map((order) =>
@@ -462,24 +279,22 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
       });
 
       if (!response.ok) {
-        setOrders(previousOrders);
         const data = await response.json();
         throw new Error(data.error || 'Failed to update order status');
       }
       fetchGlobalCounts();
     } catch (e) {
-      setOrders(previousOrders);
+      // Rollback on failure — reload from server
+      await loadData(page, filters);
       throw e;
     }
-  }, [fetchGlobalCounts]);
+  }, [fetchGlobalCounts, loadData, page, filters]);
 
   const updateAdminNotes = useCallback(async (orderId: string, notes: string) => {
     if (notes.length > ADMIN_NOTES_MAX_LENGTH) {
       devLog(`Admin notes exceed ${ADMIN_NOTES_MAX_LENGTH} characters`);
       return;
     }
-
-    const previousOrders = ordersRef.current;
 
     setOrders((prevOrders) =>
       prevOrders.map((order) =>
@@ -495,21 +310,16 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
       });
 
       if (!response.ok) {
-        setOrders(previousOrders);
         const data = await response.json();
         throw new Error(data.error || 'Failed to update admin notes');
       }
     } catch (e) {
-      setOrders(previousOrders);
+      await loadData(page, filters);
       throw e;
     }
-  }, []);
+  }, [loadData, page, filters]);
 
   const clearAllOrders = useCallback(async (password: string) => {
-    const previousOrders = ordersRef.current;
-    const previousItems = orderItemsRef.current;
-    const previousHistory = statusHistoryRef.current;
-
     setOrders([]);
     setOrderItems([]);
     setStatusHistory([]);
@@ -526,16 +336,14 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
       }
       fetchGlobalCounts();
     } catch (e) {
-      setOrders(previousOrders);
-      setOrderItems(previousItems);
-      setStatusHistory(previousHistory);
+      // Rollback on failure
+      await loadData(page, filters);
       throw e;
     }
-  }, [fetchGlobalCounts]);
+  }, [fetchGlobalCounts, loadData, page, filters]);
 
   const deleteOrder = useCallback(async (orderId: string) => {
-    const orderToDelete = ordersMapRef.current.get(orderId);
-    if (!orderToDelete) return;
+    if (!ordersMap.has(orderId)) return;
 
     setOrders((prev) => prev.filter((o) => o.id_unique_tracking !== orderId));
     setOrderItems((prev) => prev.filter((item) => item.order_id !== orderId));
@@ -549,10 +357,10 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
       }
       fetchGlobalCounts();
     } catch (e) {
-      await loadData();
+      await loadData(page, filters);
       throw e;
     }
-  }, [loadData, fetchGlobalCounts]);
+  }, [ordersMap, loadData, fetchGlobalCounts, page, filters]);
 
   const value = useMemo(
     () => ({

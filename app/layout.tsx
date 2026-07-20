@@ -58,7 +58,7 @@ export const metadata: Metadata = {
     type: 'website',
     images: [
       {
-        url: '/og-image.png',
+        url: SITE_METADATA.url ? `${SITE_METADATA.url}/og-image.png` : '/og-image.png',
         width: 1200,
         height: 630,
         alt: 'إلكترو توب - مستلزمات كهربائية معتمدة',
@@ -69,7 +69,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: SITE_METADATA.title,
     description: SITE_METADATA.description,
-    images: ['/og-image.png'],
+    images: [SITE_METADATA.url ? `${SITE_METADATA.url}/og-image.png` : '/og-image.png'],
   },
 };
 

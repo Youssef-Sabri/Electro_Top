@@ -46,7 +46,7 @@ export function ProductImageGallery({ images, productName, isOutOfStock }: Produ
       <div
         onPointerDown={handlePointerDown}
         onPointerUp={handlePointerUp}
-        className="relative aspect-square rounded-2xl overflow-hidden bg-white border border-neutral-200/60 shadow-sm touch-pan-y cursor-grab active:cursor-grabbing select-none"
+        className="group relative aspect-square rounded-2xl overflow-hidden bg-white border border-neutral-200/60 shadow-sm touch-pan-y cursor-grab active:cursor-grabbing select-none"
       >
         {images.length > 1 && (
           <>

@@ -38,7 +38,8 @@ async function compressFile(file: File): Promise<{ compressedFile: File; info: s
     const canvas = document.createElement('canvas');
     canvas.width = width;
     canvas.height = height;
-    const ctx = canvas.getContext('2d')!;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) throw new Error('Failed to get canvas 2D context');
     // Fill transparent area with white to avoid black background on PNG conversion
     ctx.fillStyle = '#FFFFFF';
     ctx.fillRect(0, 0, width, height);
@@ -73,17 +74,17 @@ export async function uploadProductImage(file: File): Promise<{ imageUrl: string
 
   const response = await fetch('/api/admin/upload', { method: 'POST', body: formData });
 
+  const data = await response.json();
+
   if (!response.ok) {
-    const data = await response.json();
     throw new Error(data.error || 'فشل رفع الصورة إلى التخزين.');
   }
 
-  const { imageUrl } = await response.json();
-  if (!imageUrl) {
+  if (!data.imageUrl) {
     throw new Error('فشل استرداد رابط الصورة بعد الرفع.');
   }
 
-  return { imageUrl, info };
+  return { imageUrl: data.imageUrl, info };
 }
 
 export async function deleteProductImage(imageUrl: string): Promise<void> {

@@ -19,6 +19,8 @@ export function ProductDetailActions({ product }: ProductDetailActionsProps) {
   const isAddedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [selectedColor, setSelectedColor] = useState<string | null>(null);
 
+  const handleCloseToast = useCallback(() => setShowToast(false), []);
+
   useEffect(() => {
     return () => {
       if (isAddedTimerRef.current) clearTimeout(isAddedTimerRef.current);
@@ -33,7 +35,7 @@ export function ProductDetailActions({ product }: ProductDetailActionsProps) {
     setQuantity((q) => Math.max(1, q - 1));
   }, []);
 
-  const handleAddToCart = () => {
+  const handleAddToCart = useCallback(() => {
     if (product.stock <= 0) return;
     if (product.has_colors && selectedColor === null) return;
     addToCart(product, quantity, selectedColor);
@@ -42,8 +44,8 @@ export function ProductDetailActions({ product }: ProductDetailActionsProps) {
     if (isAddedTimerRef.current) clearTimeout(isAddedTimerRef.current);
     isAddedTimerRef.current = setTimeout(() => {
       setIsAdded(false);
-    }, 1500);
-  };
+    }, 2000);
+  }, [product, quantity, selectedColor, addToCart]);
 
   const isOutOfStock = product.stock <= 0;
   const isDisabled = isOutOfStock || (product.has_colors && selectedColor === null);
@@ -157,7 +159,7 @@ export function ProductDetailActions({ product }: ProductDetailActionsProps) {
         <Toast
           message={`تم إضافة ${product.name} إلى السلة ✓`}
           type="success"
-          onClose={() => setShowToast(false)}
+          onClose={handleCloseToast}
           duration={2000}
         />
       )}

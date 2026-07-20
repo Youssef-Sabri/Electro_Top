@@ -3,10 +3,10 @@
 import { createContext, useState, useEffect, useMemo, useCallback, useRef, ReactNode } from 'react';
 import { usePathname } from 'next/navigation';
 import type { Product } from '@/types';
-import type { Session } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase/client';
 import { TABLES, PRODUCT_SELECT_FIELDS } from '@/lib/constants';
 import { devLog } from '@/lib/utils/misc';
+import { useRealtimeProducts } from '@/hooks/useRealtimeProducts';
 
 export interface ProductsContextType {
   products: Product[];
@@ -15,7 +15,7 @@ export interface ProductsContextType {
   updateProduct: (product: Product) => void;
   deleteProduct: (id: string) => void;
   getProductById: (id: string) => Product | undefined;
-  getProductsMap: () => Map<string, Product>;
+  getProductsMap: () => ReadonlyMap<string, Product>;
   clearAllProducts: (password: string) => Promise<void>;
   initializeData: (products: Product[], categories: string[]) => void;
   refreshProducts: () => Promise<void>;
@@ -31,21 +31,16 @@ export function ProductsProvider({ children }: { children: ReactNode }) {
   const [categories, setCategories] = useState<string[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
   const [refreshVersion, setRefreshVersion] = useState(0);
-  const productsMapRef = useRef<Map<string, Product>>(new Map());
-  const productsRef = useRef<Product[]>([]);
-  const categoriesRef = useRef<string[]>([]);
   const hasFetchedRef = useRef(false);
   const isFetchingRef = useRef(false);
 
-  useEffect(() => {
+  const productsMap = useMemo(() => {
     const map = new Map<string, Product>();
     for (const p of products) {
       map.set(p.id, p);
     }
-    productsMapRef.current = map;
-    productsRef.current = products;
-    categoriesRef.current = categories;
-  }, [products, categories]);
+    return map;
+  }, [products]);
 
   const loadData = useCallback(async (force = false) => {
     if (isFetchingRef.current || (!force && hasFetchedRef.current)) return;
@@ -78,108 +73,12 @@ export function ProductsProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    // Only run loadData automatically on mount if we are not on pages that initialize data on their own.
-    // Landing page (/) and Shop page (/shop) fetch and initialize data from their props, so they do not need client-side mount fetch.
-    const isSSRPage = typeof window !== 'undefined' && (window.location.pathname === '/' || window.location.pathname.startsWith('/shop'));
-    if (isSSRPage) return;
-
+    if (pathname === '/' || pathname.startsWith('/shop')) return;
     if (hasFetchedRef.current) return;
     loadData();
-  }, [loadData]);
-
-  // Real-time subscriptions + visibility-based refresh (no polling)
-  useEffect(() => {
-    let channel: ReturnType<typeof supabase.channel> | null = null;
-
-    async function subscribe(session: Session) {
-      if (channel || !session) return;
-
-      channel = supabase
-        .channel('products-realtime')
-        .on(
-          'postgres_changes',
-          { event: 'INSERT', schema: 'public', table: TABLES.products },
-          (payload) => {
-            const newProduct = payload.new as Product;
-            setProducts((prev) => {
-              if (prev.some((p) => p.id === newProduct.id)) return prev;
-              return [...prev, newProduct];
-            });
-          }
-        )
-        .on(
-          'postgres_changes',
-          { event: 'UPDATE', schema: 'public', table: TABLES.products },
-          (payload) => {
-            const updatedProduct = payload.new as Product;
-            setProducts((prev) =>
-              prev.map((p) => (p.id === updatedProduct.id ? updatedProduct : p))
-            );
-          }
-        )
-        .on(
-          'postgres_changes',
-          { event: 'DELETE', schema: 'public', table: TABLES.products },
-          (payload) => {
-            const deletedId = payload.old.id;
-            setProducts((prev) => prev.filter((p) => p.id !== deletedId));
-          }
-        )
-        .subscribe();
-    }
-
-    function unsubscribe() {
-      if (channel) {
-        supabase.removeChannel(channel);
-        channel = null;
-      }
-    }
-
-    // Products WebSocket is admin-only (gated by session and admin route) to avoid unnecessary WebSockets on storefront.
-    const isAdminRoute = pathname?.startsWith('/admin');
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      if (session && isAdminRoute) {
-        await subscribe(session);
-      } else {
-        unsubscribe();
-      }
-    });
-
-    // Immediately subscribe if a session already exists and we are on an admin route
-    if (isAdminRoute) {
-      supabase.auth.getSession().then(({ data: { session } }) => {
-        if (session) {
-          hasFetchedRef.current = false;
-          loadData(true);
-          subscribe(session);
-        }
-      });
-    }
-
-    const handleVisibility = async () => {
-      if (document.visibilityState === 'visible') {
-        if (!isAdminRoute) return;
-        const { data: { session } } = await supabase.auth.getSession();
-        // Only trigger visibility-based refresh for administrators with active sessions on admin pages
-        if (session) {
-          hasFetchedRef.current = false;
-          loadData(true);
-          await subscribe(session);
-        }
-      } else {
-        unsubscribe();
-      }
-    };
-
-    document.addEventListener('visibilitychange', handleVisibility);
-
-    return () => {
-      document.removeEventListener('visibilitychange', handleVisibility);
-      unsubscribe();
-      subscription.unsubscribe();
-    };
   }, [loadData, pathname]);
+
+  useRealtimeProducts({ setProducts, hasFetchedRef, loadData, pathname });
 
   const refreshProducts = useCallback(async () => {
     await loadData();
@@ -219,12 +118,11 @@ export function ProductsProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const updateProduct = useCallback(async (updated: Product) => {
-    const oldProduct = productsMapRef.current.get(updated.id);
-    if (!oldProduct) return;
-
-    const originalProducts = productsRef.current;
-
-    setProducts((prev) => prev.map((p) => (p.id === updated.id ? updated : p)));
+    let rollbackProduct: Product | undefined;
+    setProducts((prev) => {
+      rollbackProduct = prev.find((p) => p.id === updated.id);
+      return prev.map((p) => (p.id === updated.id ? updated : p));
+    });
 
     try {
       const response = await fetch(`/api/admin/products/${updated.id}`, {
@@ -234,51 +132,65 @@ export function ProductsProvider({ children }: { children: ReactNode }) {
       });
 
       if (!response.ok) {
-        setProducts(originalProducts);
+        if (rollbackProduct) {
+          setProducts((prev) => prev.map((p) => (p.id === rollbackProduct!.id ? rollbackProduct! : p)));
+        }
         const data = await response.json();
         throw new Error(data.error || 'فشل تحديث المنتج. يرجى المحاولة مرة أخرى.');
       }
     } catch (e) {
-      setProducts(originalProducts);
+      if (rollbackProduct) {
+        setProducts((prev) => prev.map((p) => (p.id === rollbackProduct!.id ? rollbackProduct! : p)));
+      }
       throw e;
     }
   }, []);
 
   const deleteProduct = useCallback(async (id: string) => {
-    const oldProduct = productsMapRef.current.get(id);
-    if (!oldProduct) return;
-
-    const originalProducts = productsRef.current;
-
-    setProducts((prev) => prev.filter((p) => p.id !== id));
+    let rollbackProduct: Product | undefined;
+    setProducts((prev) => {
+      rollbackProduct = prev.find((p) => p.id === id);
+      return prev.filter((p) => p.id !== id);
+    });
 
     try {
       const response = await fetch(`/api/admin/products/${id}`, { method: 'DELETE' });
 
       if (!response.ok) {
-        setProducts(originalProducts);
+        if (rollbackProduct) {
+          setProducts((prev) => {
+            if (prev.some((p) => p.id === rollbackProduct!.id)) return prev;
+            return [...prev, rollbackProduct!];
+          });
+        }
         const data = await response.json();
         throw new Error(data.error || 'فشل حذف المنتج. يرجى المحاولة مرة أخرى.');
       }
     } catch (e) {
-      setProducts(originalProducts);
+      if (rollbackProduct) {
+        setProducts((prev) => {
+          if (prev.some((p) => p.id === rollbackProduct!.id)) return prev;
+          return [...prev, rollbackProduct!];
+        });
+      }
       throw e;
     }
   }, []);
 
   const getProductById = useCallback((id: string) => {
-    return productsMapRef.current.get(id);
-  }, []);
+    return productsMap.get(id);
+  }, [productsMap]);
 
   const getProductsMap = useCallback(() => {
-    return productsMapRef.current;
-  }, []);
+    return new Map(productsMap) as ReadonlyMap<string, Product>;
+  }, [productsMap]);
 
   const clearAllProducts = useCallback(async (password: string) => {
-    const previousProducts = productsRef.current;
-    const previousCategories = categoriesRef.current;
-    setProducts([]);
-    setCategories([]);
+    let rollbackProducts: Product[] = [];
+    let rollbackCategories: string[] = [];
+    setProducts((prev) => { rollbackProducts = prev; return []; });
+    setCategories((prev) => { rollbackCategories = prev; return []; });
+
     try {
       const response = await fetch('/api/admin/products', {
         method: 'DELETE',
@@ -286,14 +198,14 @@ export function ProductsProvider({ children }: { children: ReactNode }) {
         body: JSON.stringify({ password }),
       });
       if (!response.ok) {
-        setProducts(previousProducts);
-        setCategories(previousCategories);
+        setProducts(rollbackProducts);
+        setCategories(rollbackCategories);
         const data = await response.json();
         throw new Error(data.error || 'Failed to clear products');
       }
     } catch (e) {
-      setProducts(previousProducts);
-      setCategories(previousCategories);
+      setProducts(rollbackProducts);
+      setCategories(rollbackCategories);
       devLog(e);
       throw e;
     }

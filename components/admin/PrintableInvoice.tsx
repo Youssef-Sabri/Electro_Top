@@ -7,7 +7,7 @@ import { getSafeUrl } from '@/lib/utils/misc';
 interface PrintableInvoiceProps {
   order: Order;
   orderItems: OrderItem[];
-  productsById: Map<string, Product>;
+  productsById: ReadonlyMap<string, Product>;
   formatCurrency: (amount: number) => string;
   orderDate: string;
   orderTime: string;

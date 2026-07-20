@@ -6,6 +6,9 @@ import { supabase } from '@/lib/supabase/client';
 import { TABLES, ORDER_ITEM_SELECT_FIELDS } from '@/lib/constants';
 import { useOrders } from '@/hooks/useOrders';
 import { useProducts } from '@/hooks/useProducts';
+import { useHydrated } from '@/hooks/useHydrated';
+import { useToast } from '@/hooks/useToast';
+import type { OrderItem } from '@/types';
 import { formatCurrency, getInitials } from '@/lib/utils/format';
 import { formatOrderDate, todayStamp } from '@/lib/utils/date';
 import { STATUS_OPTIONS } from '@/lib/utils/status';
@@ -30,23 +33,52 @@ export const OrdersLedger = memo(function OrdersLedger() {
   const [isClearPasswordOpen, setIsClearPasswordOpen] = useState(false);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [orderToDeleteId, setOrderToDeleteId] = useState<string | null>(null);
-  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
   const [searchValue, setSearchValue] = useState(filters.searchQuery);
-  const [isMounted, setIsMounted] = useState(false);
-
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
+  const isMounted = useHydrated();
+  const { toast, showSuccess, showError, dismissToast } = useToast();
 
 
 
   const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  const handleClearOrdersConfirm = useCallback(async (password: string) => {
+    setIsClearPasswordOpen(false);
+    try {
+      await clearAllOrders(password);
+      showSuccess('تم مسح جميع الطلبات بنجاح!');
+    } catch {
+      showError('فشل حذف الطلبات. الرجاء المحاولة مرة أخرى.');
+    }
+  }, [clearAllOrders, showSuccess, showError]);
+
+  const handleClearOrdersCancel = useCallback(() => {
+    setIsClearPasswordOpen(false);
+  }, []);
+
+  const handleDeleteOrderConfirm = useCallback(async () => {
+    const idToDelete = orderToDeleteId;
+    if (idToDelete) {
+      setIsDeleteConfirmOpen(false);
+      setOrderToDeleteId(null);
+      try {
+        await deleteOrder(idToDelete);
+        showSuccess(`تم حذف الطلب #${idToDelete} بنجاح!`);
+      } catch {
+        showError('فشل حذف الطلب. الرجاء المحاولة مرة أخرى.');
+      }
+    }
+  }, [orderToDeleteId, deleteOrder, showSuccess, showError]);
+
+  const handleDeleteOrderCancel = useCallback(() => {
+    setIsDeleteConfirmOpen(false);
+    setOrderToDeleteId(null);
+  }, []);
+
   const handleExportCSV = useCallback(async () => {
     // Dynamically fetch items for CSV export on-demand
     const orderIds = orders.map(o => o.id_unique_tracking);
-    const itemsMap = new Map<string, any[]>();
+    const itemsMap = new Map<string, OrderItem[]>();
     if (orderIds.length > 0) {
       const { data, error } = await supabase
         .from(TABLES.orderItems)
@@ -135,6 +167,15 @@ export const OrdersLedger = memo(function OrdersLedger() {
     router.push(`/admin/orders/${trackingId}`);
   }, [router]);
 
+  const handlePageChange = useCallback((n: number) => goToPage(n - 1), [goToPage]);
+
+  const handleClearConfirmSubmit = useCallback(() => {
+    setIsClearConfirmOpen(false);
+    setIsClearPasswordOpen(true);
+  }, []);
+
+  const handleClearConfirmCancel = useCallback(() => setIsClearConfirmOpen(false), []);
+
   if (!isMounted) {
     return (
       <div className="flex flex-col items-center justify-center py-20 font-tajawal text-on-surface-variant">
@@ -151,7 +192,7 @@ export const OrdersLedger = memo(function OrdersLedger() {
           <div>
             <h2 className="font-headline-lg text-headline-lg text-on-surface">جميع الطلبات</h2>
             <p className="text-on-surface-variant font-body-md text-body-md">
-              إجمالي الطلبات في النظام: {orders.length} طلب.
+              إجمالي الطلبات في النظام: {metrics.totalCount} طلب.
             </p>
           </div>
           <button
@@ -177,8 +218,10 @@ export const OrdersLedger = memo(function OrdersLedger() {
             <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant select-none">
               search
             </span>
+            <label htmlFor="orders-search" className="sr-only">بحث في الطلبات</label>
             <input
-              className="pr-10 pl-4 py-2 bg-surface-container-lowest border border-outline-variant rounded-lg font-body-md text-body-md focus:outline-none focus:ring-2 focus:ring-primary/10 focus:border-primary w-full sm:w-64 text-on-surface text-right"
+              id="orders-search"
+              className="pr-10 pl-4 py-2 bg-surface-container-lowest border border-outline-variant rounded-lg font-body-md text-body-md focus:outline-none focus:ring-2 focus:ring-primary/10 focus:border-primary w-full sm:w-64 text-on-surface text-start"
               placeholder="البحث برقم الطلب، اسم العميل..."
               type="text"
               value={searchValue}
@@ -207,28 +250,28 @@ export const OrdersLedger = memo(function OrdersLedger() {
           <table className="hidden lg:table w-full text-start border-collapse">
             <thead>
               <tr className="bg-surface-container-low border-b border-outline-variant/30 select-none text-start">
-                <th className="px-6 py-4 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider text-start">
+                <th scope="col" className="px-6 py-4 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider text-start">
                   رقم الطلب
                 </th>
-                <th className="px-6 py-4 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider text-start">
+                <th scope="col" className="px-6 py-4 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider text-start">
                   العميل
                 </th>
-                <th className="px-6 py-4 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider text-start">
+                <th scope="col" className="px-6 py-4 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider text-start">
                   رقم الهاتف
                 </th>
-                <th className="px-6 py-4 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider text-start">
+                <th scope="col" className="px-6 py-4 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider text-start">
                   الحالة
                 </th>
-                <th className="px-6 py-4 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider text-start">
+                <th scope="col" className="px-6 py-4 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider text-start">
                   التاريخ
                 </th>
-                <th className="px-6 py-4 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider text-start">
+                <th scope="col" className="px-6 py-4 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider text-start">
                   الدفع
                 </th>
-                <th className="px-6 py-4 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider text-end">
+                <th scope="col" className="px-6 py-4 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider text-end">
                   الإجمالي
                 </th>
-                <th className="px-6 py-4 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider text-end">
+                <th scope="col" className="px-6 py-4 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider text-end">
                   الإجراءات
                 </th>
               </tr>
@@ -303,6 +346,7 @@ export const OrdersLedger = memo(function OrdersLedger() {
                           }}
                           className="p-1.5 bg-red-50 text-red-600 hover:bg-red-100 border border-red-200 rounded-md transition-colors cursor-pointer select-none"
                           title="حذف هذا الطلب"
+                          aria-label="حذف هذا الطلب"
                         >
                           <span className="material-symbols-outlined text-[18px]">delete</span>
                         </button>
@@ -398,6 +442,7 @@ export const OrdersLedger = memo(function OrdersLedger() {
                       }}
                       className="p-2 bg-red-50 text-red-600 hover:bg-red-100 border border-red-200 rounded-lg transition-colors cursor-pointer select-none flex items-center justify-center"
                       title="حذف هذا الطلب"
+                      aria-label="حذف هذا الطلب"
                     >
                       <span className="material-symbols-outlined text-[18px]">delete</span>
                     </button>
@@ -415,7 +460,7 @@ export const OrdersLedger = memo(function OrdersLedger() {
         <PaginationControls
           currentPage={page + 1}
           totalPages={totalPages}
-          onPageChange={(n) => goToPage(n - 1)}
+          onPageChange={handlePageChange}
         />
       </div>
 
@@ -423,11 +468,8 @@ export const OrdersLedger = memo(function OrdersLedger() {
         isOpen={isClearConfirmOpen}
         title="مسح كافة الطلبات"
         message="هل أنت متأكد من رغبتك في حذف جميع الطلبات وسجل الطلبات نهائياً من النظام؟ هذا الإجراء لا يمكن التراجع عنه."
-        onConfirm={() => {
-          setIsClearConfirmOpen(false);
-          setIsClearPasswordOpen(true);
-        }}
-        onCancel={() => setIsClearConfirmOpen(false)}
+        onConfirm={handleClearConfirmSubmit}
+        onCancel={handleClearConfirmCancel}
         confirmLabel="نعم، احذف كافة البيانات"
       />
 
@@ -436,39 +478,16 @@ export const OrdersLedger = memo(function OrdersLedger() {
         title="تأكيد كلمة المرور"
         message="يرجى إدخال كلمة مرور المسؤول لتأكيد حذف جميع الطلبات. هذا الإجراء لا يمكن التراجع عنه."
         confirmLabel="تأكيد وحذف الكل"
-        onConfirm={async (password) => {
-          setIsClearPasswordOpen(false);
-          try {
-            await clearAllOrders(password);
-            setToast({ message: 'تم مسح جميع الطلبات بنجاح!', type: 'success' });
-          } catch {
-            setToast({ message: 'فشل حذف الطلبات. الرجاء المحاولة مرة أخرى.', type: 'error' });
-          }
-        }}
-        onCancel={() => setIsClearPasswordOpen(false)}
+        onConfirm={handleClearOrdersConfirm}
+        onCancel={handleClearOrdersCancel}
       />
 
       <ConfirmationModal
         isOpen={isDeleteConfirmOpen}
         title="حذف الطلب"
         message={`هل أنت متأكد من رغبتك في حذف الطلب #${orderToDeleteId} نهائياً من النظام؟ هذا الإجراء لا يمكن التراجع عنه وسيؤدي لحذف تفاصيل الطلب وسجل حالته بالكامل.`}
-        onConfirm={async () => {
-          const idToDelete = orderToDeleteId;
-          if (idToDelete) {
-            setIsDeleteConfirmOpen(false);
-            setOrderToDeleteId(null);
-            try {
-              await deleteOrder(idToDelete);
-              setToast({ message: `تم حذف الطلب #${idToDelete} بنجاح!`, type: 'success' });
-            } catch {
-              setToast({ message: 'فشل حذف الطلب. الرجاء المحاولة مرة أخرى.', type: 'error' });
-            }
-          }
-        }}
-        onCancel={() => {
-          setIsDeleteConfirmOpen(false);
-          setOrderToDeleteId(null);
-        }}
+        onConfirm={handleDeleteOrderConfirm}
+        onCancel={handleDeleteOrderCancel}
         confirmLabel="نعم، احذف الطلب"
       />
 
@@ -476,7 +495,7 @@ export const OrdersLedger = memo(function OrdersLedger() {
         <Toast
           message={toast.message}
           type={toast.type}
-          onClose={() => setToast(null)}
+          onClose={dismissToast}
           duration={3000}
         />
       )}

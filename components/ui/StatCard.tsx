@@ -13,7 +13,7 @@ export const StatCard = memo(function StatCard({ title, value, description, icon
     <div className="bg-surface-container-lowest p-5 rounded-xl border border-outline-variant/30 shadow-sm space-y-2">
       <div className="flex items-center justify-between">
         <span className="text-on-surface-variant text-xs font-bold uppercase tracking-wider">{title}</span>
-        <span className={`material-symbols-outlined text-[20px] select-none ${iconColor}`}>{icon}</span>
+        <span className={`material-symbols-outlined text-[20px] select-none ${iconColor}`} aria-hidden="true">{icon}</span>
       </div>
       <p className="text-2xl font-bold text-on-surface font-mono">{value}</p>
       {description && <p className="text-[10px] text-on-surface-variant font-semibold">{description}</p>}

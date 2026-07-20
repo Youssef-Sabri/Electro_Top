@@ -1,6 +1,6 @@
 'use client';
 
-import { memo, useEffect, useMemo, useState } from 'react';
+import { memo, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useProducts } from '@/hooks/useProducts';
@@ -32,13 +32,17 @@ function CategorySlideshowCard({ category, products, productCount }: CategorySli
   }, [rawImages]);
 
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [prevImages, setPrevImages] = useState<string[]>(shuffledImages);
+  const prevImagesRef = useRef(shuffledImages);
 
-  if (prevImages !== shuffledImages) {
-    const boundedIndex = shuffledImages.length > 0 ? Math.min(currentIndex, shuffledImages.length - 1) : 0;
-    setPrevImages(shuffledImages);
-    setCurrentIndex(boundedIndex);
-  }
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally track shuffledImages reference change only
+  useEffect(() => {
+    const prev = prevImagesRef.current;
+    if (prev !== shuffledImages) {
+      prevImagesRef.current = shuffledImages;
+      const boundedIndex = shuffledImages.length > 0 ? Math.min(currentIndex, shuffledImages.length - 1) : 0;
+      setCurrentIndex(boundedIndex);
+    }
+  });
 
   useEffect(() => {
     if (shuffledImages.length <= 1) return;
@@ -174,6 +178,7 @@ export const LandingPage = memo(function LandingPage({
   // Shuffle categories on initial client mount to randomize category presentation per session
   useEffect(() => {
     if (activeCategories.length > 0) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- legitimate: initializing derived state from props
       setRandomizedCategories(shuffleArray(activeCategories));
     }
   }, [activeCategories]);
@@ -244,7 +249,7 @@ export const LandingPage = memo(function LandingPage({
           </div>
         </div>
 
-        <div className="absolute right-[5%] top-1/2 -translate-y-1/2 opacity-20 pointer-events-none hidden xl:block">
+        <div className="absolute right-[5%] top-1/2 -translate-y-1/2 opacity-20 pointer-events-none hidden xl:block" aria-hidden="true">
           <span
             className="material-symbols-outlined text-[380px] text-white/5 select-none"
             style={{ fontVariationSettings: "'FILL' 1" }}
@@ -263,6 +268,8 @@ export const LandingPage = memo(function LandingPage({
         </div>
 
         <div
+          role="region"
+          aria-label="الأقسام المميزة"
           className="flex overflow-x-auto pb-6 scrollbar-hide -mx-margin-mobile px-margin-mobile md:mx-0 md:px-0 md:pb-0 md:overflow-visible md:grid md:grid-cols-3 gap-6 md:gap-8 transition-all duration-500 ease-in-out snap-x snap-mandatory"
           style={{
             opacity: fadeCategories ? 1 : 0,
@@ -270,8 +277,8 @@ export const LandingPage = memo(function LandingPage({
             pointerEvents: fadeCategories ? 'auto' : 'none' as const
           }}
         >
-          {displayedCategories.map((category, index) => (
-            <div key={index} className="shrink-0 w-[82vw] sm:w-[340px] md:w-full snap-center">
+          {displayedCategories.map((category) => (
+            <div key={category} className="shrink-0 w-[82vw] sm:w-[340px] md:w-full snap-center">
               <CategorySlideshowCard
                 category={category}
                 products={categoryProducts[category] || []}

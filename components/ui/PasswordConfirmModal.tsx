@@ -1,6 +1,6 @@
 'use client';
 
-import { memo, useState, useEffect, useRef } from 'react';
+import { memo, useState, useEffect, useRef, useCallback } from 'react';
 import { Modal } from '@/components/ui/Modal';
 
 interface PasswordConfirmModalProps {
@@ -36,7 +36,7 @@ export const PasswordConfirmModal = memo(function PasswordConfirmModal({
     }
   }, [isOpen]);
 
-  const handleSubmit = async () => {
+  const handleSubmit = useCallback(async () => {
     if (!password) {
       setError('الرجاء إدخال كلمة المرور.');
       return;
@@ -58,7 +58,7 @@ export const PasswordConfirmModal = memo(function PasswordConfirmModal({
     } finally {
       setIsVerifying(false);
     }
-  };
+  }, [password, onConfirm]);
 
   return (
     <Modal isOpen={isOpen} onClose={onCancel}>
@@ -77,7 +77,9 @@ export const PasswordConfirmModal = memo(function PasswordConfirmModal({
         </div>
 
         <div className="space-y-3">
+          <label htmlFor="password-confirm-input" className="sr-only">كلمة المرور</label>
           <input
+            id="password-confirm-input"
             ref={inputRef}
             type="password"
             dir="ltr"

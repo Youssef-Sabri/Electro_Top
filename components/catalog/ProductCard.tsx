@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { memo, useState, useRef, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import type { Product } from '@/types';
@@ -14,7 +14,7 @@ interface ProductCardProps {
   index?: number;
 }
 
-export const ProductCard = React.memo(function ProductCard({ product, onOpenDetails, index = 0 }: ProductCardProps) {
+export const ProductCard = memo(function ProductCard({ product, onOpenDetails, index = 0 }: ProductCardProps) {
   const { addToCart } = useCart();
   const [showToast, setShowToast] = useState(false);
   const [isAdded, setIsAdded] = useState(false);
@@ -26,7 +26,7 @@ export const ProductCard = React.memo(function ProductCard({ product, onOpenDeta
     };
   }, []);
 
-  const handleAddToCart = (e: React.MouseEvent) => {
+  const handleAddToCart = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
     if (product.stock <= 0) return;
     if (product.has_colors) {
@@ -40,9 +40,11 @@ export const ProductCard = React.memo(function ProductCard({ product, onOpenDeta
     isAddedTimerRef.current = setTimeout(() => {
       setIsAdded(false);
     }, 1500);
-  };
+  }, [product, onOpenDetails, addToCart]);
 
   const isOutOfStock = product.stock <= 0;
+
+  const handleCloseToast = useCallback(() => setShowToast(false), []);
 
   return (
     <Link
@@ -128,7 +130,7 @@ export const ProductCard = React.memo(function ProductCard({ product, onOpenDeta
         <Toast
           message={`تم إضافة ${product.name} إلى السلة ✓`}
           type="success"
-          onClose={() => setShowToast(false)}
+          onClose={handleCloseToast}
           duration={2000}
         />
       )}

@@ -35,8 +35,8 @@ const STATUS_STYLE_MAP: Record<OrderStatus, { dot: string; container: string }> 
 
 export const StatusBadge = memo(function StatusBadge({ status }: StatusBadgeProps) {
   const styles = STATUS_STYLE_MAP[status] || {
-    dot: 'bg-on-surface-variant/40',
-    container: 'bg-surface-container-low text-on-surface-variant border-outline-variant',
+    dot: 'bg-on-surface-variant',
+    container: 'bg-surface-container-low text-on-surface border-outline-variant',
   };
 
   return (

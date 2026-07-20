@@ -1,10 +1,6 @@
-export type OrderStatus =
-  | 'Pending Review'
-  | 'Accepted'
-  | 'Processing'
-  | 'Delivered'
-  | 'Declined'
-  | 'Check Internal Note';
+import type { VALID_ORDER_STATUSES } from '@/lib/constants';
+
+export type OrderStatus = (typeof VALID_ORDER_STATUSES)[number];
 
 export interface Product {
   id: string;
@@ -26,6 +22,8 @@ export interface Product {
 }
 
 
+export type PaymentMethod = 'instapay' | 'cod';
+
 export interface Order {
   id_unique_tracking: string;
   status: OrderStatus;
@@ -34,11 +32,11 @@ export interface Order {
   shipping_address: string;
   total_amount: number;
   created_at: string;
-  payment_method: 'instapay' | 'cod';
+  payment_method: PaymentMethod;
   admin_notes?: string | null;
-  location_link?: string;
-  instapay_screenshot?: string;
-  instapay_phone_number?: string;
+  location_link?: string | null;
+  instapay_screenshot?: string | null;
+  instapay_phone_number?: string | null;
 }
 
 export interface OrderItem {

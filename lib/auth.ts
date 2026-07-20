@@ -12,7 +12,7 @@ async function requireAdmin(supabaseClient: SupabaseClient) {
 }
 
 export async function requireAdminGuard(
-  _request: Request
+  _request?: Request
 ): Promise<{ supabaseClient: Awaited<ReturnType<typeof getServerSupabase>>; user: User } | NextResponse> {
   const supabaseClient = await getServerSupabase();
 
@@ -23,9 +23,8 @@ export async function requireAdminGuard(
 }
 
 export async function verifyAdminPassword(
-  _supabaseClient: SupabaseClient,
-  email: string,
-  password: string
+  email?: string,
+  password?: string
 ): Promise<NextResponse | void> {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
@@ -42,7 +41,7 @@ export async function verifyAdminPassword(
     },
   });
 
-  const { error: signInError } = await client.auth.signInWithPassword({ email, password });
+  const { error: signInError } = await client.auth.signInWithPassword({ email: email!, password: password! });
   if (signInError) {
     return NextResponse.json({ error: 'كلمة المرور غير صحيحة.' }, { status: 401 });
   }

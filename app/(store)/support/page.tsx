@@ -43,7 +43,7 @@ export default function SupportPage() {
             
             <div className="space-y-4">
               <details className="group border border-outline-variant/30 rounded-2xl bg-surface-container-lowest p-6 [&_summary::-webkit-details-marker]:hidden cursor-pointer">
-                <summary className="flex items-center justify-between focus:outline-none list-none">
+                <summary className="flex items-center justify-between focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary list-none cursor-pointer">
                   <span className="font-bold text-base text-on-surface group-open:text-primary transition-colors">
                     كيف يمكنني تتبع حالة طلبي؟
                   </span>
@@ -57,7 +57,7 @@ export default function SupportPage() {
               </details>
 
               <details className="group border border-outline-variant/30 rounded-2xl bg-surface-container-lowest p-6 [&_summary::-webkit-details-marker]:hidden cursor-pointer">
-                <summary className="flex items-center justify-between focus:outline-none list-none">
+                <summary className="flex items-center justify-between focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary list-none cursor-pointer">
                   <span className="font-bold text-base text-on-surface group-open:text-primary transition-colors">
                     ما هي طرق الدفع المتاحة؟
                   </span>
@@ -71,7 +71,7 @@ export default function SupportPage() {
               </details>
 
               <details className="group border border-outline-variant/30 rounded-2xl bg-surface-container-lowest p-6 [&_summary::-webkit-details-marker]:hidden cursor-pointer">
-                <summary className="flex items-center justify-between focus:outline-none list-none">
+                <summary className="flex items-center justify-between focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary list-none cursor-pointer">
                   <span className="font-bold text-base text-on-surface group-open:text-primary transition-colors">
                     كيف أقوم بتأكيد التحويل عبر إنستا باي؟
                   </span>
@@ -85,7 +85,7 @@ export default function SupportPage() {
               </details>
 
               <details className="group border border-outline-variant/30 rounded-2xl bg-surface-container-lowest p-6 [&_summary::-webkit-details-marker]:hidden cursor-pointer">
-                <summary className="flex items-center justify-between focus:outline-none list-none">
+                <summary className="flex items-center justify-between focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary list-none cursor-pointer">
                   <span className="font-bold text-base text-on-surface group-open:text-primary transition-colors">
                     هل جميع المنتجات المعروضة أصلية؟
                   </span>

@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { headers } from 'next/headers';
@@ -7,6 +8,7 @@ import { SITE_METADATA } from '@/lib/constants';
 import { formatCurrency } from '@/lib/utils/format';
 import { ProductDetailActions } from '@/components/catalog/ProductDetailActions';
 import { ProductImageGallery } from '@/components/catalog/ProductImageGallery';
+import StoreLoading from '@/app/(store)/loading';
 
 interface ProductPageProps {
   params: Promise<{ slug: string }>;
@@ -66,6 +68,14 @@ export default async function ProductPage({ params }: ProductPageProps) {
     notFound();
   }
 
+  return (
+    <Suspense fallback={<StoreLoading />}>
+      <ProductContent product={product} slug={slug} />
+    </Suspense>
+  );
+}
+
+async function ProductContent({ product, slug }: { product: NonNullable<Awaited<ReturnType<typeof fetchProductBySlug>>>; slug: string }) {
   const requestHeaders = await headers();
   const nonce = requestHeaders.get('x-nonce') || undefined;
   const baseUrl = SITE_METADATA.url || '';

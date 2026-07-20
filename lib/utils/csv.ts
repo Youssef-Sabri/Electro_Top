@@ -44,5 +44,5 @@ export function exportToCSV({ filename, headers, rows }: ExportCSVOptions): void
   
   setTimeout(() => {
     URL.revokeObjectURL(url);
-  }, 100);
+  }, 5000);
 }

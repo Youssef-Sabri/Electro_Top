@@ -34,12 +34,13 @@ export function useOrderTracking(id: string | null): {
   useEffect(() => {
     if (!id) return;
     const trackingId = id;
+    const controller = new AbortController();
 
     async function fetchOrder() {
       setLoading(true);
       setError(null);
       try {
-        const res = await fetch(`/api/track/${normalizeTrackingId(trackingId)}`);
+        const res = await fetch(`/api/track/${normalizeTrackingId(trackingId)}`, { signal: controller.signal });
         if (res.status === 429) {
           const data = await res.json().catch(() => ({}));
           const cd = data.cooldown || 60;
@@ -54,7 +55,8 @@ export function useOrderTracking(id: string | null): {
         } else {
           setError('لم يتم العثور على الطلب. تأكد من صحة رقم التتبع.');
         }
-      } catch (err) {
+      } catch (err: unknown) {
+        if (err instanceof DOMException && err.name === 'AbortError') return;
         devLog('Failed to fetch order:', err);
         setError('حدث خطأ أثناء الاتصال. يرجى المحاولة مرة أخرى.');
       } finally {
@@ -62,6 +64,7 @@ export function useOrderTracking(id: string | null): {
       }
     }
     fetchOrder();
+    return () => controller.abort();
   }, [id]);
 
   return { order, items, history, loading, error, cooldown };

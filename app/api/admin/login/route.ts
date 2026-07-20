@@ -1,13 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createSupabaseAdminClient } from '@/lib/supabase/server'
-import { getServerSupabase } from '@/lib/supabase/server'
-import { validateRequestOrigin } from '@/lib/security'
-import { checkAndIncrementRateLimit, setRateLimitHeaders, generateFingerprint } from '@/lib/security'
-import { RATE_LIMIT_CONFIGS } from '@/lib/constants'
+import { createSupabaseAdminClient, getServerSupabase } from '@/lib/supabase/server'
+import { validateRequestOrigin, checkAndIncrementRateLimit, setRateLimitHeaders, generateFingerprint } from '@/lib/security'
+import { RATE_LIMIT_CONFIGS, isAdminRole } from '@/lib/constants'
 import { parseJsonBody } from '@/lib/utils/misc'
-import { isAdminRole } from '@/lib/constants'
 
 export async function GET(request: NextRequest) {
+  if (!validateRequestOrigin(request)) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  }
+
   const fingerprint = generateFingerprint(request);
   const supabaseClient = createSupabaseAdminClient()
   

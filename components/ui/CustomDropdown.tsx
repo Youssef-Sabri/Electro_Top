@@ -14,6 +14,8 @@ interface CustomDropdownProps {
   className?: string;
   labelPrefix?: string;
   disabled?: boolean;
+  ariaLabel?: string;
+  id?: string;
 }
 
 export const CustomDropdown = memo(function CustomDropdown({
@@ -22,7 +24,9 @@ export const CustomDropdown = memo(function CustomDropdown({
   onChange,
   className = '',
   labelPrefix = '',
-  disabled = false
+  disabled = false,
+  ariaLabel,
+  id,
 }: CustomDropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
@@ -77,12 +81,14 @@ export const CustomDropdown = memo(function CustomDropdown({
   return (
     <div ref={dropdownRef} className={`relative inline-block text-start font-tajawal min-w-[160px] ${className}`}>
       <button
+        id={id}
         type="button"
         onClick={() => !disabled && setIsOpen(!isOpen)}
         onKeyDown={handleKeyDown}
         disabled={disabled}
         aria-haspopup="listbox"
         aria-expanded={isOpen}
+        aria-label={ariaLabel || labelPrefix || undefined}
         className={`w-full flex justify-between items-center bg-white border rounded-lg px-4 py-2 text-sm font-semibold transition-all duration-200 shadow-sm ${
           disabled
             ? 'opacity-40 border-outline-variant bg-surface-container-low cursor-not-allowed text-on-surface-variant'
@@ -99,7 +105,7 @@ export const CustomDropdown = memo(function CustomDropdown({
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-1.5 w-full bg-white border border-outline-variant/30 rounded-lg shadow-xl py-1 z-50 animate-[modalAppear_0.15s_ease-out] overflow-hidden" role="listbox">
+        <div className="absolute right-0 mt-1.5 w-full bg-white border border-outline-variant/30 rounded-lg shadow-xl py-1 z-50 animate-[modalAppear_0.15s_ease-out] overflow-hidden" role="listbox" aria-label={ariaLabel || labelPrefix || undefined}>
           <div className="max-h-60 overflow-y-auto">
             {options.map((opt, index) => (
               <button

@@ -174,6 +174,23 @@ export const ShopPageContent = memo(function ShopPageContent({ initialProducts, 
     setSortBy('default');
   }, []);
 
+  const handleCloseModal = useCallback(() => setSelectedProduct(null), []);
+  const handleCloseFilterDrawer = useCallback(() => setIsFilterDrawerOpen(false), []);
+  const handleOpenFilterDrawer = useCallback(() => setIsFilterDrawerOpen(true), []);
+
+  const handleMainCategoryChange = useCallback((val: string) => {
+    setSelectedMainCategory(val);
+    setSelectedSubCategory(ALL_CATEGORIES);
+    setCategory(val === ALL_CATEGORIES ? ALL_CATEGORIES : val);
+  }, []);
+
+  const handleSubCategoryChange = useCallback((val: string) => {
+    setSelectedSubCategory(val);
+    setCategory(val === ALL_CATEGORIES ? selectedMainCategory : val);
+  }, [selectedMainCategory]);
+
+  const handleSortChange = useCallback((val: string) => setSortBy(val as SortByType), []);
+
   return (
     <div className="min-h-screen bg-white font-tajawal text-on-surface">
       <section className="bg-on-background py-16 text-start relative overflow-hidden">
@@ -219,7 +236,7 @@ export const ShopPageContent = memo(function ShopPageContent({ initialProducts, 
 
             <button
               type="button"
-              onClick={() => setIsFilterDrawerOpen(true)}
+              onClick={handleOpenFilterDrawer}
               className="bg-primary hover:bg-primary/95 text-on-primary px-5 py-2.5 rounded-xl text-xs font-bold active:scale-[0.98] premium-transition flex items-center justify-center gap-1.5 cursor-pointer shadow-md shadow-primary/15"
             >
               <span className="material-symbols-outlined text-[16px]">filter_list</span>
@@ -303,7 +320,7 @@ export const ShopPageContent = memo(function ShopPageContent({ initialProducts, 
       {selectedProduct && (
         <ProductDetailsModal
           product={selectedProduct}
-          onClose={() => setSelectedProduct(null)}
+          onClose={handleCloseModal}
         />
       )}
 
@@ -313,7 +330,7 @@ export const ShopPageContent = memo(function ShopPageContent({ initialProducts, 
           {/* Backdrop */}
           <div
             className="fixed inset-0 bg-black/40 backdrop-blur-sm transition-opacity duration-300 animate-[fadeIn_0.2s_ease-out]"
-            onClick={() => setIsFilterDrawerOpen(false)}
+            onClick={handleCloseFilterDrawer}
           />
           {/* Drawer Content */}
           <div className="relative w-full max-w-[290px] sm:max-w-[360px] bg-white h-full shadow-2xl flex flex-col z-10 transition-transform duration-300 animate-[slideInRight_0.25s_ease-out] border-s border-outline-variant/10 p-6 space-y-6 overflow-y-auto">
@@ -325,7 +342,7 @@ export const ShopPageContent = memo(function ShopPageContent({ initialProducts, 
               </div>
               <button
                 type="button"
-                onClick={() => setIsFilterDrawerOpen(false)}
+            onClick={handleCloseFilterDrawer}
                 className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-surface-container-high transition-colors cursor-pointer border-0 bg-transparent"
               >
                 <span className="material-symbols-outlined text-[20px]">close</span>
@@ -360,15 +377,7 @@ export const ShopPageContent = memo(function ShopPageContent({ initialProducts, 
                     ...categoryHierarchy.map(g => ({ value: g.name, label: g.name }))
                   ]}
                   value={selectedMainCategory}
-                  onChange={(val) => {
-                    setSelectedMainCategory(val);
-                    setSelectedSubCategory(ALL_CATEGORIES);
-                    if (val === ALL_CATEGORIES) {
-                      setCategory(ALL_CATEGORIES);
-                    } else {
-                      setCategory(val);
-                    }
-                  }}
+                  onChange={handleMainCategoryChange}
                   className="w-full"
                 />
               </div>
@@ -382,14 +391,7 @@ export const ShopPageContent = memo(function ShopPageContent({ initialProducts, 
                     ...(categoryHierarchy.find(g => g.name === selectedMainCategory)?.subcategories || []).map(sub => ({ value: sub, label: sub }))
                   ]}
                   value={selectedSubCategory}
-                  onChange={(val) => {
-                    setSelectedSubCategory(val);
-                    if (val === ALL_CATEGORIES) {
-                      setCategory(selectedMainCategory);
-                    } else {
-                      setCategory(val);
-                    }
-                  }}
+                  onChange={handleSubCategoryChange}
                   disabled={selectedMainCategory === ALL_CATEGORIES}
                   className="w-full"
                 />
@@ -409,7 +411,7 @@ export const ShopPageContent = memo(function ShopPageContent({ initialProducts, 
                     { value: 'price-desc', label: 'السعر: من الأعلى للأقل' },
                   ]}
                   value={sortBy}
-                  onChange={(val: string) => setSortBy(val as SortByType)}
+                  onChange={handleSortChange}
                   disabled={!!searchInput.trim()}
                   className="w-full"
                 />

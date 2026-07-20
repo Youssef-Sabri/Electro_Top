@@ -4,6 +4,7 @@ import { parseJsonBody } from '@/lib/utils/misc';
 import { revalidateShopPaths } from '@/lib/api-helpers';
 import { createSupabaseAdminClient } from '@/lib/supabase/server';
 import { TABLES } from '@/lib/constants';
+import { categoryHierarchySchema } from '@/lib/validations';
 
 export async function GET() {
   try {
@@ -14,7 +15,7 @@ export async function GET() {
       .order('name');
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      return NextResponse.json({ error: 'Failed to load categories.' }, { status: 500 });
     }
 
     const mainCategories = categories.filter((c) => !c.parent_category);
@@ -31,9 +32,8 @@ export async function GET() {
         'Cache-Control': 'public, max-age=60, s-maxage=60, stale-while-revalidate=120',
       },
     });
-  } catch (error) {
-    const msg = error instanceof Error ? error.message : 'Failed to read category hierarchy';
-    return NextResponse.json({ error: msg }, { status: 500 });
+  } catch {
+    return NextResponse.json({ error: 'Failed to load categories.' }, { status: 500 });
   }
 }
 
@@ -41,22 +41,20 @@ export async function POST(request: Request) {
   const guard = await requireAdminGuard(request);
   if (guard instanceof NextResponse) return guard;
 
-  interface CategoryGroup {
-    name: string;
-    subcategories: string[];
-  }
-
-  const body = await parseJsonBody<CategoryGroup[]>(request);
+  const body = await parseJsonBody<unknown>(request);
   if (body instanceof NextResponse) return body;
 
-  if (!Array.isArray(body)) {
-    return NextResponse.json({ error: 'Invalid data format. Expected an array.' }, { status: 400 });
+  const validation = categoryHierarchySchema.safeParse(body);
+  if (!validation.success) {
+    return NextResponse.json({ error: 'Invalid category data', details: validation.error.flatten() }, { status: 400 });
   }
+
+  const validatedBody = validation.data;
 
   try {
     const supabase = createSupabaseAdminClient();
-    const mainCatNames = body.map((m) => m.name.trim());
-    const allSubCats = body.flatMap((m) => m.subcategories.map((s: string) => s.trim()));
+    const mainCatNames = validatedBody.map((m) => m.name.trim());
+    const allSubCats = validatedBody.flatMap((m) => m.subcategories.map((s: string) => s.trim()));
     const allActiveNames = [...new Set([...mainCatNames, ...allSubCats])];
 
     if (allActiveNames.length > 0) {
@@ -93,7 +91,7 @@ export async function POST(request: Request) {
       .neq('name', '');
     if (resetErr) throw resetErr;
 
-    const updatePromises = body
+    const updatePromises = validatedBody
       .filter((group) => group.subcategories.length > 0)
       .map((group) =>
         supabase
@@ -109,8 +107,7 @@ export async function POST(request: Request) {
     revalidateShopPaths();
 
     return NextResponse.json({ success: true });
-  } catch (error) {
-    const msg = error instanceof Error ? error.message : 'Failed to save category hierarchy';
-    return NextResponse.json({ error: msg }, { status: 500 });
+  } catch {
+    return NextResponse.json({ error: 'Failed to save category hierarchy.' }, { status: 500 });
   }
 }

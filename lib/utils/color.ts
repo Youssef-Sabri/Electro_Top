@@ -11,6 +11,12 @@ export const ALL_COLORS = [
   { name: 'وردي', hex: '#EC4899' },
 ] as const;
 
+export type ColorEntry = (typeof ALL_COLORS)[number];
+
 export function getColorHex(name: string): string {
   return ALL_COLORS.find(c => c.name === name)?.hex ?? '#000000';
+}
+
+export function isGradientColor(value: string): boolean {
+  return value.startsWith('linear-gradient');
 }

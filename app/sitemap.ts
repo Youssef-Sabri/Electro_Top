@@ -5,7 +5,12 @@ import { fetchAllProductSlugs } from '@/lib/services/catalog';
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = SITE_METADATA.url;
 
-  const productEntries = await fetchAllProductSlugs();
+  let productEntries: { slug: string; updated_at: string }[] = [];
+  try {
+    productEntries = await fetchAllProductSlugs();
+  } catch {
+    // If product fetch fails, return static pages only
+  }
 
   const staticPages = [
     {

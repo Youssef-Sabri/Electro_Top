@@ -90,7 +90,7 @@ export default function AdminClientLayout({ children, initialAuthState }: AdminC
     if (loginCooldown <= 0) return;
     const timer = setInterval(() => {
       setLoginCooldown((prev) => {
-        if (prev <= 5) {
+        if (prev <= 1) {
           clearInterval(timer);
           setLoginAttempts(0);
           try {
@@ -99,9 +99,9 @@ export default function AdminClientLayout({ children, initialAuthState }: AdminC
           } catch { /* noop */ }
           return 0;
         }
-        return prev - 5;
+        return prev - 1;
       });
-    }, 5000);
+    }, 1000);
     return () => clearInterval(timer);
   }, [loginCooldown]);
 
@@ -175,7 +175,7 @@ export default function AdminClientLayout({ children, initialAuthState }: AdminC
             <h2 className="font-headline-md text-headline-md font-bold text-surface-bright tracking-tight">
               لوحة تحكم المسؤول
             </h2>
-            <p className="text-surface-variant/60 text-xs mt-1.5 font-medium">
+            <p className="text-white/50 text-xs mt-1.5 font-medium">
               أدخل بيانات اعتماد المسؤول لتسجيل الدخول.
             </p>
           </div>
@@ -183,13 +183,14 @@ export default function AdminClientLayout({ children, initialAuthState }: AdminC
           <form onSubmit={handleLoginSubmit} className="space-y-4 text-start">
             {/* Email Input */}
             <div className="space-y-2">
-              <label className="font-label-sm text-label-sm text-surface-variant/80 block uppercase tracking-wider font-bold">
+              <label htmlFor="admin-email" className="font-label-sm text-label-sm text-white/70 block uppercase tracking-wider font-bold">
                 البريد الإلكتروني
               </label>
               <div className="relative">
                 <input
+                  id="admin-email"
                   type="email"
-                  className="w-full bg-white/5 border border-white/20 rounded-lg pl-10 pr-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition-all text-white font-sans disabled:opacity-50 text-left"
+                  className="w-full bg-white/5 border border-white/20 rounded-lg pl-10 pr-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition-all text-white font-sans disabled:opacity-50 text-start"
                   dir="ltr"
                    placeholder="email@example.com"
                   value={email}
@@ -201,7 +202,7 @@ export default function AdminClientLayout({ children, initialAuthState }: AdminC
                   required
                   disabled={isLoading}
                 />
-                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-surface-variant/40 select-none text-[18px]">
+                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-white/40 select-none text-[18px]">
                   mail
                 </span>
               </div>
@@ -209,13 +210,14 @@ export default function AdminClientLayout({ children, initialAuthState }: AdminC
 
             {/* Password Input */}
             <div className="space-y-2">
-              <label className="font-label-sm text-label-sm text-surface-variant/80 block uppercase tracking-wider font-bold">
+              <label htmlFor="admin-password" className="font-label-sm text-label-sm text-white/70 block uppercase tracking-wider font-bold">
                 كلمة المرور
               </label>
               <div className="relative">
                 <input
+                  id="admin-password"
                   type="password"
-                  className="w-full bg-white/5 border border-white/20 rounded-lg pl-10 pr-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition-all text-white font-mono disabled:opacity-50 text-left"
+                  className="w-full bg-white/5 border border-white/20 rounded-lg pl-10 pr-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition-all text-white font-mono disabled:opacity-50 text-start"
                   dir="ltr"
                   placeholder="••••••••"
                   value={password}
@@ -226,7 +228,7 @@ export default function AdminClientLayout({ children, initialAuthState }: AdminC
                   required
                   disabled={isLoading}
                 />
-                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-surface-variant/40 select-none text-[18px]">
+                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-white/40 select-none text-[18px]">
                   lock
                 </span>
               </div>
@@ -273,6 +275,9 @@ export default function AdminClientLayout({ children, initialAuthState }: AdminC
 
   return (
     <div className="min-h-screen bg-surface flex flex-col xl:flex-row font-tajawal text-on-surface overflow-x-hidden max-w-full">
+      <a href="#admin-main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:start-4 z-[100] bg-primary text-on-primary px-4 py-2 rounded-lg font-bold">
+        انتقل إلى المحتوى الرئيسي
+      </a>
       {/* Mobile Top Header */}
       <header className="xl:hidden fixed top-0 left-0 right-0 h-16 bg-on-background text-white flex items-center justify-between px-6 z-50 shadow-md select-none print:hidden">
         <div className="flex items-center gap-3">
@@ -299,6 +304,7 @@ export default function AdminClientLayout({ children, initialAuthState }: AdminC
 
       {/* Side Navbar */}
       <aside
+        aria-label="لوحة التحكم"
         className={`fixed right-0 top-0 bottom-0 h-screen w-64 bg-on-background flex flex-col pt-20 pb-6 xl:py-6 shadow-xl z-40 transition-transform duration-300 xl:translate-x-0 print:hidden ${
           isSidebarOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
@@ -391,7 +397,7 @@ export default function AdminClientLayout({ children, initialAuthState }: AdminC
 
       {/* Main Content Area */}
       <div className="flex-grow min-h-screen ps-0 xl:ps-64 pt-16 xl:pt-0 print:ps-0 print:pt-0 print:min-h-0 min-w-0">
-        <main className="p-margin-mobile md:p-margin-desktop min-h-screen text-start print:p-0 print:min-h-0 w-full min-w-0">
+        <main id="admin-main-content" className="p-margin-mobile md:p-margin-desktop min-h-screen text-start print:p-0 print:min-h-0 w-full min-w-0" tabIndex={-1}>
           <ErrorBoundary>{children}</ErrorBoundary>
         </main>
       </div>

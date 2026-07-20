@@ -23,9 +23,10 @@ export const ImageUploadField = memo(function ImageUploadField({
 }: ImageUploadFieldProps) {
   return (
     <div className="space-y-2">
-      <label className="text-sm text-on-surface block font-bold">{label}</label>
+      <label htmlFor={`image-upload-${slot}`} className="text-sm text-on-surface block font-bold">{label}</label>
       <div className="flex items-center gap-3">
         <input
+          id={`image-upload-${slot}`}
           type="file"
           accept="image/*"
           onChange={(e) => onFileChange(e, slot)}

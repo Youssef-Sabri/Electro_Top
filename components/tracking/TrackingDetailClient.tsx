@@ -67,7 +67,8 @@ export function TrackingDetailClient({ id }: TrackingDetailClientProps) {
 
   if (loading) {
     return (
-      <div className="max-w-max-width mx-auto px-margin-mobile md:px-margin-desktop py-20 text-center font-tajawal">
+      <div className="max-w-max-width mx-auto px-margin-mobile md:px-margin-desktop py-20 text-center font-tajawal" role="status" aria-label="جاري البحث">
+        <span className="material-symbols-outlined text-primary text-[48px] animate-spin select-none mb-4 inline-block">sync</span>
         <p className="text-on-surface-variant text-sm">جاري البحث في قاعدة بيانات تتبع طلبات إلكترو توب...</p>
       </div>
     );
@@ -101,7 +102,9 @@ export function TrackingDetailClient({ id }: TrackingDetailClientProps) {
           </div>
 
           <form onSubmit={handleRetrySubmit} className="space-y-3 pt-2">
+            <label htmlFor="retry-tracking-input" className="sr-only">رقم التتبع</label>
             <input
+              id="retry-tracking-input"
               className={`w-full bg-surface-container-low border rounded-xl p-3.5 focus:ring-2 focus:ring-primary/10 focus:border-primary outline-none transition-all placeholder:text-on-surface-variant/50 uppercase tracking-widest text-center font-mono font-semibold text-on-surface text-sm ${
                 retryError ? 'border-error ring-1 ring-error/20' : 'border-outline-variant'
               }`}
@@ -173,13 +176,13 @@ export function TrackingDetailClient({ id }: TrackingDetailClientProps) {
               <h3 className="font-bold text-[18px] text-secondary-fixed">
                 تفاصيل الفاتورة
               </h3>
-              <div className="text-left">
-                <p className="text-surface-variant/80 text-[10px] uppercase font-bold tracking-wider mb-0.5">رقم الطلب</p>
+              <div className="text-end">
+                <p className="text-white/60 text-[10px] uppercase font-bold tracking-wider mb-0.5">رقم الطلب</p>
                 <p className="font-mono text-xs font-bold text-white tracking-wider">{order.id_unique_tracking}</p>
               </div>
             </div>
 
-            <div className="flex items-center gap-2 text-surface-variant/80 text-xs font-semibold">
+            <div className="flex items-center gap-2 text-white/60 text-xs font-semibold">
               <span className="material-symbols-outlined text-[15px] select-none text-electro-gold">calendar_today</span>
               <span>
                 {formatOrderDate(order.created_at)}
@@ -219,12 +222,12 @@ export function TrackingDetailClient({ id }: TrackingDetailClientProps) {
                         {name}
                       </p>
                       {item.selected_color && (
-                        <p className="text-[10px] text-on-surface-variant font-semibold flex items-center gap-1.5 mt-0.5">
+                        <p className="text-[10px] text-surface-variant font-semibold flex items-center gap-1.5 mt-0.5">
                           <ColorSwatch color={item.selected_color} />
                           اللون: {item.selected_color}
                         </p>
                       )}
-                      <p className="text-on-surface-variant text-[11px] mt-0.5">الكمية: {item.quantity} × {formatCurrency(item.unit_price)}</p>
+                      <p className="text-surface-variant text-[11px] mt-0.5">الكمية: {item.quantity} × {formatCurrency(item.unit_price)}</p>
                     </div>
                     <p className="font-bold text-xs shrink-0 font-mono">{formatCurrency(item.unit_price * item.quantity)}</p>
                   </div>
@@ -233,11 +236,11 @@ export function TrackingDetailClient({ id }: TrackingDetailClientProps) {
             </div>
 
             <div className="border-t border-surface-variant/10 pt-5 mt-4 space-y-2 text-sm text-white">
-              <div className="flex justify-between items-center text-xs text-surface-variant/80">
+              <div className="flex justify-between items-center text-xs text-white/60">
                 <span>المجموع الفرعي</span>
                 <span className="font-mono">{formatCurrency(order.total_amount)}</span>
               </div>
-              <div className="flex justify-between items-center text-xs text-surface-variant/80">
+              <div className="flex justify-between items-center text-xs text-white/60">
                 <span>الشحن</span>
                 <span className="font-bold text-green-400">مجاني</span>
               </div>
@@ -249,7 +252,7 @@ export function TrackingDetailClient({ id }: TrackingDetailClientProps) {
               </div>
             </div>
 
-            <div className="pt-3 border-t border-surface-variant/10 flex items-center gap-2 text-surface-variant/80 text-xs font-semibold">
+            <div className="pt-3 border-t border-white/10 flex items-center gap-2 text-white/60 text-xs font-semibold">
               <span className="material-symbols-outlined text-[15px] select-none">payments</span>
               <span>
                 {order.payment_method === 'cod'

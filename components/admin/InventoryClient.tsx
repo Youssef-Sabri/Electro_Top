@@ -1,16 +1,18 @@
 'use client';
 
-import { memo, useState, useMemo, useEffect, useDeferredValue, useRef } from 'react';
+import { memo, useState, useMemo, useEffect, useDeferredValue, useRef, useCallback } from 'react';
 import Image from 'next/image';
 import { useSearchParams, usePathname } from 'next/navigation';
 import { useProducts } from '@/hooks/useProducts';
 import { useCategoryHierarchy } from '@/hooks/useCategoryHierarchy';
 import { usePagination } from '@/hooks/usePagination';
 import { useConfirmModal } from '@/hooks/useConfirmModal';
+import { useHydrated } from '@/hooks/useHydrated';
+import { useToast } from '@/hooks/useToast';
+import { useProductForm } from '@/hooks/useProductForm';
 import { formatCurrency } from '@/lib/utils/format';
 import { todayStamp } from '@/lib/utils/date';
 import type { Product } from '@/types';
-import { ProductFormData, productFormSchema } from '@/lib/validations';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { Spinner } from '@/components/ui/Spinner';
 import { CustomDropdown } from '@/components/ui/CustomDropdown';
@@ -20,11 +22,10 @@ import { PasswordConfirmModal } from '@/components/ui/PasswordConfirmModal';
 import { Toast } from '@/components/ui/Toast';
 import { PaginationControls } from '@/components/ui/PaginationControls';
 import { exportToCSV } from '@/lib/utils/csv';
-import { uploadProductImage, processAndCompressImage, deleteProductImage } from '@/lib/utils/image';
-import { ALL_COLORS } from '@/lib/utils/color';
-import { ImageUploadField } from '@/components/admin/ImageUploadField';
 import { sortByRelevance } from '@/lib/utils/search';
 import { defaultProductSort } from '@/lib/utils/sort';
+import { ProductFormModal } from '@/components/admin/ProductFormModal';
+import { DeleteProductConfirmModal } from '@/components/admin/DeleteProductConfirmModal';
 
 export const InventoryClient = memo(function InventoryClient() {
 
@@ -58,52 +59,15 @@ export const InventoryClient = memo(function InventoryClient() {
     return p ? parseInt(p, 10) : 1;
   }, [searchParams]);
 
-  const [isMounted, setIsMounted] = useState(false);
+  const isMounted = useHydrated();
 
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
-
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [deletingProduct, setDeletingProduct] = useState<Product | null>(null);
 
-  const [isCompressing, setIsCompressing] = useState(false);
-  const [isCompressing2, setIsCompressing2] = useState(false);
-  const [isCompressing3, setIsCompressing3] = useState(false);
-  const [compressionInfo, setCompressionInfo] = useState<string | null>(null);
-  const [compressionInfo2, setCompressionInfo2] = useState<string | null>(null);
-  const [compressionInfo3, setCompressionInfo3] = useState<string | null>(null);
-  const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
-  const [selectedImageFile2, setSelectedImageFile2] = useState<File | null>(null);
-  const [selectedImageFile3, setSelectedImageFile3] = useState<File | null>(null);
-  const [isSaving, setIsSaving] = useState(false);
-
-  const [formData, setFormData] = useState<Omit<ProductFormData, 'price' | 'stock'> & { price: number | ''; stock: number | ''; }>({
-    name: '',
-    description: '',
-    price: '',
-    stock: '',
-    image_url: '',
-    image_url_2: '',
-    image_url_3: '',
-    is_active: true,
-    has_colors: false,
-    colors: [] as string[],
-    category: '',
-  });
-  const [formErrors, setFormErrors] = useState<Partial<Record<keyof ProductFormData, string>>>({});
-
-  const [isClearProductsPasswordOpen, setIsClearProductsPasswordOpen] = useState(false);
-
   const { confirmModal, openConfirm, closeConfirm } = useConfirmModal();
+  const { toast, showSuccess, dismissToast } = useToast();
 
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
-  const showToast = (msg: string) => {
-    setToastMessage(msg);
-  };
-
-  const [formMainCategory, setFormMainCategory] = useState('');
+  const productForm = useProductForm({ hierarchy, addProduct, updateProduct, showSuccess, openConfirm, closeConfirm });
+  const [isClearProductsPasswordOpen, setIsClearProductsPasswordOpen] = useState(false);
 
   const metrics = useMemo(() => {
     const total = products.length;
@@ -232,7 +196,7 @@ export const InventoryClient = memo(function InventoryClient() {
     setCurrentPage((prev) => (prev === urlPage ? prev : urlPage));
   }, [searchParams, pathname, setCurrentPage]);
 
-  const handleExportCSV = () => {
+  const handleExportCSV = useCallback(() => {
     const headers = [
       'معرف المنتج',
       'اسم المنتج',
@@ -259,9 +223,9 @@ export const InventoryClient = memo(function InventoryClient() {
       headers,
       rows,
     });
-  };
+  }, [products]);
 
-  const handleClearAllProducts = () => {
+  const handleClearAllProducts = useCallback(() => {
     openConfirm({
       title: 'مسح المخزون بالكامل',
       message: 'هل أنت متأكد من رغبتك في حذف جميع المنتجات في المخزون نهائياً؟ هذا الإجراء لا يمكن التراجع عنه.',
@@ -273,297 +237,22 @@ export const InventoryClient = memo(function InventoryClient() {
         setIsClearProductsPasswordOpen(true);
       },
     });
-  };
+  }, [openConfirm, closeConfirm]);
 
-  const handleOpenAddModal = () => {
-    setSelectedImageFile(null);
-    setSelectedImageFile2(null);
-    setSelectedImageFile3(null);
-    setFormMainCategory('');
-    setFormData({
-      name: '',
-      description: '',
-      price: '',
-      stock: '',
-      image_url: '',
-      image_url_2: '',
-      image_url_3: '',
-      is_active: true,
-      has_colors: false,
-      colors: [],
-      category: '',
-    });
-    setFormErrors({});
-    setCompressionInfo(null);
-    setCompressionInfo2(null);
-    setCompressionInfo3(null);
-    setIsAddModalOpen(true);
-  };
-
-  const handleOpenEditModal = (product: Product) => {
-    setSelectedImageFile(null);
-    setSelectedImageFile2(null);
-    setSelectedImageFile3(null);
-    setEditingProduct(product);
-
-    // Find parent category of this product's subcategory
-    const parentGroup = hierarchy.find(g =>
-      g.name === product.category ||
-      (g.subcategories || []).includes(product.category || '')
-    );
-    setFormMainCategory(parentGroup ? parentGroup.name : '');
-
-    setFormData({
-      name: product.name,
-      description: product.description,
-      price: product.price,
-      stock: product.stock,
-      image_url: product.image_url,
-      image_url_2: product.image_url_2 || '',
-      image_url_3: product.image_url_3 || '',
-      is_active: product.is_active,
-      has_colors: product.has_colors || false,
-      colors: product.colors || [],
-      category: product.category || '',
-    });
-    setFormErrors({});
-    setCompressionInfo(null);
-    setCompressionInfo2(null);
-    setCompressionInfo3(null);
-  };
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value, type } = e.target;
-    let parsedValue: string | number = value;
-    
-    if (type === 'number') {
-      parsedValue = value === '' ? '' : parseFloat(value);
-    }
-    
-    setFormData((prev) => ({ ...prev, [name]: parsedValue }));
-    if (formErrors[name as keyof ProductFormData]) {
-      setFormErrors((prev) => ({ ...prev, [name]: undefined }));
-    }
-  };
-
-  const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, checked } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: checked }));
-    if (name === 'has_colors' && !checked && formErrors.colors) {
-      setFormErrors((prev) => ({ ...prev, colors: undefined }));
-    }
-  };
-
-  const handleCloseModal = () => {
-    setSelectedImageFile(null);
-    setSelectedImageFile2(null);
-    setSelectedImageFile3(null);
-    setCompressionInfo(null);
-    setCompressionInfo2(null);
-    setCompressionInfo3(null);
-    setFormMainCategory('');
-    setIsAddModalOpen(false);
-    setEditingProduct(null);
-  };
-
-  const handleImageFileChange = async (e: React.ChangeEvent<HTMLInputElement>, slot: 0 | 1 | 2) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    const fieldKey = slot === 0 ? 'image_url' : slot === 1 ? 'image_url_2' : 'image_url_3';
-    const setCompressing = slot === 0 ? setIsCompressing : slot === 1 ? setIsCompressing2 : setIsCompressing3;
-    const setInfo = slot === 0 ? setCompressionInfo : slot === 1 ? setCompressionInfo2 : setCompressionInfo3;
-    const setFile = slot === 0 ? setSelectedImageFile : slot === 1 ? setSelectedImageFile2 : setSelectedImageFile3;
-
-    setFormErrors((prev) => ({ ...prev, [fieldKey]: undefined }));
-    setInfo(null);
-    setCompressing(true);
-
-    try {
-      const { dataUrl, info } = await processAndCompressImage(file);
-      setInfo(info);
-      setFile(file);
-      setFormData((prev) => ({
-        ...prev,
-        [fieldKey]: dataUrl,
-      }));
-    } catch (err: unknown) {
-      const errorMsg = err instanceof Error ? err.message : 'فشل معالجة الصورة. يرجى محاولة رفع ملف آخر.';
-      setFormErrors((prev) => ({
-        ...prev,
-        [fieldKey]: errorMsg,
-      }));
-      e.target.value = '';
-    } finally {
-      setCompressing(false);
-    }
-  };
-
-  const handleSetAsMainImage = (slot: 1 | 2) => {
-    const fieldKey = slot === 1 ? 'image_url_2' : 'image_url_3';
-    const additionalUrl = formData[fieldKey];
-    if (!additionalUrl) return;
-
-    setFormData((prev) => ({
-      ...prev,
-      [fieldKey]: prev.image_url,
-      image_url: additionalUrl,
-    }));
-
-    const file = slot === 1 ? selectedImageFile2 : selectedImageFile3;
-    const setMainFile = setSelectedImageFile;
-    const setAdditionalFile = slot === 1 ? setSelectedImageFile2 : setSelectedImageFile3;
-
-    const mainFile = selectedImageFile;
-    setMainFile(file);
-    setAdditionalFile(mainFile);
-
-    const info = slot === 1 ? compressionInfo2 : compressionInfo3;
-    const setMainInfo = setCompressionInfo;
-    const setAdditionalInfo = slot === 1 ? setCompressionInfo2 : setCompressionInfo3;
-
-    const mainInfo = compressionInfo;
-    setMainInfo(info);
-    setAdditionalInfo(mainInfo);
-  };
-
-  const uploadImageFiles = async (uploadedUrls: string[]) => {
-    let finalImageUrl = formData.image_url;
-    let finalImageUrl2 = formData.image_url_2;
-    let finalImageUrl3 = formData.image_url_3;
-
-    if (selectedImageFile) {
-      const { imageUrl } = await uploadProductImage(selectedImageFile);
-      finalImageUrl = imageUrl;
-      uploadedUrls.push(imageUrl);
-    }
-    if (selectedImageFile2) {
-      const { imageUrl } = await uploadProductImage(selectedImageFile2);
-      finalImageUrl2 = imageUrl;
-      uploadedUrls.push(imageUrl);
-    }
-    if (selectedImageFile3) {
-      const { imageUrl } = await uploadProductImage(selectedImageFile3);
-      finalImageUrl3 = imageUrl;
-      uploadedUrls.push(imageUrl);
-    }
-
-    return { finalImageUrl, finalImageUrl2, finalImageUrl3 };
-  };
-
-  const handleFormSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const validationData = {
-      ...formData,
-      price: formData.price === '' ? undefined : Number(formData.price),
-      stock: formData.stock === '' ? undefined : Number(formData.stock),
-    };
-    const result = productFormSchema.safeParse(validationData);
-
-    if (!result.success) {
-      const errors: Partial<Record<keyof ProductFormData, string>> = {};
-      result.error.issues.forEach((issue) => {
-        const path = issue.path[0] as keyof ProductFormData;
-        errors[path] = issue.message;
-      });
-      setFormErrors(errors);
-      return;
-    }
-
-    if (editingProduct) {
-      openConfirm({
-        title: 'حفظ تغييرات المنتج',
-        message: `هل أنت متأكد من رغبتك في حفظ التغييرات على المنتج "${editingProduct.name}"؟`,
-        confirmLabel: 'حفظ التغييرات',
-        cancelLabel: 'إلغاء',
-        onConfirm: async () => {
-          closeConfirm();
-          setIsSaving(true);
-          const uploadedUrls: string[] = [];
-          try {
-            const { finalImageUrl, finalImageUrl2, finalImageUrl3 } = await uploadImageFiles(uploadedUrls);
-
-            await updateProduct({
-              ...editingProduct,
-              ...result.data,
-              has_colors: result.data.has_colors ?? false,
-              colors: result.data.colors ?? [],
-              image_url: finalImageUrl,
-              image_url_2: finalImageUrl2 || null,
-              image_url_3: finalImageUrl3 || null,
-              category: result.data.category ? result.data.category.trim() : null,
-            });
-            showToast(`تم تحديث المنتج "${result.data.name}" بنجاح!`);
-            setEditingProduct(null);
-          } catch (err: unknown) {
-            for (const url of uploadedUrls) {
-              await deleteProductImage(url).catch(() => {});
-            }
-            const msg = err instanceof Error ? err.message : 'حدث خطأ أثناء حفظ المنتج';
-            showToast(msg);
-          } finally {
-            setIsSaving(false);
-            setSelectedImageFile(null);
-            setSelectedImageFile2(null);
-            setSelectedImageFile3(null);
-          }
-        },
-      });
-    } else {
-      openConfirm({
-        title: 'إضافة منتج',
-        message: `هل أنت متأكد من رغبتك في إضافة المنتج الجديد "${result.data.name}"؟`,
-        confirmLabel: 'إضافة منتج',
-        cancelLabel: 'إلغاء',
-        onConfirm: async () => {
-          closeConfirm();
-          setIsSaving(true);
-          const uploadedUrls: string[] = [];
-          try {
-            const { finalImageUrl, finalImageUrl2, finalImageUrl3 } = await uploadImageFiles(uploadedUrls);
-
-            await addProduct({
-              ...result.data,
-              has_colors: result.data.has_colors ?? false,
-              colors: result.data.colors ?? [],
-              image_url: finalImageUrl,
-              image_url_2: finalImageUrl2 || null,
-              image_url_3: finalImageUrl3 || null,
-              category: result.data.category ? result.data.category.trim() : null,
-            });
-            showToast(`تم إضافة المنتج "${result.data.name}" بنجاح!`);
-            setIsAddModalOpen(false);
-          } catch (err: unknown) {
-            for (const url of uploadedUrls) {
-              await deleteProductImage(url).catch(() => {});
-            }
-            const msg = err instanceof Error ? err.message : 'حدث خطأ أثناء حفظ المنتج';
-            showToast(msg);
-          } finally {
-            setIsSaving(false);
-            setSelectedImageFile(null);
-            setSelectedImageFile2(null);
-            setSelectedImageFile3(null);
-          }
-        },
-      });
-    }
-  };
-
-  const handleDeleteConfirm = async () => {
+  const handleDeleteConfirm = useCallback(async () => {
     if (!deletingProduct) return;
     const productName = deletingProduct.name;
     const productId = deletingProduct.id;
     setDeletingProduct(null);
     try {
       await deleteProduct(productId);
-      showToast(`تم حذف المنتج "${productName}" بنجاح!`);
+      showSuccess(`تم حذف المنتج "${productName}" بنجاح!`);
     } catch {
-      showToast('فشل حذف المنتج. الرجاء المحاولة مرة أخرى.');
+      showSuccess('فشل حذف المنتج. الرجاء المحاولة مرة أخرى.');
     }
-  };
+  }, [deletingProduct, deleteProduct, showSuccess]);
 
-  const handleToggleActive = (product: Product) => {
+  const handleToggleActive = useCallback((product: Product) => {
     const actionName = product.is_active ? 'تعطيل' : 'تنشيط';
     openConfirm({
       title: `${product.is_active ? 'تعطيل' : 'تنشيط'} المنتج`,
@@ -578,13 +267,39 @@ export const InventoryClient = memo(function InventoryClient() {
             ...product,
             is_active: !product.is_active,
           });
-          showToast(`المنتج "${product.name}" أصبح الآن ${!product.is_active ? 'نشطاً' : 'غير نشط'}!`);
+          showSuccess(`المنتج "${product.name}" أصبح الآن ${!product.is_active ? 'نشطاً' : 'غير نشط'}!`);
         } catch {
-          showToast(`فشل ${product.is_active ? 'تعطيل' : 'تنشيط'} المنتج. الرجاء المحاولة مرة أخرى.`);
+          showSuccess(`فشل ${product.is_active ? 'تعطيل' : 'تنشيط'} المنتج. الرجاء المحاولة مرة أخرى.`);
         }
       },
     });
-  };
+  }, [openConfirm, closeConfirm, updateProduct, showSuccess]);
+
+  const handleClearProductsConfirm = useCallback(async (password: string) => {
+    try {
+      await clearAllProducts(password);
+      showSuccess('تم حذف جميع عناصر المخزون.');
+    } catch {
+      showSuccess('فشل حذف جميع المنتجات. الرجاء المحاولة مرة أخرى.');
+    }
+    setIsClearProductsPasswordOpen(false);
+  }, [clearAllProducts, showSuccess]);
+
+  const handleClearProductsCancel = useCallback(() => {
+    setIsClearProductsPasswordOpen(false);
+  }, []);
+
+  const handleMainCategoryFilterChange = useCallback((val: string) => {
+    setSelectedMainCategoryFilter(val);
+    setSelectedSubCategoryFilter('all');
+  }, []);
+
+  const handleDeleteProductCancel = useCallback(() => setDeletingProduct(null), []);
+
+  const handleSubCategoryFilterChange = useCallback((val: string) => setSelectedSubCategoryFilter(val), []);
+  const handleStatusFilterChange = useCallback((val: string) => setStatusFilter(val as 'all' | 'active' | 'inactive'), []);
+  const handleStockFilterChange = useCallback((val: string) => setStockFilter(val as 'all' | 'out' | 'low' | 'instock'), []);
+  const handleSortChange = useCallback((val: string) => setSortBy(val as 'default' | 'price-asc' | 'price-desc'), []);
 
   if (!isMounted) {
     return (
@@ -597,24 +312,13 @@ export const InventoryClient = memo(function InventoryClient() {
 
   return (
     <div className="space-y-8 font-tajawal text-on-surface" dir="rtl">
-      {toastMessage && (
+      {toast && (
         <Toast
-          message={toastMessage}
-          onClose={() => setToastMessage(null)}
+          message={toast.message}
+          type={toast.type}
+          onClose={dismissToast}
           duration={3000}
         />
-      )}
-
-      {isSaving && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-[2px] flex flex-col items-center justify-center z-[110] font-tajawal">
-          <div className="bg-white p-6 rounded-xl shadow-xl border border-outline-variant/30 flex flex-col items-center gap-4 text-center">
-            <span className="material-symbols-outlined text-primary text-[48px] animate-spin select-none">sync</span>
-            <div>
-              <p className="font-bold text-on-surface">جاري حفظ بيانات المنتج...</p>
-              <p className="text-xs text-on-surface-variant mt-1">يرجى الانتظار وعدم إغلاق الصفحة.</p>
-            </div>
-          </div>
-        </div>
       )}
 
       <div className="flex flex-col lg:flex-row lg:flex-wrap justify-between items-start lg:items-center gap-4 w-full">
@@ -644,7 +348,7 @@ export const InventoryClient = memo(function InventoryClient() {
             مسح المخزون
           </button>
           <button
-            onClick={handleOpenAddModal}
+            onClick={productForm.openAdd}
             className="bg-primary text-on-primary px-5 py-3 rounded-lg font-label-md text-label-md hover:opacity-90 active:scale-[0.98] transition-all flex items-center gap-2 cursor-pointer font-bold uppercase tracking-wider shadow-lg shadow-primary/20"
           >
             <span className="material-symbols-outlined text-[20px]">add</span>
@@ -669,8 +373,10 @@ export const InventoryClient = memo(function InventoryClient() {
         <div className="space-y-4">
           {/* Search */}
           <div className="relative w-full">
+            <label htmlFor="inventory-search" className="sr-only">بحث في المنتجات</label>
             <input
-              className="w-full bg-surface-container-low border border-outline-variant rounded-lg pr-10 pl-4 py-2.5 text-label-md focus:ring-2 focus:ring-primary/10 focus:border-primary outline-none transition-all text-on-surface text-right"
+              id="inventory-search"
+              className="w-full bg-surface-container-low border border-outline-variant rounded-lg pr-10 pl-4 py-2.5 text-label-md focus:ring-2 focus:ring-primary/10 focus:border-primary outline-none transition-all text-on-surface text-start"
               placeholder="ابحث عن المنتجات بالاسم أو المعرف أو الوصف..."
               type="text"
               value={searchQuery}
@@ -689,10 +395,7 @@ export const InventoryClient = memo(function InventoryClient() {
                 ...hierarchy.map(g => ({ value: g.name, label: g.name }))
               ]}
               value={selectedMainCategoryFilter}
-              onChange={(val) => {
-                setSelectedMainCategoryFilter(val);
-                setSelectedSubCategoryFilter('all');
-              }}
+              onChange={handleMainCategoryFilterChange}
             />
 
             <CustomDropdown
@@ -702,7 +405,7 @@ export const InventoryClient = memo(function InventoryClient() {
                 ...(hierarchy.find(g => g.name === selectedMainCategoryFilter)?.subcategories || []).map(sub => ({ value: sub, label: sub }))
               ]}
               value={selectedSubCategoryFilter}
-              onChange={(val) => setSelectedSubCategoryFilter(val)}
+              onChange={handleSubCategoryFilterChange}
               disabled={selectedMainCategoryFilter === 'all'}
             />
 
@@ -714,7 +417,7 @@ export const InventoryClient = memo(function InventoryClient() {
                 { value: 'inactive', label: 'غير نشط' }
               ]}
               value={statusFilter}
-              onChange={(val) => setStatusFilter(val as 'all' | 'active' | 'inactive')}
+              onChange={handleStatusFilterChange}
             />
 
             <CustomDropdown
@@ -726,7 +429,7 @@ export const InventoryClient = memo(function InventoryClient() {
                 { value: 'out', label: 'نفد من المخزون (0)' }
               ]}
               value={stockFilter}
-              onChange={(val) => setStockFilter(val as 'all' | 'out' | 'low' | 'instock')}
+              onChange={handleStockFilterChange}
             />
 
             <CustomDropdown
@@ -737,7 +440,7 @@ export const InventoryClient = memo(function InventoryClient() {
                 { value: 'price-desc', label: 'السعر: من الأعلى للأقل' }
               ]}
               value={sortBy}
-              onChange={(val) => setSortBy(val as 'default' | 'price-asc' | 'price-desc')}
+              onChange={handleSortChange}
             />
           </div>
         </div>
@@ -748,13 +451,13 @@ export const InventoryClient = memo(function InventoryClient() {
           <table className="hidden lg:table w-full text-start border-collapse">
             <thead>
               <tr className="bg-surface-container-low border-b border-outline-variant/20 text-on-surface-variant font-bold text-xs uppercase tracking-wider text-start">
-                <th className="py-4 px-6 text-start">الصورة</th>
-                <th className="py-4 px-6 text-start">تفاصيل المنتج</th>
-                <th className="py-4 px-6 text-start">الفئة</th>
-                <th className="py-4 px-6 text-end">السعر</th>
-                <th className="py-4 px-6 text-center">المخزون</th>
-                <th className="py-4 px-6 text-center">الظهور</th>
-                <th className="py-4 px-6 text-center">الإجراءات</th>
+                <th scope="col" className="py-4 px-6 text-start">الصورة</th>
+                <th scope="col" className="py-4 px-6 text-start">تفاصيل المنتج</th>
+                <th scope="col" className="py-4 px-6 text-start">الفئة</th>
+                <th scope="col" className="py-4 px-6 text-end">السعر</th>
+                <th scope="col" className="py-4 px-6 text-center">المخزون</th>
+                <th scope="col" className="py-4 px-6 text-center">الظهور</th>
+                <th scope="col" className="py-4 px-6 text-center">الإجراءات</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-outline-variant/10 text-sm">
@@ -789,8 +492,10 @@ export const InventoryClient = memo(function InventoryClient() {
                     </td>
 
                     <td className="py-4 px-6 max-w-xs md:max-w-md text-start">
-                      <p className="font-bold text-on-surface text-base">{product.name}</p>
-                      <p className="text-xs text-on-surface-variant mt-1.5 truncate">
+                      <div className="flex items-center gap-1.5 flex-wrap mb-1">
+                        <p className="font-bold text-on-surface text-base">{product.name}</p>
+                      </div>
+                      <p className="text-xs text-on-surface-variant mt-1 truncate">
                         {product.description}
                       </p>
                     </td>
@@ -838,9 +543,10 @@ export const InventoryClient = memo(function InventoryClient() {
                     <td className="py-4 px-6 text-center">
                       <div className="flex items-center justify-center gap-2">
                         <button
-                          onClick={() => handleOpenEditModal(product)}
+                          onClick={() => productForm.openEdit(product)}
                           className="w-9 h-9 rounded-lg border border-outline-variant/30 flex items-center justify-center text-on-surface hover:text-secondary hover:border-secondary transition-all cursor-pointer bg-white"
                           title="تعديل المنتج"
+                          aria-label="تعديل المنتج"
                         >
                           <span className="material-symbols-outlined text-[18px]">edit</span>
                         </button>
@@ -848,6 +554,7 @@ export const InventoryClient = memo(function InventoryClient() {
                           onClick={() => setDeletingProduct(product)}
                           className="w-9 h-9 rounded-lg border border-outline-variant/30 flex items-center justify-center text-on-surface hover:text-primary hover:border-primary transition-all cursor-pointer bg-white"
                           title="حذف المنتج"
+                          aria-label="حذف المنتج"
                         >
                           <span className="material-symbols-outlined text-[18px]">delete</span>
                         </button>
@@ -955,9 +662,10 @@ export const InventoryClient = memo(function InventoryClient() {
                     </button>
 
                     <button
-                      onClick={() => handleOpenEditModal(product)}
+                      onClick={() => productForm.openEdit(product)}
                       className="w-9 h-9 rounded-lg border border-outline-variant/30 flex items-center justify-center text-on-surface hover:text-secondary hover:border-secondary transition-all cursor-pointer bg-white"
                       title="تعديل المنتج"
+                      aria-label="تعديل المنتج"
                     >
                       <span className="material-symbols-outlined text-[18px]">edit</span>
                     </button>
@@ -966,6 +674,7 @@ export const InventoryClient = memo(function InventoryClient() {
                       onClick={() => setDeletingProduct(product)}
                       className="w-9 h-9 rounded-lg border border-outline-variant/30 flex items-center justify-center text-on-surface hover:text-primary hover:border-primary transition-all cursor-pointer bg-white"
                       title="حذف المنتج"
+                      aria-label="حذف المنتج"
                     >
                       <span className="material-symbols-outlined text-[18px]">delete</span>
                     </button>
@@ -987,322 +696,39 @@ export const InventoryClient = memo(function InventoryClient() {
         />
       </div>
 
-      {(isAddModalOpen || editingProduct) && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div
-            className="bg-white border border-outline-variant/20 w-full max-w-2xl rounded-xl shadow-2xl overflow-hidden animate-[modalAppear_0.25s_ease-out] max-h-[90vh] flex flex-col"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="bg-on-background text-white p-6 flex justify-between items-center">
-              <h3 className="font-headline-md text-headline-md font-bold">
-                {editingProduct ? 'تعديل تفاصيل المنتج' : 'إضافة منتج جديد'}
-              </h3>
-              <button
-                onClick={handleCloseModal}
-                className="text-white/70 hover:text-white transition-colors cursor-pointer flex items-center"
-              >
-                <span className="material-symbols-outlined text-[24px]">close</span>
-              </button>
-            </div>
-
-            <form onSubmit={handleFormSubmit} className="p-8 space-y-6 text-start overflow-y-auto flex-grow">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-1">
-                  <label className="font-label-md text-on-surface block font-bold">اسم المنتج</label>
-                  <input
-                    className={`w-full border rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary/10 focus:border-primary transition-all bg-white text-on-background font-body-md ${
-                      formErrors.name ? 'border-error ring-1 ring-error/20' : 'border-outline-variant'
-                    }`}
-                    name="name"
-                    placeholder="مثال: شنايدر Easy9 قاطع ثلاثي 16 أمبير"
-                    type="text"
-                    value={formData.name}
-                    onChange={handleInputChange}
-                  />
-                  {formErrors.name && (
-                    <p className="text-xs text-error font-medium">{formErrors.name}</p>
-                  )}
-                </div>
-
-                <div className="space-y-1">
-                  <ImageUploadField
-                    label="صورة المنتج الرئيسية"
-                    slot="image_url"
-                    currentUrl={formData.image_url}
-                    previewUrl={isCompressing ? null : formData.image_url || null}
-                    isUploading={isCompressing}
-                    onFileChange={(e) => handleImageFileChange(e, 0)}
-                  />
-                  {compressionInfo && !formErrors.image_url && (
-                    <p className="text-[11px] text-[var(--color-status-delivered)] font-medium flex items-center gap-1 mt-1">
-                      <span className="material-symbols-outlined text-sm select-none">check_circle</span>
-                      {compressionInfo}
-                    </p>
-                  )}
-                  {formErrors.image_url && (
-                    <p className="text-xs text-error font-medium mt-1">{formErrors.image_url}</p>
-                  )}
-                </div>
-
-                <div className="space-y-1">
-                  <ImageUploadField
-                    label="صورة إضافية 1 (اختياري)"
-                    slot="image_url_2"
-                    currentUrl={formData.image_url_2 || ''}
-                    previewUrl={isCompressing2 ? null : formData.image_url_2 || null}
-                    isUploading={isCompressing2}
-                    onFileChange={(e) => handleImageFileChange(e, 1)}
-                    onSetAsMain={formData.image_url_2 ? () => handleSetAsMainImage(1) : undefined}
-                  />
-                  {compressionInfo2 && !formErrors.image_url_2 && (
-                    <p className="text-[11px] text-green-600 font-medium flex items-center gap-1 mt-1">
-                      <span className="material-symbols-outlined text-sm select-none">check_circle</span>
-                      {compressionInfo2}
-                    </p>
-                  )}
-                  {formErrors.image_url_2 && (
-                    <p className="text-xs text-error font-medium mt-1">{formErrors.image_url_2}</p>
-                  )}
-                </div>
-
-                <div className="space-y-1">
-                  <ImageUploadField
-                    label="صورة إضافية 2 (اختياري)"
-                    slot="image_url_3"
-                    currentUrl={formData.image_url_3 || ''}
-                    previewUrl={isCompressing3 ? null : formData.image_url_3 || null}
-                    isUploading={isCompressing3}
-                    onFileChange={(e) => handleImageFileChange(e, 2)}
-                    onSetAsMain={formData.image_url_3 ? () => handleSetAsMainImage(2) : undefined}
-                  />
-                  {compressionInfo3 && !formErrors.image_url_3 && (
-                    <p className="text-[11px] text-green-600 font-medium flex items-center gap-1 mt-1">
-                      <span className="material-symbols-outlined text-sm select-none">check_circle</span>
-                      {compressionInfo3}
-                    </p>
-                  )}
-                  {formErrors.image_url_3 && (
-                    <p className="text-xs text-error font-medium mt-1">{formErrors.image_url_3}</p>
-                  )}
-                </div>
-
-                <div className="space-y-1">
-                  <label className="font-label-md text-on-surface block font-bold">السعر (ج.م)</label>
-                  <input
-                    className={`w-full border rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary/10 focus:border-primary transition-all bg-white text-on-background font-body-md ${
-                      formErrors.price ? 'border-error ring-1 ring-error/20' : 'border-outline-variant'
-                    }`}
-                    name="price"
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    value={formData.price}
-                    onChange={handleInputChange}
-                  />
-                  {formErrors.price && (
-                    <p className="text-xs text-error font-medium">{formErrors.price}</p>
-                  )}
-                </div>
-
-                <div className="space-y-1">
-                  <label className="font-label-md text-on-surface block font-bold">الكمية المتوفرة</label>
-                  <input
-                    className={`w-full border rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary/10 focus:border-primary transition-all bg-white text-on-background font-body-md ${
-                      formErrors.stock ? 'border-error ring-1 ring-error/20' : 'border-outline-variant'
-                    }`}
-                    name="stock"
-                    type="number"
-                    min="0"
-                    value={formData.stock}
-                    onChange={handleInputChange}
-                  />
-                  {formErrors.stock && (
-                    <p className="text-xs text-error font-medium">{formErrors.stock}</p>
-                  )}
-                </div>
-
-                <div className="space-y-1 text-start">
-                  <label className="font-label-md text-on-surface block font-bold">القسم الرئيسي</label>
-                  <CustomDropdown
-                    options={[
-                      { value: '', label: 'اختر القسم الرئيسي' },
-                      ...hierarchy.map(g => ({ value: g.name, label: g.name }))
-                    ]}
-                    value={formMainCategory}
-                    onChange={(val) => {
-                      setFormMainCategory(val);
-                      setFormData(prev => ({ ...prev, category: val }));
-                      if (formErrors.category) {
-                        setFormErrors(prev => ({ ...prev, category: undefined }));
-                      }
-                    }}
-                    className="w-full"
-                  />
-                </div>
-
-                <div className="space-y-1 text-start">
-                  <label className="font-label-md text-on-surface block font-bold">الفئة الفرعية</label>
-                  <CustomDropdown
-                    options={[
-                      { value: '', label: 'اختر الفئة الفرعية' },
-                      ...((hierarchy.find(g => g.name === formMainCategory)?.subcategories || []).map((sub: string) => ({ value: sub, label: sub })))
-                    ]}
-                    value={formData.category || ''}
-                    onChange={(val) => {
-                      setFormData(prev => ({ ...prev, category: val }));
-                      if (formErrors.category) {
-                        setFormErrors(prev => ({ ...prev, category: undefined }));
-                      }
-                    }}
-                    className="w-full"
-                  />
-                  {formErrors.category && (
-                    <p className="text-xs text-error font-medium">{formErrors.category}</p>
-                  )}
-                </div>
-              </div>
-
-              <div className="space-y-1">
-                <label className="font-label-md text-on-surface block font-bold">الوصف</label>
-                <textarea
-                  className={`w-full border rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary/10 focus:border-primary transition-all bg-white text-on-background font-body-md h-24 ${
-                    formErrors.description ? 'border-error ring-1 ring-error/20' : 'border-outline-variant'
-                  }`}
-                  name="description"
-                  placeholder="أدخل المواصفات الفنية، الماركة، عدد الأقطاب، شدة التيار، سعة القطع، أو مقاس السلك..."
-                  value={formData.description}
-                  onChange={handleInputChange}
-                />
-                {formErrors.description && (
-                  <p className="text-xs text-error font-medium">{formErrors.description}</p>
-                )}
-              </div>
-
-              <div className="flex items-center gap-6 bg-surface-container-low p-4 rounded-lg">
-                <div className="flex items-center gap-2">
-                  <input
-                    id="modal-is-active"
-                    name="is_active"
-                    type="checkbox"
-                    checked={formData.is_active}
-                    onChange={handleCheckboxChange}
-                    className="w-5 h-5 rounded border-outline focus:ring-primary text-primary cursor-pointer accent-primary"
-                  />
-                  <label htmlFor="modal-is-active" className="font-bold text-sm text-on-surface cursor-pointer select-none">
-                    نشط
-                  </label>
-                </div>
-                <div className="flex items-center gap-2">
-                  <input
-                    id="modal-has-colors"
-                    name="has_colors"
-                    type="checkbox"
-                    checked={formData.has_colors}
-                    onChange={handleCheckboxChange}
-                    className="w-5 h-5 rounded border-outline focus:ring-primary text-primary cursor-pointer accent-primary"
-                  />
-                  <label htmlFor="modal-has-colors" className="font-bold text-sm text-on-surface cursor-pointer select-none">
-                    يتطلب اختيار لون
-                  </label>
-                </div>
-              </div>
-
-              {formData.has_colors && (
-                <div className="bg-surface-container-low p-4 rounded-lg">
-                  <label className="font-bold text-sm text-on-surface block mb-3">
-                    الألوان المتاحة <span className="text-electro-red">*</span>
-                  </label>
-                  <div className="flex flex-wrap gap-2">
-                    {ALL_COLORS.map((color) => {
-                      const isSelected = (formData.colors ?? []).includes(color.name);
-                      return (
-                        <button
-                          key={color.name}
-                          type="button"
-                          onClick={() => {
-                            setFormData((prev) => ({
-                              ...prev,
-                              colors: isSelected
-                                ? (prev.colors ?? []).filter((c) => c !== color.name)
-                                : [...(prev.colors ?? []), color.name],
-                            }));
-                            if (formErrors.colors) {
-                              setFormErrors((prev) => ({ ...prev, colors: undefined }));
-                            }
-                          }}
-                          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-semibold cursor-pointer transition-all duration-200 ${
-                            isSelected
-                              ? 'border-primary bg-primary/5 text-primary ring-2 ring-primary/10 font-bold'
-                              : 'border-outline-variant/60 hover:border-outline text-on-surface-variant'
-                          }`}
-                        >
-                          <span
-                            className="w-3.5 h-3.5 rounded-full border border-outline-variant shadow-sm shrink-0"
-                            style={{ background: color.hex, borderColor: color.name === 'أبيض' ? '#D1D5DB' : undefined }}
-                          />
-                          <span>{color.name}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                  {formErrors.colors && (
-                    <p className="text-xs text-error font-medium mt-2">{formErrors.colors}</p>
-                  )}
-                </div>
-              )}
-
-              <div className="pt-4 border-t border-outline-variant/20 flex justify-end gap-3 shrink-0">
-                <button
-                  type="button"
-                  onClick={handleCloseModal}
-                  className="px-5 py-2.5 rounded-lg border border-outline-variant text-on-surface-variant font-label-md text-sm hover:bg-surface-container-low transition-colors cursor-pointer"
-                >
-                  إلغاء
-                </button>
-                <button
-                  type="submit"
-                  className="px-6 py-2.5 rounded-lg bg-primary text-on-primary font-label-md text-sm hover:opacity-90 active:scale-[0.98] transition-all cursor-pointer font-bold uppercase tracking-wider"
-                >
-                  {editingProduct ? 'حفظ التغييرات' : 'إضافة المنتج'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      {/* Product Form Modal */}
+      <ProductFormModal
+        isOpen={productForm.isAddModalOpen || !!productForm.editingProduct}
+        editingProduct={productForm.editingProduct}
+        isSaving={productForm.isSaving}
+        formData={productForm.formData}
+        formErrors={productForm.formErrors}
+        formMainCategory={productForm.formMainCategory}
+        hierarchy={hierarchy}
+        isCompressing={productForm.isCompressing}
+        isCompressing2={productForm.isCompressing2}
+        isCompressing3={productForm.isCompressing3}
+        compressionInfo={productForm.compressionInfo}
+        compressionInfo2={productForm.compressionInfo2}
+        compressionInfo3={productForm.compressionInfo3}
+        onClose={productForm.closeModal}
+        onSubmit={productForm.handleFormSubmit}
+        onInputChange={productForm.handleInputChange}
+        onCheckboxChange={productForm.handleCheckboxChange}
+        onImageFileChange={productForm.handleImageFileChange}
+        onSetAsMainImage={productForm.handleSetAsMainImage}
+        onSetFormMainCategory={productForm.setFormMainCategory}
+        onSetFormData={productForm.setFormData}
+        onSetFormErrors={productForm.setFormErrors}
+      />
 
       {/* Delete Confirmation Modal */}
-      {deletingProduct && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-white border border-outline-variant/20 w-full max-w-md rounded-xl shadow-2xl overflow-hidden animate-[modalAppear_0.2s_ease-out]">
-            <div className="p-6 text-center space-y-4">
-              <div className="w-14 h-14 bg-red-50 border border-red-100 rounded-full flex items-center justify-center text-primary mx-auto">
-                <span className="material-symbols-outlined text-3xl select-none">warning</span>
-              </div>
-              <div>
-                <h3 className="font-headline-md text-headline-md font-bold text-on-surface">حذف المنتج؟</h3>
-                <p className="text-on-surface-variant text-sm mt-2 leading-relaxed">
-                  هل أنت متأكد من رغبتك في حذف **&quot;{deletingProduct.name}&quot;**؟ سيؤدي هذا الإجراء إلى إزالة المنتج نهائياً من الكتالوج ولا يمكن التراجع عنه.
-                </p>
-              </div>
-            </div>
-            <div className="bg-surface-container-low p-4 flex gap-3 justify-end">
-              <button
-                onClick={() => setDeletingProduct(null)}
-                className="px-4 py-2 rounded-lg border border-outline-variant text-on-surface-variant font-label-md text-sm hover:bg-white transition-colors cursor-pointer"
-              >
-                إلغاء
-              </button>
-              <button
-                onClick={handleDeleteConfirm}
-                className="px-5 py-2 rounded-lg bg-primary text-on-primary font-label-md text-sm hover:opacity-90 active:scale-[0.98] transition-all cursor-pointer font-bold uppercase tracking-wider"
-              >
-                تأكيد الحذف
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <DeleteProductConfirmModal
+        product={deletingProduct}
+        onConfirm={handleDeleteConfirm}
+        onCancel={handleDeleteProductCancel}
+      />
+
       {/* Confirmation Modal */}
       <ConfirmationModal
         isOpen={confirmModal.isOpen}
@@ -1320,16 +746,8 @@ export const InventoryClient = memo(function InventoryClient() {
         title="تأكيد كلمة المرور"
         message="يرجى إدخال كلمة مرور المسؤول لتأكيد حذف جميع المنتجات من المخزون. هذا الإجراء لا يمكن التراجع عنه."
         confirmLabel="تأكيد وحذف الكل"
-        onConfirm={async (password) => {
-          try {
-            await clearAllProducts(password);
-            showToast('تم حذف جميع عناصر المخزون.');
-          } catch {
-            showToast('فشل حذف جميع المنتجات. الرجاء المحاولة مرة أخرى.');
-          }
-          setIsClearProductsPasswordOpen(false);
-        }}
-        onCancel={() => setIsClearProductsPasswordOpen(false)}
+        onConfirm={handleClearProductsConfirm}
+        onCancel={handleClearProductsCancel}
       />
     </div>
   );

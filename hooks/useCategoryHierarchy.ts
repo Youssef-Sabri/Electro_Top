@@ -59,6 +59,7 @@ export function useCategoryHierarchy(initialHierarchy?: CategoryGroup[]) {
         await refresh();
       })();
     } else {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- legitimate: marking initial load complete
       setLoading(false);
     }
   }, [refresh, hierarchy.length]);

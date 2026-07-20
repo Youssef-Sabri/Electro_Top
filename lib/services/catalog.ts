@@ -1,13 +1,20 @@
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { PRODUCT_SELECT_FIELDS, TABLES } from '@/lib/constants';
 import type { Product, CategoryGroup } from '@/types';
+import { devLog } from '@/lib/utils/misc';
 
 // Server-safe Supabase client for public reads (no auth cookies needed)
-function createPublicClient() {
-  return createSupabaseServerClient({
-    getAll() { return []; },
-    setAll() {},
-  });
+// Reuse a single client instance across calls within the same request
+let cachedClient: ReturnType<typeof createSupabaseServerClient> | null = null;
+
+function getPublicClient() {
+  if (!cachedClient) {
+    cachedClient = createSupabaseServerClient({
+      getAll() { return []; },
+      setAll() {},
+    });
+  }
+  return cachedClient;
 }
 
 export async function fetchCatalog(): Promise<{
@@ -15,7 +22,7 @@ export async function fetchCatalog(): Promise<{
   products: Product[];
   hierarchy: CategoryGroup[];
 }> {
-  const supabase = createPublicClient();
+  const supabase = getPublicClient();
   let categories: string[] = [];
   let products: Product[] = [];
   let hierarchy: CategoryGroup[] = [];
@@ -43,74 +50,46 @@ export async function fetchCatalog(): Promise<{
     }
     products = prodData && !prodError ? prodData : [];
   } catch (error) {
-    if (process.env.NODE_ENV !== 'production') console.error('Failed to fetch catalog data:', error);
+    devLog('Failed to fetch catalog data:', error);
   }
 
   return { categories, products, hierarchy };
 }
 
 export async function fetchProductBySlug(slug: string): Promise<Product | null> {
-  const supabase = createPublicClient();
+  const supabase = getPublicClient();
 
   try {
-    // 1. Try exact slug match
+    // Build all possible identifiers to match in a single query
+    const decodedSlug = decodeURIComponent(slug);
+    const uuidMatch = slug.match(/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$/i);
+    const directIdMatch = slug.match(/(p-[a-z0-9-]+)$/i);
+
+    // Single query with OR filter covering all fallbacks
+    const orParts = [`slug.eq.${slug}`];
+    if (decodedSlug !== slug) orParts.push(`slug.eq.${decodedSlug}`);
+    if (uuidMatch) orParts.push(`id.eq.p-${uuidMatch[1]}`);
+    if (directIdMatch) orParts.push(`id.eq.${directIdMatch[1]}`);
+
     const { data, error } = await supabase
       .from(TABLES.products)
       .select(PRODUCT_SELECT_FIELDS)
-      .eq('slug', slug)
       .eq('is_active', true)
+      .or(orParts.join(','))
+      .limit(1)
       .maybeSingle();
 
     if (data && !error) return data;
 
-    // 2. Decode URL slug if encoded
-    const decodedSlug = decodeURIComponent(slug);
-    if (decodedSlug !== slug) {
-      const { data: decodedData, error: decodedError } = await supabase
-        .from(TABLES.products)
-        .select(PRODUCT_SELECT_FIELDS)
-        .eq('slug', decodedSlug)
-        .eq('is_active', true)
-        .maybeSingle();
-
-      if (decodedData && !decodedError) return decodedData;
-    }
-
-    // 3. Fallback: extract UUID from end of slug (e.g. 33d99e7d-de24-46ff-a688-9c5c71b13c47)
-    const uuidMatch = slug.match(/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$/i);
-    if (uuidMatch) {
-      const fullId = `p-${uuidMatch[1]}`;
-      const { data: idData, error: idError } = await supabase
-        .from(TABLES.products)
-        .select(PRODUCT_SELECT_FIELDS)
-        .eq('id', fullId)
-        .eq('is_active', true)
-        .maybeSingle();
-
-      if (idData && !idError) return idData;
-    }
-
-    // 4. Fallback: match by product ID directly
-    const directIdMatch = slug.match(/(p-[a-z0-9-]+)$/i);
-    if (directIdMatch) {
-      const { data: directData, error: directError } = await supabase
-        .from(TABLES.products)
-        .select(PRODUCT_SELECT_FIELDS)
-        .eq('id', directIdMatch[1])
-        .eq('is_active', true)
-        .maybeSingle();
-
-      if (directData && !directError) return directData;
-    }
-
     return null;
-  } catch {
+  } catch (error) {
+    devLog('Failed to fetch product by slug:', error);
     return null;
   }
 }
 
 export async function fetchAllProductSlugs(): Promise<{ slug: string; updated_at: string }[]> {
-  const supabase = createPublicClient();
+  const supabase = getPublicClient();
 
   try {
     const { data, error } = await supabase

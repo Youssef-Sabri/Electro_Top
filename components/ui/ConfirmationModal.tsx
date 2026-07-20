@@ -20,8 +20,8 @@ export const ConfirmationModal = memo(function ConfirmationModal({
   message,
   onConfirm,
   onCancel,
-  confirmLabel = 'Confirm',
-  cancelLabel = 'Cancel',
+  confirmLabel = 'تأكيد',
+  cancelLabel = 'إلغاء',
   isDestructive = false,
 }: ConfirmationModalProps) {
   return (

@@ -1,8 +1,9 @@
 'use client';
 
-import { memo, useEffect, useMemo } from 'react';
+import { memo, useMemo } from 'react';
 import type { Product } from '@/types';
 import { formatCurrency } from '@/lib/utils/format';
+import { Modal } from '@/components/ui/Modal';
 import { ProductImageGallery } from '@/components/catalog/ProductImageGallery';
 import { ProductDetailActions } from '@/components/catalog/ProductDetailActions';
 
@@ -18,34 +19,8 @@ export const ProductDetailsModal = memo(function ProductDetailsModal({ product, 
     );
   }, [product.image_url, product.image_url_2, product.image_url_3]);
 
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        onClose();
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-
-    const originalOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-      document.body.style.overflow = originalOverflow;
-    };
-  }, [onClose]);
-
-  const handleBackdropClick = (e: React.MouseEvent) => {
-    if (e.target === e.currentTarget) {
-      onClose();
-    }
-  };
-
   return (
-    <div
-      onClick={handleBackdropClick}
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm transition-opacity duration-300 overflow-y-auto"
-    >
+    <Modal isOpen={true} onClose={onClose} title={product.name}>
       <div
         className="relative w-full max-w-2xl bg-white rounded-3xl shadow-2xl overflow-y-auto md:overflow-hidden flex flex-col md:flex-row max-h-[90vh] md:h-[520px] border border-outline-variant/10"
         style={{ animation: 'modalSlideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards' }}
@@ -103,7 +78,7 @@ export const ProductDetailsModal = memo(function ProductDetailsModal({ product, 
           </div>
         </div>
       </div>
-    </div>
+    </Modal>
   );
 });
 ProductDetailsModal.displayName = 'ProductDetailsModal';

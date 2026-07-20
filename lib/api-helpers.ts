@@ -19,7 +19,7 @@ export async function requirePasswordVerification(
   const email = guard.user.email;
   if (!email) return NextResponse.json({ error: 'User email not found' }, { status: 500 });
 
-  const pwError = await verifyAdminPassword(guard.supabaseClient, email, body.password);
+  const pwError = await verifyAdminPassword(email, body.password);
   if (pwError) return pwError;
 
   return { supabaseClient: guard.supabaseClient, email };

@@ -55,6 +55,13 @@ export const productFormSchema = productFormBase.refine((data) => {
 
 export const productFormPartialSchema = productFormBase.partial();
 
+export const categoryGroupSchema = z.object({
+  name: z.string().min(1, 'اسم القسم مطلوب').max(100),
+  subcategories: z.array(z.string().min(1).max(100)),
+});
+
+export const categoryHierarchySchema = z.array(categoryGroupSchema).max(50, 'الحد الأقصى 50 قسماً');
+
 export const SAFE_FILENAME_RE = /^receipt-[a-z0-9]+\.(jpg|jpeg|png|webp|heic|heif|gif)$/i;
 
 export type ProductFormData = z.infer<typeof productFormSchema>;

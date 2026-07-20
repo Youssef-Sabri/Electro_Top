@@ -10,15 +10,16 @@ export async function DELETE(request: Request) {
   if (result instanceof NextResponse) return result
   const { supabaseClient } = result
 
-  // Delete all receipt files from storage before clearing DB records (including orphaned files)
-  const clearClient = createSupabaseAdminClient()
-  await clearStorageBucket(clearClient, STORAGE_BUCKETS.receipts)
-
+  // Delete DB records first to maintain referential integrity, then clear storage
   const { error: ordersError } = await supabaseClient.from(TABLES.orders).delete().neq('id_unique_tracking', '')
   if (ordersError) {
     devLog('Clear orders error:', ordersError);
     return NextResponse.json({ error: 'فشل مسح الطلبات. يرجى المحاولة مرة أخرى.' }, { status: 500 })
   }
+
+  // Only clear storage after DB deletion succeeds
+  const clearClient = createSupabaseAdminClient()
+  await clearStorageBucket(clearClient, STORAGE_BUCKETS.receipts)
 
   return NextResponse.json({ success: true })
 }
