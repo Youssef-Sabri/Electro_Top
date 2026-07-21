@@ -335,24 +335,7 @@ export const OrderDetailClient = memo(function OrderDetailClient({ id }: OrderDe
         </div>
         <div className="flex gap-3">
           <button
-            onClick={() => {
-              const originalTitle = document.title;
-              document.title = `فاتورة-${order.id_unique_tracking}`;
-              
-              // Short delay to allow browser/OS print interface to register the updated title
-              if (printTimerRef.current) clearTimeout(printTimerRef.current);
-              printTimerRef.current = setTimeout(() => {
-                window.print();
-                
-                // Restore original title once focus returns or after fallback duration
-                const restoreTitle = () => {
-                  document.title = originalTitle;
-                  window.removeEventListener('focus', restoreTitle);
-                };
-                window.addEventListener('focus', restoreTitle);
-                setTimeout(restoreTitle, 1000);
-              }, 150);
-            }}
+            onClick={handlePrintInvoice}
             className="px-4 py-2 border-2 border-primary text-primary rounded-lg font-label-md text-label-md hover:bg-primary/5 transition-colors cursor-pointer"
           >
             طباعة الفاتورة

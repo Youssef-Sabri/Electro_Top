@@ -7,7 +7,7 @@ export function Footer() {
   return (
     <footer className="bg-on-background text-secondary-fixed w-full border-t border-surface-variant/10 font-tajawal">
       {/* Upper Grid Area */}
-      <div className="max-w-max-width mx-auto px-margin-mobile md:px-margin-desktop py-16 grid grid-cols-1 md:grid-cols-3 gap-12 text-start">
+      <div className="max-w-max-width mx-auto px-margin-mobile md:px-margin-desktop py-16 grid grid-cols-1 md:grid-cols-2 gap-12 text-start">
         
         {/* Column 1: Brand Info */}
         <div className="space-y-5">
@@ -40,19 +40,6 @@ export function Footer() {
               </svg>
             </a>
           </div>
-        </div>
-
-        {/* Column 2: Quick Links */}
-        <div className="space-y-5">
-          <h4 className="text-secondary-fixed font-bold text-sm tracking-wide border-b border-surface-variant/10 pb-2 w-fit">
-            روابط سريعة
-          </h4>
-          <ul className="flex flex-col gap-3 text-sm list-none p-0 m-0">
-            <li><a href="/about" className="text-surface-variant hover:text-secondary-fixed transition-colors font-medium block">من نحن</a></li>
-            <li><a href="/shop" className="text-surface-variant hover:text-secondary-fixed transition-colors font-medium block">المتجر</a></li>
-            <li><a href="/terms" className="text-surface-variant hover:text-secondary-fixed transition-colors font-medium block">الشروط والأحكام</a></li>
-            <li><a href="/privacy" className="text-surface-variant hover:text-secondary-fixed transition-colors font-medium block">سياسة الخصوصية</a></li>
-          </ul>
         </div>
 
         {/* Column 3: Contact & Support */}

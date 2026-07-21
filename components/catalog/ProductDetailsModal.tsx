@@ -61,7 +61,6 @@ export const ProductDetailsModal = memo(function ProductDetailsModal({ product, 
             <span className="text-primary font-bold text-lg sm:text-xl md:text-2xl">
               {formatCurrency(product.price)}
             </span>
-            <span className="text-xs text-on-surface-variant font-medium">جنيه مصري</span>
           </div>
 
           {product.description && (

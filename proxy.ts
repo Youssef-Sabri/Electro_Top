@@ -31,6 +31,9 @@ async function verifyValue(signed: string): Promise<string | null> {
   if (lastDot === -1) return null
   const value = signed.slice(0, lastDot)
   const sigHex = signed.slice(lastDot + 1)
+  const hexPairs = sigHex.match(/.{2}/g)
+  if (!hexPairs) return null
+  const sigBytes = new Uint8Array(hexPairs.map(h => parseInt(h, 16)))
   const encoder = new TextEncoder()
   return crypto.subtle.importKey(
     'raw',
@@ -42,7 +45,7 @@ async function verifyValue(signed: string): Promise<string | null> {
     crypto.subtle.verify(
       'HMAC',
       key,
-      new Uint8Array(sigHex.match(/.{2}/g)!.map(h => parseInt(h, 16))),
+      sigBytes,
       encoder.encode(value)
     )
   ).then(valid => valid ? value : null)

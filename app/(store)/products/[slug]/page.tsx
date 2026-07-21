@@ -137,7 +137,6 @@ async function ProductContent({ product, slug }: { product: NonNullable<Awaited<
               <span className="text-primary font-extrabold text-xl sm:text-2xl md:text-3xl">
                 {formatCurrency(product.price)}
               </span>
-              <span className="text-xs text-on-surface-variant font-medium">جنيه مصري</span>
             </div>
 
             {/* Description */}
