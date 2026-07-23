@@ -12,11 +12,6 @@ import { defaultProductSort } from '@/lib/utils/sort';
 import type { Product, CategoryGroup } from '@/types';
 import { CustomDropdown } from '@/components/ui/CustomDropdown';
 
-const ProductDetailsModal = dynamic(
-  () => import('@/components/catalog/ProductDetailsModal').then((mod) => mod.ProductDetailsModal),
-  { ssr: false }
-);
-
 const ALL_CATEGORIES = 'All';
 type SortByType = 'default' | 'price-asc' | 'price-desc';
 
@@ -50,7 +45,6 @@ export const ShopPageContent = memo(function ShopPageContent({ initialProducts, 
   const [searchInput, setSearchInput] = useState(() => searchParams.get('search') || '');
   const [hideOutOfStock, setHideOutOfStock] = useState(() => searchParams.get('hideOut') === 'true');
   const [sortBy, setSortBy] = useState<SortByType>(() => (searchParams.get('sort') as SortByType) || 'default');
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false);
 
   // Sync selection states when main category category state changes
@@ -200,7 +194,6 @@ export const ShopPageContent = memo(function ShopPageContent({ initialProducts, 
     setCurrentPage(1);
   }, [setCurrentPage]);
 
-  const handleCloseModal = useCallback(() => setSelectedProduct(null), []);
   const handleCloseFilterDrawer = useCallback(() => setIsFilterDrawerOpen(false), []);
   const handleOpenFilterDrawer = useCallback(() => setIsFilterDrawerOpen(true), []);
 
@@ -293,7 +286,6 @@ export const ShopPageContent = memo(function ShopPageContent({ initialProducts, 
                 <ProductCard
                   key={product.id}
                   product={product}
-                  onOpenDetails={setSelectedProduct}
                   index={index}
                 />
               ))}
@@ -347,13 +339,6 @@ export const ShopPageContent = memo(function ShopPageContent({ initialProducts, 
           </div>
         )}
       </main>
-
-      {selectedProduct && (
-        <ProductDetailsModal
-          product={selectedProduct}
-          onClose={handleCloseModal}
-        />
-      )}
 
       {/* Sliding Filter Drawer (Shared for Mobile and Desktop!) */}
       {isFilterDrawerOpen && (

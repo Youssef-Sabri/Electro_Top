@@ -218,53 +218,60 @@ export const LandingPage = memo(function LandingPage({
 
   return (
     <div className="w-full font-tajawal text-on-surface bg-white">
-      {/* Sleek Hero Section */}
-      <section className="relative bg-on-background py-28 md:py-36 overflow-hidden hero-clip">
-        {/* Glow Effects */}
-        <div className="absolute top-[-20%] right-[-10%] w-[500px] h-[500px] rounded-full bg-primary/10 blur-3xl pointer-events-none" />
-        <div className="absolute bottom-[-10%] left-[-10%] w-[400px] h-[400px] rounded-full bg-primary/5 blur-3xl pointer-events-none" />
+      {/* Premium Dark Hero Section */}
+      <section className="relative bg-[#1A0B0C] py-24 md:py-32 overflow-hidden hero-clip border-b border-outline-variant/10">
+        {/* Glow Ambient Orbs */}
+        <div className="absolute top-[-20%] right-[-10%] w-[550px] h-[550px] rounded-full bg-primary/20 blur-[120px] pointer-events-none" />
+        <div className="absolute bottom-[-10%] left-[-10%] w-[450px] h-[450px] rounded-full bg-electro-gold/10 blur-[100px] pointer-events-none" />
+        <div className="absolute top-[30%] left-[25%] w-[300px] h-[300px] rounded-full bg-primary/10 blur-[80px] pointer-events-none" />
 
         <div className="max-w-max-width mx-auto px-margin-mobile md:px-margin-desktop relative z-10">
-          <div className="max-w-2xl text-start">
-            <h1 className="font-display-lg text-[40px] md:text-[56px] text-white mb-6 leading-tight font-extrabold animate-fade-in-up">
-              أسلاك السويدي ومستلزمات كهربائية <span className="text-primary">عالية الجودة</span></h1>
-            <p className="text-surface-variant/80 text-lg mb-10 leading-relaxed max-w-2xl">
-              موزعون معتمدون لدى السويدي إلكتريك، ميتسوبيشي ياباني، هيمل صيني، ABB، وفينوس. يتوفر لدينا جميع لوحات التوزيع وقواطع الحماية والكابلات ومجاري الأسلاك التركية للمشاريع السكنية والتجارية والصناعية.
+          <div className="max-w-3xl text-start">
+            <h1 className="font-headline-lg text-[34px] sm:text-[46px] md:text-[56px] text-white mb-6 leading-[1.2] font-extrabold animate-fade-in-up">
+
+              كابلات السويدي ومعدات كهربائية <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-container via-red-400 to-electro-gold">أصلية بضمان كامل</span>
+            </h1>
+
+            <p className="text-surface-variant/85 text-base md:text-lg mb-10 leading-relaxed max-w-2xl font-medium">
+              نعمل كموزعين معتمدين لدى السويدي إلكتريك، ميتسوبيشي ياباني، هيمل، ABB، وفينوس. نوفر لك كافة لوحات التوزيع والقواطع والكابلات والمستلزمات الكهربائية للمشاريع السكنية، التجارية، والصناعية بأفضل أسعار التجزئة والجملة.
             </p>
-            <div className="flex flex-wrap gap-4">
+
+            {/* Hero CTA Action Buttons */}
+
+            <div className="flex flex-wrap items-center gap-4">
               <Link
                 href="/shop"
-                className="bg-primary hover:bg-primary-container active:scale-[0.97] text-on-primary px-10 py-4 rounded-full font-semibold transition-all duration-200 shadow-lg shadow-primary/20 text-sm flex items-center gap-2"
+                className="bg-primary hover:bg-primary-container active:scale-[0.97] text-on-primary px-8 py-4 rounded-full font-bold transition-all duration-200 shadow-xl shadow-primary/30 text-sm flex items-center gap-2.5 group"
               >
-                تسوق من المتجر
-                <span className="material-symbols-outlined text-sm rotate-180">arrow_forward</span>
-              </Link>
-              <Link
-                href="/support"
-                className="border border-white/30 text-white hover:bg-white/10 active:scale-[0.97] px-10 py-4 rounded-full font-semibold transition-all duration-200 text-sm"
-              >
-                تواصل معنا
+                <span>تصفح المتجر الآن</span>
+                <span className="material-symbols-outlined text-sm rotate-180 group-hover:-translate-x-1 transition-transform">arrow_forward</span>
               </Link>
             </div>
+
+
           </div>
         </div>
 
-        <div className="absolute right-[5%] top-1/2 -translate-y-1/2 opacity-20 pointer-events-none hidden xl:block" aria-hidden="true">
+        {/* Decorative background element */}
+        <div className="absolute left-[3%] top-1/2 -translate-y-1/2 opacity-15 pointer-events-none hidden xl:block" aria-hidden="true">
           <span
-            className="material-symbols-outlined text-[380px] text-white/5 select-none"
+            className="material-symbols-outlined text-[420px] text-white select-none"
             style={{ fontVariationSettings: "'FILL' 1" }}
           >
-            developer_board
+            electrical_services
           </span>
         </div>
       </section>
 
       {/* Featured Categories */}
-      <section className="max-w-max-width mx-auto px-margin-mobile md:px-margin-desktop py-24 text-center">
-        <div className="max-w-lg mx-auto mb-16">
-          <span className="text-primary font-bold text-xs uppercase tracking-widest">مجموعات مختارة بعناية</span>
-          <h2 className="font-headline-lg text-headline-lg mt-2 mb-4 font-bold text-on-surface">الأقسام المميزة</h2>
-          <div className="w-16 h-1 bg-primary rounded-full mx-auto"></div>
+      <section className="max-w-max-width mx-auto px-margin-mobile md:px-margin-desktop py-20 text-center">
+        <div className="max-w-lg mx-auto mb-14">
+          <span className="text-primary font-bold text-xs uppercase tracking-widest bg-primary/10 px-3 py-1 rounded-full">
+            تصفح حسب القسم
+          </span>
+          <h2 className="font-headline-lg text-headline-lg mt-3 mb-3 font-bold text-on-surface">الأقسام الرئيسية المميزة</h2>
+          <p className="text-on-surface-variant text-xs md:text-sm">اختر الفئة للاطلاع على كافة الأسعار والمقاسات والمواصفات</p>
+          <div className="w-16 h-1 bg-primary rounded-full mx-auto mt-4"></div>
         </div>
 
         <div
@@ -358,7 +365,9 @@ export const LandingPage = memo(function LandingPage({
           </Link>
         </div>
       </section>
+
     </div>
   );
 });
 LandingPage.displayName = 'LandingPage';
+
