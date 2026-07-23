@@ -133,20 +133,46 @@ export const InventoryClient = memo(function InventoryClient() {
   }, [products, deferredSearchQuery, statusFilter, stockFilter, activeFilterCategories, sortBy]);
 
   const itemsPerPage = 10;
-  const { currentPage, setCurrentPage, totalPages, paginatedItems: paginatedProducts, resetPage } = usePagination(filteredProducts, itemsPerPage, initialPage);
+  const { currentPage, setCurrentPage, totalPages, paginatedItems: paginatedProducts } = usePagination(filteredProducts, itemsPerPage, initialPage);
 
-  useEffect(() => {
-    if (isInitialRef.current) {
-      isInitialRef.current = false;
-      return;
-    }
-    resetPage();
-  }, [searchQuery, statusFilter, stockFilter, selectedMainCategoryFilter, selectedSubCategoryFilter, sortBy, resetPage]);
+  const prevInventoryFiltersRef = useRef({
+    searchQuery,
+    statusFilter,
+    stockFilter,
+    selectedMainCategoryFilter,
+    selectedSubCategoryFilter,
+    sortBy,
+  });
 
-  // Synchronize state to URL
+  // Synchronize state to URL & Hard Reset Page to 1 on Filter Change
   useEffect(() => {
     if (pathname !== '/admin/inventory') return;
     if (typeof window === 'undefined') return;
+
+    const filtersChanged =
+      prevInventoryFiltersRef.current.searchQuery !== searchQuery ||
+      prevInventoryFiltersRef.current.statusFilter !== statusFilter ||
+      prevInventoryFiltersRef.current.stockFilter !== stockFilter ||
+      prevInventoryFiltersRef.current.selectedMainCategoryFilter !== selectedMainCategoryFilter ||
+      prevInventoryFiltersRef.current.selectedSubCategoryFilter !== selectedSubCategoryFilter ||
+      prevInventoryFiltersRef.current.sortBy !== sortBy;
+
+    prevInventoryFiltersRef.current = {
+      searchQuery,
+      statusFilter,
+      stockFilter,
+      selectedMainCategoryFilter,
+      selectedSubCategoryFilter,
+      sortBy,
+    };
+
+    let effectivePage = currentPage;
+    if (filtersChanged && !isInitialRef.current) {
+      effectivePage = 1;
+      setCurrentPage(1);
+    }
+    isInitialRef.current = false;
+
     const params = new URLSearchParams(window.location.search);
 
     if (searchQuery === '') params.delete('search');
@@ -167,14 +193,14 @@ export const InventoryClient = memo(function InventoryClient() {
     if (sortBy === 'default') params.delete('sort');
     else params.set('sort', sortBy);
 
-    if (currentPage === 1) params.delete('page');
-    else params.set('page', currentPage.toString());
+    if (effectivePage === 1) params.delete('page');
+    else params.set('page', effectivePage.toString());
 
     const nextUrl = `${pathname}?${params.toString()}`;
     if (`?${params.toString()}` !== window.location.search) {
       window.history.replaceState(null, '', nextUrl);
     }
-  }, [searchQuery, statusFilter, stockFilter, selectedMainCategoryFilter, selectedSubCategoryFilter, sortBy, currentPage, pathname]);
+  }, [searchQuery, statusFilter, stockFilter, selectedMainCategoryFilter, selectedSubCategoryFilter, sortBy, currentPage, pathname, setCurrentPage]);
 
   // Sync URL query params back to state (for back/forward navigation and link resets)
   useEffect(() => {
@@ -187,13 +213,27 @@ export const InventoryClient = memo(function InventoryClient() {
     const urlSort = (searchParams?.get('sort') === 'price-asc' || searchParams?.get('sort') === 'price-desc') ? searchParams.get('sort') as 'price-asc' | 'price-desc' : 'default';
     const urlPage = searchParams?.get('page') ? parseInt(searchParams.get('page')!, 10) : 1;
 
+    const filtersChangedFromUrl =
+      urlSearch !== searchQuery ||
+      urlStatus !== statusFilter ||
+      urlStock !== stockFilter ||
+      urlMainCat !== selectedMainCategoryFilter ||
+      urlSubCat !== selectedSubCategoryFilter ||
+      urlSort !== sortBy;
+
     setSearchQuery((prev) => (prev === urlSearch ? prev : urlSearch));
     setStatusFilter((prev) => (prev === urlStatus ? prev : urlStatus));
     setStockFilter((prev) => (prev === urlStock ? prev : urlStock));
     setSelectedMainCategoryFilter((prev) => (prev === urlMainCat ? prev : urlMainCat));
     setSelectedSubCategoryFilter((prev) => (prev === urlSubCat ? prev : urlSubCat));
     setSortBy((prev) => (prev === urlSort ? prev : urlSort));
-    setCurrentPage((prev) => (prev === urlPage ? prev : urlPage));
+
+    if (filtersChangedFromUrl) {
+      const explicitPage = searchParams?.has('page') ? urlPage : 1;
+      setCurrentPage(explicitPage);
+    } else if (urlPage !== currentPage) {
+      setCurrentPage(urlPage);
+    }
   }, [searchParams, pathname, setCurrentPage]);
 
   const handleExportCSV = useCallback(() => {

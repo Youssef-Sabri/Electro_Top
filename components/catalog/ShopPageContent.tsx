@@ -127,30 +127,44 @@ export const ShopPageContent = memo(function ShopPageContent({ initialProducts, 
     setCurrentPage,
     totalPages,
     paginatedItems: paginatedProducts,
-    resetPage,
   } = usePagination(sortedProducts, itemsPerPage, initialPage);
 
   const initialSyncDone = useRef(false);
-  useEffect(() => {
-    if (!initialSyncDone.current) return;
-    resetPage();
-  }, [category, deferredSearch, hideOutOfStock, resetPage]);
+  const prevFiltersRef = useRef({ category, deferredSearch, hideOutOfStock, sortBy });
 
+  // Sync state to URL & Hard Reset Page to 1 when Filters Change
   useEffect(() => {
     if (!initialSyncDone.current) return;
+
+    const filtersChanged =
+      prevFiltersRef.current.category !== category ||
+      prevFiltersRef.current.deferredSearch !== deferredSearch ||
+      prevFiltersRef.current.hideOutOfStock !== hideOutOfStock ||
+      prevFiltersRef.current.sortBy !== sortBy;
+
+    prevFiltersRef.current = { category, deferredSearch, hideOutOfStock, sortBy };
+
+    let effectivePage = currentPage;
+    if (filtersChanged) {
+      effectivePage = 1;
+      setCurrentPage(1);
+    }
+
     const params = new URLSearchParams();
     if (category !== ALL_CATEGORIES) params.set('category', category);
     if (deferredSearch) params.set('search', deferredSearch);
     if (hideOutOfStock) params.set('hideOut', 'true');
     if (sortBy !== 'default') params.set('sort', sortBy);
-    if (currentPage > 1) params.set('page', currentPage.toString());
+    if (effectivePage > 1) params.set('page', effectivePage.toString());
+
     const qs = params.toString();
     const nextUrl = qs ? `${window.location.pathname}?${qs}` : window.location.pathname;
     if (nextUrl !== `${window.location.pathname}${window.location.search}`) {
       window.history.replaceState(null, '', nextUrl);
     }
-  }, [category, deferredSearch, hideOutOfStock, sortBy, currentPage]);
+  }, [category, deferredSearch, hideOutOfStock, sortBy, currentPage, setCurrentPage]);
 
+  // Sync URL searchParams back to state
   useEffect(() => {
     const urlCategory = searchParams.get('category') || ALL_CATEGORIES;
     const urlSearch = searchParams.get('search') || '';
@@ -158,11 +172,22 @@ export const ShopPageContent = memo(function ShopPageContent({ initialProducts, 
     const urlSort = (searchParams.get('sort') as SortByType) || 'default';
     const urlPage = searchParams.get('page') ? parseInt(searchParams.get('page')!, 10) : 1;
 
-    if (urlCategory !== category) setCategory(urlCategory);
-    if (urlSearch !== searchInput) setSearchInput(urlSearch);
-    if (urlHideOut !== hideOutOfStock) setHideOutOfStock(urlHideOut);
+    const categoryChanged = urlCategory !== category;
+    const searchChanged = urlSearch !== searchInput;
+    const hideOutChanged = urlHideOut !== hideOutOfStock;
+
+    if (categoryChanged) setCategory(urlCategory);
+    if (searchChanged) setSearchInput(urlSearch);
+    if (hideOutChanged) setHideOutOfStock(urlHideOut);
     if (urlSort !== sortBy) setSortBy(urlSort);
-    if (urlPage !== currentPage) setCurrentPage(urlPage);
+
+    if (categoryChanged || searchChanged || hideOutChanged) {
+      const explicitPage = searchParams.has('page') ? urlPage : 1;
+      setCurrentPage(explicitPage);
+    } else if (urlPage !== currentPage) {
+      setCurrentPage(urlPage);
+    }
+
     initialSyncDone.current = true;
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams]);
@@ -172,7 +197,8 @@ export const ShopPageContent = memo(function ShopPageContent({ initialProducts, 
     setSearchInput('');
     setHideOutOfStock(false);
     setSortBy('default');
-  }, []);
+    setCurrentPage(1);
+  }, [setCurrentPage]);
 
   const handleCloseModal = useCallback(() => setSelectedProduct(null), []);
   const handleCloseFilterDrawer = useCallback(() => setIsFilterDrawerOpen(false), []);
@@ -182,14 +208,19 @@ export const ShopPageContent = memo(function ShopPageContent({ initialProducts, 
     setSelectedMainCategory(val);
     setSelectedSubCategory(ALL_CATEGORIES);
     setCategory(val === ALL_CATEGORIES ? ALL_CATEGORIES : val);
-  }, []);
+    setCurrentPage(1);
+  }, [setCurrentPage]);
 
   const handleSubCategoryChange = useCallback((val: string) => {
     setSelectedSubCategory(val);
     setCategory(val === ALL_CATEGORIES ? selectedMainCategory : val);
-  }, [selectedMainCategory]);
+    setCurrentPage(1);
+  }, [selectedMainCategory, setCurrentPage]);
 
-  const handleSortChange = useCallback((val: string) => setSortBy(val as SortByType), []);
+  const handleSortChange = useCallback((val: string) => {
+    setSortBy(val as SortByType);
+    setCurrentPage(1);
+  }, [setCurrentPage]);
 
   return (
     <div className="min-h-screen bg-white font-tajawal text-on-surface">
@@ -342,7 +373,7 @@ export const ShopPageContent = memo(function ShopPageContent({ initialProducts, 
               </div>
               <button
                 type="button"
-            onClick={handleCloseFilterDrawer}
+                onClick={handleCloseFilterDrawer}
                 className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-surface-container-high transition-colors cursor-pointer border-0 bg-transparent"
               >
                 <span className="material-symbols-outlined text-[20px]">close</span>
