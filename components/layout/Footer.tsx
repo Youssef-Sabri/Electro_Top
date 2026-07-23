@@ -7,6 +7,20 @@ import { getSupportEnv } from '@/lib/utils/misc';
 export function Footer() {
   const { whatsapp: whatsappNumbers, phone: phoneNumbers, facebook: facebookUrl, email: supportEmail } = getSupportEnv();
 
+  const uniquePhones = Array.from(new Set(phoneNumbers.filter(Boolean)));
+  const uniqueWhatsapp = Array.from(new Set(whatsappNumbers.filter(Boolean)));
+
+  const formatPhoneNumber = (phone: string) => {
+    const clean = phone.replace(/[^0-9]/g, '');
+    if (clean.length === 12 && clean.startsWith('201')) {
+      return `0${clean.slice(2)}`;
+    }
+    if (clean.length === 11 && clean.startsWith('01')) {
+      return clean;
+    }
+    return phone;
+  };
+
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -39,19 +53,23 @@ export function Footer() {
           <p className="text-xs text-surface-variant/80 leading-relaxed">
             شريكك الموثوق في الحلول الكهربائية. نوفر مستلزمات أسلاك، كابلات، قواطع حماية، ولوحات توزيع أصلية معتمدة بأفضل الأسعار والتوصيل لجميع المحافظات.
           </p>
-          <div className="flex gap-3 pt-2">
-            <a
-              href={facebookUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="w-9 h-9 rounded-full bg-surface-variant/10 flex items-center justify-center hover:bg-primary transition-all duration-200 text-surface-variant hover:text-white"
-              aria-label="تابعنا على فيسبوك"
-            >
-              <svg className="w-[18px] h-[18px] fill-current" viewBox="0 0 24 24" aria-hidden="true">
-                <path fillRule="evenodd" d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z" clipRule="evenodd" />
-              </svg>
-            </a>
-          </div>
+
+          {/* Social Links */}
+          {facebookUrl && (
+            <div className="flex items-center gap-3 pt-1">
+              <a
+                href={facebookUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="صفحة فيسبوك"
+                className="w-9 h-9 rounded-xl bg-white/5 border border-white/10 hover:bg-primary hover:border-primary text-white flex items-center justify-center transition-all duration-200 shadow-sm"
+              >
+                <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
+                  <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                </svg>
+              </a>
+            </div>
+          )}
         </div>
 
         {/* Column 2: Quick Links */}
@@ -59,35 +77,29 @@ export function Footer() {
           <h4 className="text-white font-bold text-sm tracking-wide border-b border-surface-variant/10 pb-2 w-fit">
             روابط سريعة
           </h4>
-          <ul className="space-y-2.5 text-xs text-surface-variant/80">
+          <ul className="space-y-2.5 text-xs">
             <li>
-              <Link href="/" className="hover:text-electro-gold transition-colors flex items-center gap-2">
-                <span className="material-symbols-outlined text-xs text-primary">chevron_left</span>
-                الرئيسية
+              <Link href="/shop" className="hover:text-primary transition-colors flex items-center gap-1.5">
+                <span className="text-primary text-[10px]">◀</span>
+                <span>تصفح كافة المنتجات</span>
               </Link>
             </li>
             <li>
-              <Link href="/shop" className="hover:text-electro-gold transition-colors flex items-center gap-2">
-                <span className="material-symbols-outlined text-xs text-primary">chevron_left</span>
-                جميع المنتجات والمتجر
+              <Link href="/track" className="hover:text-primary transition-colors flex items-center gap-1.5">
+                <span className="text-primary text-[10px]">◀</span>
+                <span>تتبع حالة الطلب</span>
               </Link>
             </li>
             <li>
-              <Link href="/track" className="hover:text-electro-gold transition-colors flex items-center gap-2">
-                <span className="material-symbols-outlined text-xs text-primary">chevron_left</span>
-                تتبع حالة الطلب
+              <Link href="/support" className="hover:text-primary transition-colors flex items-center gap-1.5">
+                <span className="text-primary text-[10px]">◀</span>
+                <span>مركز الدعم والمساعدة</span>
               </Link>
             </li>
             <li>
-              <Link href="/support" className="hover:text-electro-gold transition-colors flex items-center gap-2">
-                <span className="material-symbols-outlined text-xs text-primary">chevron_left</span>
-                مركز الدعم والأسئلة الشائعة
-              </Link>
-            </li>
-            <li>
-              <Link href="/cart" className="hover:text-electro-gold transition-colors flex items-center gap-2">
-                <span className="material-symbols-outlined text-xs text-primary">chevron_left</span>
-                سلة التسوق
+              <Link href="/cart" className="hover:text-primary transition-colors flex items-center gap-1.5">
+                <span className="text-primary text-[10px]">◀</span>
+                <span>سلة التسوق</span>
               </Link>
             </li>
           </ul>
@@ -99,66 +111,68 @@ export function Footer() {
             تواصل معنا
           </h4>
 
-          <div className="flex flex-col gap-3 text-xs">
-            {/* Phone numbers row */}
-            <div className="flex items-start gap-2.5">
-              <div className="w-7 h-7 rounded-lg bg-primary/15 flex items-center justify-center text-primary shrink-0">
-                <span className="material-symbols-outlined text-[16px]">phone</span>
-              </div>
-              <div className="space-y-0.5">
-                <span className="block text-[10px] text-surface-variant/60 font-bold uppercase">الهاتف Direct Call</span>
-                <div className="flex flex-col gap-0.5">
-                  {phoneNumbers.map((number, index) => (
-                    <a
-                      key={index}
-                      href={`tel:${number}`}
-                      className="text-surface-variant hover:text-white transition-colors font-mono font-medium block"
-                      dir="ltr"
-                    >
-                      {number}
-                    </a>
-                  ))}
+          <div className="space-y-3.5 text-xs">
+            {/* Phone Call */}
+            {uniquePhones.length > 0 && (
+              <div className="flex items-start gap-3">
+                <div className="w-8 h-8 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shrink-0">
+                  <span className="material-symbols-outlined text-[18px]">call</span>
+                </div>
+                <div>
+                  <span className="block text-[11px] text-surface-variant/70 font-semibold mb-0.5">اتصال مباشر</span>
+                  <div className="space-y-1">
+                    {uniquePhones.map((number, index) => (
+                      <a
+                        key={index}
+                        href={`tel:${number}`}
+                        className="text-white hover:text-primary transition-colors font-mono font-bold block"
+                      >
+                        <bdo dir="ltr">{formatPhoneNumber(number)}</bdo>
+                      </a>
+                    ))}
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
 
-            {/* WhatsApp numbers row */}
-            <div className="flex items-start gap-2.5">
-              <div className="w-7 h-7 rounded-lg bg-[#25D366]/15 flex items-center justify-center text-[#25D366] shrink-0">
-                <span className="material-symbols-outlined text-[16px]">chat</span>
-              </div>
-              <div className="space-y-0.5">
-                <span className="block text-[10px] text-surface-variant/60 font-bold uppercase">خدمة العملاء WhatsApp</span>
-                <div className="flex flex-col gap-0.5">
-                  {whatsappNumbers.map((number, index) => (
-                    <a
-                      key={index}
-                      href={`https://wa.me/${number}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-surface-variant hover:text-white transition-colors font-medium block"
-                    >
-                      تواصل عبر واتساب {whatsappNumbers.length > 1 && `(${index + 1})`}
-                    </a>
-                  ))}
+            {/* WhatsApp */}
+            {uniqueWhatsapp.length > 0 && (
+              <div className="flex items-start gap-3">
+                <div className="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 shrink-0">
+                  <span className="material-symbols-outlined text-[18px]">chat</span>
+                </div>
+                <div>
+                  <span className="block text-[11px] text-surface-variant/70 font-semibold mb-0.5">واتساب الدعم والمبيعات</span>
+                  <div className="space-y-1">
+                    {uniqueWhatsapp.map((number, index) => (
+                      <a
+                        key={index}
+                        href={`https://wa.me/${number}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-white hover:text-emerald-400 transition-colors font-mono font-bold block"
+                      >
+                        <bdo dir="ltr">{formatPhoneNumber(number)}</bdo>
+                      </a>
+                    ))}
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
 
-            {/* Email address row */}
+            {/* Email */}
             {supportEmail && (
-              <div className="flex items-start gap-2.5">
-                <div className="w-7 h-7 rounded-lg bg-cyan-400/15 flex items-center justify-center text-cyan-400 shrink-0">
-                  <span className="material-symbols-outlined text-[16px]">mail</span>
+              <div className="flex items-start gap-3">
+                <div className="w-8 h-8 rounded-lg bg-cyan-400/10 border border-cyan-400/20 flex items-center justify-center text-cyan-400 shrink-0">
+                  <span className="material-symbols-outlined text-[18px]">mail</span>
                 </div>
-                <div className="space-y-0.5">
-                  <span className="block text-[10px] text-surface-variant/60 font-bold uppercase">البريد الإلكتروني</span>
+                <div>
+                  <span className="block text-[11px] text-surface-variant/70 font-semibold mb-0.5">البريد الإلكتروني</span>
                   <a
                     href={`mailto:${supportEmail}`}
-                    className="text-surface-variant hover:text-white transition-colors font-mono font-medium block"
-                    dir="ltr"
+                    className="text-white hover:text-cyan-300 transition-colors font-mono font-medium block"
                   >
-                    {supportEmail}
+                    <bdo dir="ltr">{supportEmail}</bdo>
                   </a>
                 </div>
               </div>

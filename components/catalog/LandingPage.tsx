@@ -252,16 +252,8 @@ export const LandingPage = memo(function LandingPage({
           </div>
         </div>
 
-        {/* Decorative background element */}
-        <div className="absolute left-[3%] top-1/2 -translate-y-1/2 opacity-15 pointer-events-none hidden xl:block" aria-hidden="true">
-          <span
-            className="material-symbols-outlined text-[420px] text-white select-none"
-            style={{ fontVariationSettings: "'FILL' 1" }}
-          >
-            electrical_services
-          </span>
-        </div>
       </section>
+
 
       {/* Featured Categories */}
       <section className="max-w-max-width mx-auto px-margin-mobile md:px-margin-desktop py-20 text-center">
