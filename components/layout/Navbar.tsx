@@ -150,14 +150,18 @@ export const Navbar = memo(function Navbar() {
               </Link>
             )}
 
-            <Link href="/cart" className="relative hover:opacity-85 transition-all flex items-center p-2 rounded-full hover:bg-surface-container-low" aria-label={`سلة التسوق${itemCount > 0 ? ` - ${itemCount} منتجات` : ''}`}>
+            <Link
+              href="/cart"
+              className="relative hover:opacity-85 transition-all flex items-center justify-center w-11 h-11 rounded-full hover:bg-surface-container-low focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 cursor-pointer"
+              aria-label={`سلة التسوق${itemCount > 0 ? ` - ${itemCount} منتجات` : ''}`}
+            >
               <span className="material-symbols-outlined text-primary text-[28px] select-none" aria-hidden="true">
                 shopping_cart
               </span>
               {isMounted && itemCount > 0 && (
                 <span
                   key={itemCount}
-                  className="absolute -top-1.5 -end-1.5 bg-primary text-on-primary text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center animate-cart-badge shadow-sm"
+                  className="absolute -top-1 -end-1 bg-primary text-on-primary text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center animate-cart-badge shadow-sm font-mono tabular-nums"
                 >
                   {itemCount}
                 </span>
@@ -166,7 +170,7 @@ export const Navbar = memo(function Navbar() {
 
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="md:hidden text-on-surface hover:text-primary transition-colors flex items-center p-2 rounded-full hover:bg-surface-container-low cursor-pointer"
+              className="md:hidden text-on-surface hover:text-primary transition-colors flex items-center justify-center w-11 h-11 rounded-full hover:bg-surface-container-low cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
               aria-label={isMobileMenuOpen ? 'إغلاق القائمة' : 'فتح القائمة'}
               aria-expanded={isMobileMenuOpen}
               aria-controls="mobile-menu"

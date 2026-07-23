@@ -64,7 +64,7 @@ export const FloatingContactWidget = memo(function FloatingContactWidget() {
       {/* Main Floating Trigger Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="group relative bg-[#25D366] hover:bg-[#20ba5a] text-white p-3.5 rounded-full shadow-xl hover:shadow-2xl active:scale-95 transition-all duration-300 flex items-center justify-center cursor-pointer"
+        className="group relative bg-[#25D366] hover:bg-[#20ba5a] text-white p-3.5 rounded-full shadow-xl hover:shadow-2xl active:scale-95 transition-all duration-300 flex items-center justify-center cursor-pointer focus:outline-none focus-visible:ring-4 focus-visible:ring-[#25D366]/40 min-w-[52px] min-h-[52px]"
         aria-label="تواصل معنا عبر واتساب"
       >
         <span className="absolute -top-1 -end-1 flex h-3 w-3">
