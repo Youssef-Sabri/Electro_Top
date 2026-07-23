@@ -238,7 +238,7 @@ export function TrackingDetailClient({ id }: TrackingDetailClientProps) {
             <div className="border-t border-surface-variant/10 pt-5 mt-4 space-y-2 text-sm text-white">
               <div className="flex justify-between items-center text-xs text-white/60">
                 <span>المجموع الفرعي</span>
-                <span className="font-mono">{formatCurrency(order.total_amount)}</span>
+                <span className="font-mono tabular-nums">{formatCurrency(order.total_amount)}</span>
               </div>
               <div className="flex justify-between items-center text-xs text-white/60">
                 <span>الشحن</span>
@@ -246,7 +246,7 @@ export function TrackingDetailClient({ id }: TrackingDetailClientProps) {
               </div>
               <div className="flex justify-between items-center pt-3 border-t border-surface-variant/10 mt-1">
                 <span className="font-bold text-sm">الإجمالي النهائي</span>
-                <span className="font-bold text-electro-gold text-[22px] font-mono leading-none">
+                <span className="font-bold text-electro-gold text-[22px] font-mono tabular-nums leading-none">
                   {formatCurrency(order.total_amount)}
                 </span>
               </div>

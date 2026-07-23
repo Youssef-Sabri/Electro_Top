@@ -86,7 +86,7 @@ export const CartItem = memo(function CartItem({ item }: CartItemProps) {
               </span>
             )}
           </div>
-          <p className="font-bold text-primary text-end shrink-0 text-base">
+          <p className="font-bold text-primary text-end shrink-0 text-base font-mono tabular-nums">
             {formatCurrency(product.price)}
           </p>
         </div>
@@ -102,7 +102,7 @@ export const CartItem = memo(function CartItem({ item }: CartItemProps) {
             >
               <span className="material-symbols-outlined text-[18px] select-none">remove</span>
             </button>
-            <span className="px-3 font-bold text-on-surface text-sm min-w-[20px] text-center">
+            <span className="px-3 font-bold text-on-surface text-sm min-w-[20px] text-center font-mono tabular-nums">
               {localQuantity}
             </span>
             <button

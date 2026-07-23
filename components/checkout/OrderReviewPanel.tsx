@@ -48,12 +48,12 @@ export function OrderReviewPanel({ items, total, isSubmitting, cooldown }: Order
         <div className="space-y-3 mb-8 pt-4 border-t border-surface-variant/10">
           <div className="flex justify-between text-xs text-white/60">
             <span>المجموع الفرعي</span>
-            <span>{formatCurrency(total)}</span>
+            <span className="font-mono tabular-nums">{formatCurrency(total)}</span>
           </div>
 
           <div className="flex justify-between text-xs text-electro-gold">
             <span className="font-bold">المبلغ الإجمالي المطلوب</span>
-            <span className="text-[26px] font-bold gold-glow leading-none font-mono">
+            <span className="text-[26px] font-bold gold-glow leading-none font-mono tabular-nums">
               {formatCurrency(total)}
             </span>
           </div>

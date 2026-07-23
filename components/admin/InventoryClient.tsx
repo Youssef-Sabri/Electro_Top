@@ -546,7 +546,7 @@ export const InventoryClient = memo(function InventoryClient() {
                       </span>
                     </td>
 
-                    <td className="py-4 px-6 text-end font-bold text-primary text-base font-mono">
+                    <td className="py-4 px-6 text-end font-bold text-primary text-base font-mono tabular-nums">
                       {formatCurrency(product.price)}
                     </td>
 

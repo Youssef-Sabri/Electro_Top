@@ -3,6 +3,7 @@ import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { CartReconciler } from '@/components/layout/CartReconciler';
 import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
+import { FloatingContactWidget } from '@/components/ui/FloatingContactWidget';
 
 export default function StoreLayout({ children }: { children: ReactNode }) {
   return (
@@ -17,6 +18,7 @@ export default function StoreLayout({ children }: { children: ReactNode }) {
         <ErrorBoundary>{children}</ErrorBoundary>
       </main>
       <Footer />
+      <FloatingContactWidget />
       <CartReconciler />
     </div>
   );

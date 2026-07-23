@@ -28,11 +28,15 @@ export const ProductCard = memo(function ProductCard({ product, onOpenDetails, i
 
   const handleAddToCart = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
+    e.preventDefault();
     if (product.stock <= 0) return;
-    if (product.has_colors) {
+    
+    const hasColorVariants = Boolean(product.has_colors && Array.isArray(product.colors) && product.colors.length > 0);
+    if (hasColorVariants) {
       onOpenDetails(product);
       return;
     }
+    
     addToCart(product, 1);
     setShowToast(true);
     setIsAdded(true);
@@ -103,14 +107,14 @@ export const ProductCard = memo(function ProductCard({ product, onOpenDetails, i
 
         {/* Price & Cart button */}
         <div className="mt-auto flex items-center justify-between gap-3 pt-3 border-t border-outline-variant/20">
-          <span className="text-primary font-bold text-[17px]">
+          <span className="text-primary font-bold text-[17px] tabular-nums font-mono tracking-tight">
             {formatCurrency(product.price)}
           </span>
 
           <button
             onClick={handleAddToCart}
             disabled={isOutOfStock}
-            className={`w-9 h-9 rounded-xl transition-all duration-200 flex items-center justify-center shrink-0 border cursor-pointer ${
+            className={`w-10 h-10 rounded-xl transition-all duration-200 flex items-center justify-center shrink-0 border cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 ${
               isOutOfStock
                 ? 'bg-surface-container-low text-on-surface-variant/40 border-outline-variant/30 cursor-not-allowed'
                 : isAdded

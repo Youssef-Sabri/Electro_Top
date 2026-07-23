@@ -46,6 +46,13 @@ export const ProductDetailsModal = memo(function ProductDetailsModal({ product, 
 
         {/* Right Side: Product Details */}
         <div className="p-6 flex flex-col flex-grow overflow-y-auto h-auto md:h-full text-start font-tajawal bg-white">
+          {product.has_colors && Array.isArray(product.colors) && product.colors.length > 0 && (
+            <div className="mb-3 p-2.5 bg-primary/5 border border-primary/20 rounded-xl flex items-center gap-2 text-primary font-bold text-xs animate-fade-in-up">
+              <span className="material-symbols-outlined text-[18px]">palette</span>
+              <span>الرجاء اختيار اللون المطلوب أولاً لإضافته إلى السلة</span>
+            </div>
+          )}
+
           <div className="mb-3 sm:mb-4">
             {product.category && (
               <span className="inline-block bg-surface-container border border-outline-variant/50 text-on-surface-variant text-[10px] font-bold px-2.5 py-0.5 rounded-full w-fit mb-3">
