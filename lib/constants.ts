@@ -15,6 +15,8 @@ export const ORDER_ITEM_SELECT_FIELDS = 'id, order_id, product_id, quantity, uni
 
 export const STATUS_HISTORY_SELECT_FIELDS = 'id, order_id, status, created_at';
 
+export const SUBCATEGORY_BANNER_SELECT_FIELDS = 'id, subcategory_name, title, subtitle, discount_percentage, discount_badge, banner_color, image_url, is_active, start_date, end_date, created_at, updated_at';
+
 export const VALID_ORDER_STATUSES = [
   'Pending Review', 'Accepted', 'Processing', 'Delivered', 'Declined', 'Check Internal Note',
 ] as const;
@@ -27,6 +29,7 @@ export const TABLES = {
   orderItems: 'order_items',
   orderStatusHistory: 'order_status_history',
   categories: 'categories',
+  subcategoryBanners: 'subcategory_banners',
   loginAttempts: 'login_attempts',
   trackingLookups: 'tracking_lookups',
   orderRateLimits: 'order_rate_limits',

@@ -298,6 +298,25 @@ select.select-reset::-ms-expand {
   outline-offset: 2px !important;
 }
 
+/* E-commerce Promotional Banner Animations */
+@keyframes bannerFloat {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-6px) rotate(1.5deg); }
+}
+
+@keyframes bannerGloss {
+  0% { transform: translateX(-150%) skewX(-25deg); }
+  35%, 100% { transform: translateX(250%) skewX(-25deg); }
+}
+
+.animate-banner-float {
+  animation: bannerFloat 4s ease-in-out infinite;
+}
+
+.animate-banner-gloss {
+  animation: bannerGloss 5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
 /* Respect users who prefer reduced motion */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {

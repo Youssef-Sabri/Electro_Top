@@ -1,8 +1,8 @@
 'use client';
 
 import { memo, useMemo } from 'react';
-import type { Product } from '@/types';
-import { formatCurrency } from '@/lib/utils/format';
+import type { Product, SubcategoryBanner } from '@/types';
+import { formatCurrency, calculateDiscountedPrice } from '@/lib/utils/format';
 import { Modal } from '@/components/ui/Modal';
 import { ProductImageGallery } from '@/components/catalog/ProductImageGallery';
 import { ProductDetailActions } from '@/components/catalog/ProductDetailActions';
@@ -10,14 +10,24 @@ import { ProductDetailActions } from '@/components/catalog/ProductDetailActions'
 interface ProductDetailsModalProps {
   product: Product;
   onClose: () => void;
+  discountBanner?: SubcategoryBanner | null;
 }
 
-export const ProductDetailsModal = memo(function ProductDetailsModal({ product, onClose }: ProductDetailsModalProps) {
+export const ProductDetailsModal = memo(function ProductDetailsModal({ product, onClose, discountBanner }: ProductDetailsModalProps) {
   const images = useMemo(() => {
     return [product.image_url, product.image_url_2, product.image_url_3].filter(
       (img): img is string => !!img
     );
   }, [product.image_url, product.image_url_2, product.image_url_3]);
+
+  const discountInfo = useMemo(() => {
+    return calculateDiscountedPrice(product.price, discountBanner?.discount_percentage);
+  }, [product.price, discountBanner?.discount_percentage]);
+
+  const effectiveProduct = useMemo(() => {
+    if (!discountInfo.hasDiscount) return product;
+    return { ...product, price: discountInfo.discountedPrice };
+  }, [product, discountInfo]);
 
   return (
     <Modal isOpen={true} onClose={onClose} title={product.name}>
@@ -64,10 +74,20 @@ export const ProductDetailsModal = memo(function ProductDetailsModal({ product, 
             </h2>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-4 sm:mb-5 text-sm">
-            <span className="text-primary font-bold text-lg sm:text-xl md:text-2xl">
-              {formatCurrency(product.price)}
+          <div className="flex flex-wrap items-baseline gap-2 sm:gap-3 mb-4 sm:mb-5">
+            <span className="text-primary font-extrabold text-xl sm:text-2xl md:text-3xl">
+              {formatCurrency(discountInfo.discountedPrice)}
             </span>
+            {discountInfo.hasDiscount && (
+              <span className="text-sm sm:text-base text-on-surface-variant/60 line-through font-mono">
+                {formatCurrency(discountInfo.originalPrice)}
+              </span>
+            )}
+            {discountInfo.hasDiscount && (
+              <span className="bg-emerald-500/15 text-emerald-700 font-bold text-xs px-2.5 py-1 rounded-full border border-emerald-500/30">
+                توفير {discountInfo.discountPercentage}%
+              </span>
+            )}
           </div>
 
           {product.description && (
@@ -80,7 +100,7 @@ export const ProductDetailsModal = memo(function ProductDetailsModal({ product, 
           )}
 
           <div className="mt-auto">
-            <ProductDetailActions product={product} />
+            <ProductDetailActions product={effectiveProduct} />
           </div>
         </div>
       </div>

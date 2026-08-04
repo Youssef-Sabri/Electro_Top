@@ -68,3 +68,20 @@ export interface CategoryGroup {
   icon: string;
   subcategories: string[];
 }
+
+export interface SubcategoryBanner {
+  id: string;
+  subcategory_name: string;
+  title: string;
+  subtitle?: string | null;
+  discount_percentage: number;
+  discount_badge?: string | null;
+  banner_color?: string | null;
+  image_url?: string | null;
+  is_active: boolean;
+  start_date?: string | null;
+  end_date?: string | null;
+  created_at: string;
+  updated_at?: string | null;
+}
+

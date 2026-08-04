@@ -62,6 +62,24 @@ export const categoryGroupSchema = z.object({
 
 export const categoryHierarchySchema = z.array(categoryGroupSchema).max(50, 'الحد الأقصى 50 قسماً');
 
+export const subcategoryBannerSchema = z.object({
+  subcategory_name: z.string().min(1, 'اختيار القسم الفرعي مطلوب'),
+  title: z.string().min(2, 'عنوان البنر يجب أن يكون من حرفين على الأقل').max(150, 'العنوان يجب ألا يتجاوز 150 حرف'),
+  subtitle: z.string().max(300, 'الوصف الفرعي يجب ألا يتجاوز 300 حرف').optional().nullable().or(z.literal('')),
+  discount_percentage: z.number({ required_error: 'نسبة الخصم مطلوبة', invalid_type_error: 'الرجاء إدخال نسبة خصم صحيحة' })
+    .min(1, 'نسبة الخصم يجب أن تكون 1% على الأقل')
+    .max(99, 'نسبة الخصم لا يمكن أن تتجاوز 99%'),
+  discount_badge: z.string().max(50, 'وسام العرض يجب ألا يتجاوز 50 حرف').optional().nullable().or(z.literal('')),
+  banner_color: z.string().default('gradient-primary'),
+  image_url: z.string().url('الرجاء إدخال رابط صورة صحيح').optional().nullable().or(z.literal('')),
+  is_active: z.boolean().default(true),
+  start_date: z.string().optional().nullable().or(z.literal('')),
+  end_date: z.string().optional().nullable().or(z.literal('')),
+});
+
+export type SubcategoryBannerFormData = z.infer<typeof subcategoryBannerSchema>;
+
 export const SAFE_FILENAME_RE = /^receipt-[a-z0-9]+\.(jpg|jpeg|png|webp|heic|heif|gif)$/i;
 
 export type ProductFormData = z.infer<typeof productFormSchema>;
+

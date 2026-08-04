@@ -9,8 +9,10 @@ import { usePagination } from '@/hooks/usePagination';
 import { ProductCard } from '@/components/catalog/ProductCard';
 import { sortByRelevance } from '@/lib/utils/search';
 import { defaultProductSort } from '@/lib/utils/sort';
-import type { Product, CategoryGroup } from '@/types';
+import { getBannerTheme } from '@/lib/utils/color';
+import type { Product, CategoryGroup, SubcategoryBanner } from '@/types';
 import { CustomDropdown } from '@/components/ui/CustomDropdown';
+import { SubcategoryBannerCard } from '@/components/catalog/SubcategoryBannerCard';
 
 const ALL_CATEGORIES = 'All';
 type SortByType = 'default' | 'price-asc' | 'price-desc';
@@ -46,6 +48,46 @@ export const ShopPageContent = memo(function ShopPageContent({ initialProducts, 
   const [hideOutOfStock, setHideOutOfStock] = useState(() => searchParams.get('hideOut') === 'true');
   const [sortBy, setSortBy] = useState<SortByType>(() => (searchParams.get('sort') as SortByType) || 'default');
   const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false);
+  const [discounts, setDiscounts] = useState<SubcategoryBanner[]>([]);
+
+  useEffect(() => {
+    async function fetchDiscounts() {
+      try {
+        const res = await fetch('/api/discounts');
+        if (res.ok) {
+          const data = await res.json();
+          setDiscounts(data.banners || []);
+        }
+      } catch {
+        // Ignore fallback
+      }
+    }
+    fetchDiscounts();
+  }, []);
+
+  const activeBannerForCategory = useMemo(() => {
+    if (category === ALL_CATEGORIES) return null;
+    return discounts.find((b) => b.is_active && b.subcategory_name === category) || null;
+  }, [category, discounts]);
+
+  const activeSubcategoryImages = useMemo(() => {
+    if (category === ALL_CATEGORIES) return [];
+    const group = categoryHierarchy.find(g => g.name === category);
+    const allowedCategories = group ? [category, ...(group.subcategories || [])] : [category];
+
+    const urls = products
+      .filter((p) => p.is_active && p.category && allowedCategories.includes(p.category) && p.image_url)
+      .map((p) => p.image_url);
+    return Array.from(new Set(urls));
+  }, [category, products, categoryHierarchy]);
+
+  const discountBannerMap = useMemo(() => {
+    const map = new Map<string, SubcategoryBanner>();
+    discounts.forEach((b) => {
+      if (b.is_active) map.set(b.subcategory_name, b);
+    });
+    return map;
+  }, [discounts]);
 
   // Sync selection states when main category category state changes
   useEffect(() => {
@@ -272,6 +314,16 @@ export const ShopPageContent = memo(function ShopPageContent({ initialProducts, 
           </div>
         </div>
 
+        {/* Active Subcategory Discount Banner */}
+        {activeBannerForCategory && (
+          <SubcategoryBannerCard
+            banner={activeBannerForCategory}
+            categoryImages={activeSubcategoryImages}
+            interactiveLink={false}
+            className="mb-8"
+          />
+        )}
+
         {paginatedProducts.length > 0 ? (
           <div className="space-y-12">
             <div className="flex items-center justify-between mb-2">
@@ -287,6 +339,7 @@ export const ShopPageContent = memo(function ShopPageContent({ initialProducts, 
                   key={product.id}
                   product={product}
                   index={index}
+                  discountBanner={product.category ? discountBannerMap.get(product.category) : null}
                 />
               ))}
             </div>

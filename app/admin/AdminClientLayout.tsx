@@ -369,6 +369,18 @@ export default function AdminClientLayout({ children, initialAuthState }: AdminC
             <span className="material-symbols-outlined select-none">category</span>
             <span className="font-label-md text-label-md">الأقسام والكتالوج</span>
           </Link>
+          <Link
+            href="/admin/discounts"
+            onClick={() => setIsSidebarOpen(false)}
+            className={`flex items-center gap-3 px-4 py-3 rounded-lg mx-2 duration-200 ease-linear hover:scale-105 cursor-pointer ${
+              pathname === '/admin/discounts'
+                ? 'bg-secondary text-on-secondary'
+                : 'text-surface-variant hover:bg-surface-variant/10'
+            }`}
+          >
+            <span className="material-symbols-outlined select-none">local_offer</span>
+            <span className="font-label-md text-label-md">بنرات الخصومات والعروض</span>
+          </Link>
         </nav>
 
         {/* Sidebar Footer */}

@@ -1,26 +1,37 @@
 'use client';
 
-import React, { memo, useState, useRef, useEffect, useCallback } from 'react';
+import React, { memo, useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import type { Product } from '@/types';
+import { getBannerTheme } from '@/lib/utils/color';
+import type { Product, SubcategoryBanner } from '@/types';
 import { useCart } from '@/hooks/useCart';
 import { Toast } from '@/components/ui/Toast';
-import { formatCurrency } from '@/lib/utils/format';
+import { formatCurrency, calculateDiscountedPrice } from '@/lib/utils/format';
 
 interface ProductCardProps {
   product: Product;
   onOpenDetails?: (product: Product) => void;
   index?: number;
+  discountBanner?: SubcategoryBanner | null;
 }
 
-export const ProductCard = memo(function ProductCard({ product, onOpenDetails, index = 0 }: ProductCardProps) {
+export const ProductCard = memo(function ProductCard({ product, onOpenDetails, index = 0, discountBanner }: ProductCardProps) {
   const router = useRouter();
   const { addToCart } = useCart();
   const [showToast, setShowToast] = useState(false);
   const [isAdded, setIsAdded] = useState(false);
   const isAddedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const discountInfo = useMemo(() => {
+    return calculateDiscountedPrice(product.price, discountBanner?.discount_percentage);
+  }, [product.price, discountBanner?.discount_percentage]);
+
+  const effectiveProduct = useMemo(() => {
+    if (!discountInfo.hasDiscount) return product;
+    return { ...product, price: discountInfo.discountedPrice };
+  }, [product, discountInfo]);
 
   useEffect(() => {
     return () => {
@@ -37,21 +48,21 @@ export const ProductCard = memo(function ProductCard({ product, onOpenDetails, i
     
     if (hasColorVariants) {
       if (onOpenDetails) {
-        onOpenDetails(product);
+        onOpenDetails(effectiveProduct);
       } else {
         router.push(`/products/${product.slug}`);
       }
       return;
     }
     
-    addToCart(product, 1);
+    addToCart(effectiveProduct, 1);
     setShowToast(true);
     setIsAdded(true);
     if (isAddedTimerRef.current) clearTimeout(isAddedTimerRef.current);
     isAddedTimerRef.current = setTimeout(() => {
       setIsAdded(false);
     }, 1500);
-  }, [product, hasColorVariants, onOpenDetails, router, addToCart]);
+  }, [product, effectiveProduct, hasColorVariants, onOpenDetails, router, addToCart]);
 
 
   const isOutOfStock = product.stock <= 0;
@@ -91,6 +102,16 @@ export const ProductCard = memo(function ProductCard({ product, onOpenDetails, i
             {product.category}
           </span>
         )}
+
+        {/* Discount Banner Badge Tag */}
+        {discountBanner && (() => {
+          const theme = getBannerTheme(discountBanner.banner_color);
+          return (
+            <span className={`absolute bottom-3 start-3 z-10 bg-gradient-to-r ${theme.gradientClass} text-white text-[10px] font-extrabold px-2.5 py-0.5 rounded-md shadow-md border border-white/20 animate-pulse`}>
+              ⚡ {discountBanner.discount_badge || (discountBanner.discount_percentage ? `خصم ${discountBanner.discount_percentage}%` : 'عرض متاح')}
+            </span>
+          );
+        })()}
 
         {/* Stock Status Badge */}
         {isOutOfStock ? (
@@ -156,10 +177,19 @@ export const ProductCard = memo(function ProductCard({ product, onOpenDetails, i
         {/* Bottom Price & Action Row */}
         <div className="mt-auto flex items-center justify-between gap-3 pt-3 border-t border-outline-variant/15">
           <div className="flex flex-col">
-            <span className="text-[10px] text-on-surface-variant/60 font-semibold">السعر</span>
-            <span className="text-primary font-bold text-[18px] tabular-nums font-mono tracking-tight">
-              {formatCurrency(product.price)}
+            <span className="text-[10px] text-on-surface-variant/60 font-semibold">
+              {discountInfo.hasDiscount ? 'السعر بعد الخصم' : 'السعر'}
             </span>
+            <div className="flex items-baseline gap-1.5 flex-wrap">
+              <span className="text-primary font-extrabold text-[18px] tabular-nums font-mono tracking-tight">
+                {formatCurrency(discountInfo.discountedPrice)}
+              </span>
+              {discountInfo.hasDiscount && (
+                <span className="text-xs text-on-surface-variant/60 line-through tabular-nums font-mono">
+                  {formatCurrency(discountInfo.originalPrice)}
+                </span>
+              )}
+            </div>
           </div>
 
           <button
