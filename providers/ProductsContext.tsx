@@ -88,13 +88,18 @@ export function ProductsProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  const handleAdminReconnect = useCallback(() => {
+    hasFetchedRef.current = false;
+    loadData(true);
+  }, [loadData]);
+
   useEffect(() => {
     if (pathname === '/' || pathname.startsWith('/shop')) return;
     if (hasFetchedRef.current) return;
     loadData();
   }, [loadData, pathname]);
 
-  useRealtimeProducts({ setProducts, hasFetchedRef, loadData, pathname });
+  useRealtimeProducts({ setProducts, loadData, onAdminReconnect: handleAdminReconnect, pathname });
 
   const refreshProducts = useCallback(async () => {
     await loadData();

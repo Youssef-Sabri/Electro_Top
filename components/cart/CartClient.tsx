@@ -1,18 +1,17 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, memo } from 'react';
 import Link from 'next/link';
 import { useCart } from '@/hooks/useCart';
 import { CartItem } from '@/components/cart/CartItem';
 import { BackLink } from '@/components/ui/BackLink';
 import { formatCurrency } from '@/lib/utils/format';
 
-export function CartClient() {
+export const CartClient = memo(function CartClient() {
   const { items, total, itemCount } = useCart();
   const [isHydrated, setIsHydrated] = useState(false);
 
   useEffect(() => { 
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsHydrated(true); 
   }, []);
 
@@ -100,4 +99,5 @@ export function CartClient() {
       </div>
     </div>
   );
-}
+});
+CartClient.displayName = 'CartClient';

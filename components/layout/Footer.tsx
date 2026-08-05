@@ -1,10 +1,11 @@
 'use client';
 
+import { memo } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { getSupportEnv } from '@/lib/utils/misc';
 
-export function Footer() {
+export const Footer = memo(function Footer() {
   const { whatsapp: whatsappNumbers, phone: phoneNumbers, facebook: facebookUrl, email: supportEmail } = getSupportEnv();
 
   const uniquePhones = Array.from(new Set(phoneNumbers.filter(Boolean)));
@@ -211,5 +212,6 @@ export function Footer() {
       </div>
     </footer>
   );
-}
+});
+Footer.displayName = 'Footer';
 

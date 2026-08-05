@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback, type ChangeEvent, type FormEvent } from 'react';
+import { useState, useEffect, useRef, useCallback, memo, type ChangeEvent, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { useCart } from '@/hooks/useCart';
 import { checkoutSchema } from '@/lib/validations';
@@ -11,7 +11,7 @@ import { Toast } from '@/components/ui/Toast';
 import { BackLink } from '@/components/ui/BackLink';
 import { OrderReviewPanel } from '@/components/checkout/OrderReviewPanel';
 
-export function CheckoutForm() {
+export const CheckoutForm = memo(function CheckoutForm() {
   const router = useRouter();
   const { items, total, clearCart } = useCart();
 
@@ -104,7 +104,6 @@ export function CheckoutForm() {
   };
 
   useEffect(() => { 
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setUiState((prev) => ({ ...prev, isHydrated: true })); 
   }, []);
 
@@ -514,4 +513,5 @@ export function CheckoutForm() {
       </div>
     </form>
   );
-}
+});
+CheckoutForm.displayName = 'CheckoutForm';

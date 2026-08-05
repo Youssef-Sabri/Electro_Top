@@ -191,8 +191,7 @@ export const OrderDetailClient = memo(function OrderDetailClient({ id }: OrderDe
     } catch (err) {
       if (process.env.NODE_ENV !== 'production') console.error('Error fetching fresh signed URL:', err);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps -- fetchSignedUrl is a module-level function, stable across renders
-  }, [order, fetchSignedUrl]);
+  }, [order]);
 
   const handleSaveChanges = useCallback(() => {
     if (!order) return;

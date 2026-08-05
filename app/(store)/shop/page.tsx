@@ -2,7 +2,7 @@ import { Suspense } from 'react';
 import { headers } from 'next/headers';
 import { Metadata } from 'next';
 import { ShopPageContent } from '@/components/catalog/ShopPageContent';
-import { fetchCatalog } from '@/lib/services/catalog';
+import { fetchCatalog, fetchActiveSubcategoryBanners } from '@/lib/services/catalog';
 import { SITE_METADATA } from '@/lib/constants';
 import StoreLoading from '@/app/(store)/loading';
 
@@ -17,7 +17,10 @@ export const metadata: Metadata = {
 export const revalidate = 60;
 
 async function ShopCatalogLoader() {
-  const { categories, products, hierarchy } = await fetchCatalog();
+  const [{ categories, products, hierarchy }, banners] = await Promise.all([
+    fetchCatalog(),
+    fetchActiveSubcategoryBanners(),
+  ]);
   const requestHeaders = await headers();
   const nonce = requestHeaders.get('x-nonce') || undefined;
 
@@ -53,7 +56,7 @@ async function ShopCatalogLoader() {
           }).replace(/</g, '\\u003c'),
         }}
       />
-      <ShopPageContent initialProducts={products} initialCategories={categories} initialHierarchy={hierarchy} />
+      <ShopPageContent initialProducts={products} initialCategories={categories} initialHierarchy={hierarchy} initialBanners={banners} />
     </>
   );
 }

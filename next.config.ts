@@ -30,6 +30,10 @@ const nextConfig: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
   allowedDevOrigins: isDev ? getDevOrigins() : [],
+  // React Compiler auto-memoizes components and hooks across the whole app,
+  // matching the manual memo/useCallback optimization pattern already used in
+  // this codebase and applying it uniformly to every component.
+  reactCompiler: true,
   experimental: {
     optimizePackageImports: ['@supabase/supabase-js'],
   },

@@ -35,7 +35,6 @@ function CategorySlideshowCard({ category, products, productCount }: CategorySli
   const [currentIndex, setCurrentIndex] = useState(0);
   const prevImagesRef = useRef(shuffledImages);
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally track shuffledImages reference change only
   useEffect(() => {
     const prev = prevImagesRef.current;
     if (prev !== shuffledImages) {
@@ -43,7 +42,7 @@ function CategorySlideshowCard({ category, products, productCount }: CategorySli
       const boundedIndex = shuffledImages.length > 0 ? Math.min(currentIndex, shuffledImages.length - 1) : 0;
       setCurrentIndex(boundedIndex);
     }
-  });
+  }, [shuffledImages, currentIndex]);
 
   useEffect(() => {
     if (shuffledImages.length <= 1) return;

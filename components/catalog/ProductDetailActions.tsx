@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, memo } from 'react';
 import type { Product, SubcategoryBanner } from '@/types';
 import { useCart } from '@/hooks/useCart';
 import { useDiscountedProduct } from '@/hooks/useDiscountedProduct';
@@ -13,7 +13,7 @@ interface ProductDetailActionsProps {
   discountBanner?: SubcategoryBanner | null;
 }
 
-export function ProductDetailActions({ product, discountBanner }: ProductDetailActionsProps) {
+export const ProductDetailActions = memo(function ProductDetailActions({ product, discountBanner }: ProductDetailActionsProps) {
   const { addToCart } = useCart();
   const [quantity, setQuantity] = useState(1);
   const [isAdded, setIsAdded] = useState(false);
@@ -169,4 +169,5 @@ export function ProductDetailActions({ product, discountBanner }: ProductDetailA
       )}
     </div>
   );
-}
+});
+ProductDetailActions.displayName = 'ProductDetailActions';

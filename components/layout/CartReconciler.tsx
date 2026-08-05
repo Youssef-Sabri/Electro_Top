@@ -1,10 +1,10 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, memo } from 'react';
 import { useCart } from '@/hooks/useCart';
 import { useProducts } from '@/hooks/useProducts';
 
-export function CartReconciler() {
+export const CartReconciler = memo(function CartReconciler() {
   const { reconcileCart } = useCart();
   const { getProductsMap, isLoaded, refreshVersion } = useProducts();
   const lastVersionRef = useRef(0);
@@ -19,4 +19,5 @@ export function CartReconciler() {
   }, [isLoaded, refreshVersion, getProductsMap, reconcileCart]);
 
   return null;
-}
+});
+CartReconciler.displayName = 'CartReconciler';

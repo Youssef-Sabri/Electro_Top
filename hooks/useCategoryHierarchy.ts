@@ -7,6 +7,14 @@ import { devLog } from '@/lib/utils/misc';
 let cachedData: CategoryGroup[] | null = null;
 let inFlightPromise: Promise<CategoryGroup[] | null> | null = null;
 
+function seedCache(data: CategoryGroup[]): void {
+  cachedData = data;
+}
+
+function invalidateCache(): void {
+  cachedData = null;
+}
+
 async function fetchHierarchyDeduplicated(): Promise<CategoryGroup[] | null> {
   if (cachedData) return cachedData;
   if (inFlightPromise) return inFlightPromise;
@@ -34,7 +42,7 @@ async function fetchHierarchyDeduplicated(): Promise<CategoryGroup[] | null> {
 export function useCategoryHierarchy(initialHierarchy?: CategoryGroup[]) {
   const [hierarchy, setHierarchy] = useState<CategoryGroup[]>(() => {
     if (initialHierarchy && initialHierarchy.length > 0) {
-      cachedData = initialHierarchy;
+      seedCache(initialHierarchy);
       return initialHierarchy;
     }
     return cachedData || [];
@@ -43,7 +51,7 @@ export function useCategoryHierarchy(initialHierarchy?: CategoryGroup[]) {
 
   const refresh = useCallback(async (bypassCache = false) => {
     if (bypassCache) {
-      cachedData = null;
+      invalidateCache();
     }
     setLoading(true);
     const data = await fetchHierarchyDeduplicated();

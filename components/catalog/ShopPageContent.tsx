@@ -19,9 +19,10 @@ interface ShopPageContentProps {
   initialProducts: Product[];
   initialCategories: string[];
   initialHierarchy: CategoryGroup[];
+  initialBanners?: SubcategoryBanner[];
 }
 
-export const ShopPageContent = memo(function ShopPageContent({ initialProducts, initialCategories, initialHierarchy }: ShopPageContentProps) {
+export const ShopPageContent = memo(function ShopPageContent({ initialProducts, initialCategories, initialHierarchy, initialBanners = [] }: ShopPageContentProps) {
   const { products: contextProducts, initializeData, isLoaded } = useProducts();
   const { hierarchy: categoryHierarchy } = useCategoryHierarchy(initialHierarchy);
   const searchParams = useSearchParams();
@@ -46,28 +47,10 @@ export const ShopPageContent = memo(function ShopPageContent({ initialProducts, 
   const [hideOutOfStock, setHideOutOfStock] = useState(() => searchParams.get('hideOut') === 'true');
   const [sortBy, setSortBy] = useState<SortByType>(() => (searchParams.get('sort') as SortByType) || 'default');
   const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false);
-  const [discounts, setDiscounts] = useState<SubcategoryBanner[]>([]);
-
-  useEffect(() => {
-    async function fetchDiscounts() {
-      try {
-        const res = await fetch('/api/discounts');
-        if (res.ok) {
-          const data = await res.json();
-          if (data.banners) {
-            setDiscounts(data.banners);
-          }
-        }
-      } catch {
-        // Ignore fallback
-      }
-    }
-    fetchDiscounts();
-  }, []);
 
   const discountBannerMap = useMemo(() => {
-    return new Map(discounts.map((b) => [b.subcategory_name, b]));
-  }, [discounts]);
+    return new Map(initialBanners.map((b) => [b.subcategory_name, b]));
+  }, [initialBanners]);
 
   const activeBannerForCategory = useMemo(() => {
     return category === ALL_CATEGORIES ? null : discountBannerMap.get(category) || null;
@@ -162,6 +145,11 @@ export const ShopPageContent = memo(function ShopPageContent({ initialProducts, 
 
   const initialSyncDone = useRef(false);
   const prevFiltersRef = useRef({ category, deferredSearch, hideOutOfStock, sortBy });
+  const latestFiltersRef = useRef({ category, searchInput, hideOutOfStock, sortBy, currentPage });
+
+  useEffect(() => {
+    latestFiltersRef.current = { category, searchInput, hideOutOfStock, sortBy, currentPage };
+  }, [category, searchInput, hideOutOfStock, sortBy, currentPage]);
 
   // Sync state to URL & Hard Reset Page to 1 when Filters Change
   useEffect(() => {
@@ -197,31 +185,31 @@ export const ShopPageContent = memo(function ShopPageContent({ initialProducts, 
 
   // Sync URL searchParams back to state
   useEffect(() => {
+    const latest = latestFiltersRef.current;
     const urlCategory = searchParams.get('category') || ALL_CATEGORIES;
     const urlSearch = searchParams.get('search') || '';
     const urlHideOut = searchParams.get('hideOut') === 'true';
     const urlSort = (searchParams.get('sort') as SortByType) || 'default';
     const urlPage = searchParams.get('page') ? parseInt(searchParams.get('page')!, 10) : 1;
 
-    const categoryChanged = urlCategory !== category;
-    const searchChanged = urlSearch !== searchInput;
-    const hideOutChanged = urlHideOut !== hideOutOfStock;
+    const categoryChanged = urlCategory !== latest.category;
+    const searchChanged = urlSearch !== latest.searchInput;
+    const hideOutChanged = urlHideOut !== latest.hideOutOfStock;
 
     if (categoryChanged) setCategory(urlCategory);
     if (searchChanged) setSearchInput(urlSearch);
     if (hideOutChanged) setHideOutOfStock(urlHideOut);
-    if (urlSort !== sortBy) setSortBy(urlSort);
+    if (urlSort !== latest.sortBy) setSortBy(urlSort);
 
     if (categoryChanged || searchChanged || hideOutChanged) {
       const explicitPage = searchParams.has('page') ? urlPage : 1;
       setCurrentPage(explicitPage);
-    } else if (urlPage !== currentPage) {
+    } else if (urlPage !== latest.currentPage) {
       setCurrentPage(urlPage);
     }
 
     initialSyncDone.current = true;
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchParams]);
+  }, [searchParams, setCurrentPage]);
 
   const handleClearFilters = useCallback(() => {
     setCategory(ALL_CATEGORIES);

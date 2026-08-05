@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import type { Dispatch, SetStateAction, MutableRefObject } from 'react';
+import type { Dispatch, SetStateAction } from 'react';
 import type { Product } from '@/types';
 import type { Session } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase/client';
@@ -9,12 +9,12 @@ import { TABLES } from '@/lib/constants';
 
 interface UseRealtimeProductsOptions {
   setProducts: Dispatch<SetStateAction<Product[]>>;
-  hasFetchedRef: MutableRefObject<boolean>;
   loadData: (force?: boolean) => Promise<void>;
+  onAdminReconnect: () => void;
   pathname: string | null;
 }
 
-export function useRealtimeProducts({ setProducts, hasFetchedRef, loadData, pathname }: UseRealtimeProductsOptions) {
+export function useRealtimeProducts({ setProducts, loadData, onAdminReconnect, pathname }: UseRealtimeProductsOptions) {
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
 
   useEffect(() => {
@@ -68,6 +68,7 @@ export function useRealtimeProducts({ setProducts, hasFetchedRef, loadData, path
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       if (session && isAdminRoute) {
+        onAdminReconnect();
         await subscribe(session);
       } else {
         unsubscribe();
@@ -77,8 +78,7 @@ export function useRealtimeProducts({ setProducts, hasFetchedRef, loadData, path
     if (isAdminRoute) {
       supabase.auth.getSession().then(({ data: { session } }) => {
         if (session) {
-          hasFetchedRef.current = false;
-          loadData(true);
+          onAdminReconnect();
           subscribe(session);
         }
       });
@@ -89,8 +89,7 @@ export function useRealtimeProducts({ setProducts, hasFetchedRef, loadData, path
         if (!isAdminRoute) return;
         const { data: { session } } = await supabase.auth.getSession();
         if (session) {
-          hasFetchedRef.current = false;
-          loadData(true);
+          onAdminReconnect();
           await subscribe(session);
         }
       } else {
@@ -105,5 +104,5 @@ export function useRealtimeProducts({ setProducts, hasFetchedRef, loadData, path
       unsubscribe();
       subscription.unsubscribe();
     };
-  }, [loadData, pathname, setProducts, hasFetchedRef]);
+  }, [loadData, pathname, setProducts, onAdminReconnect]);
 }

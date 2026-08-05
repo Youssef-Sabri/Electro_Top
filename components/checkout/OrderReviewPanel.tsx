@@ -1,5 +1,6 @@
 'use client';
 
+import { memo } from 'react';
 import Image from 'next/image';
 import type { CartItem } from '@/types';
 import { formatCurrency } from '@/lib/utils/format';
@@ -11,7 +12,7 @@ interface OrderReviewPanelProps {
   cooldown: number;
 }
 
-export function OrderReviewPanel({ items, total, isSubmitting, cooldown }: OrderReviewPanelProps) {
+export const OrderReviewPanel = memo(function OrderReviewPanel({ items, total, isSubmitting, cooldown }: OrderReviewPanelProps) {
   return (
     <div className="lg:w-1/3">
       <div className="bg-on-background text-secondary-fixed rounded-2xl p-8 shadow-lg sticky top-24 text-start">
@@ -82,4 +83,5 @@ export function OrderReviewPanel({ items, total, isSubmitting, cooldown }: Order
       </div>
     </div>
   );
-}
+});
+OrderReviewPanel.displayName = 'OrderReviewPanel';

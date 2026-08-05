@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, memo } from 'react';
 import Image from 'next/image';
 
 interface ProductImageGalleryProps {
@@ -9,7 +9,7 @@ interface ProductImageGalleryProps {
   isOutOfStock: boolean;
 }
 
-export function ProductImageGallery({ images, productName, isOutOfStock }: ProductImageGalleryProps) {
+export const ProductImageGallery = memo(function ProductImageGallery({ images, productName, isOutOfStock }: ProductImageGalleryProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const pointerStartX = useRef<number | null>(null);
 
@@ -122,4 +122,5 @@ export function ProductImageGallery({ images, productName, isOutOfStock }: Produ
       )}
     </div>
   );
-}
+});
+ProductImageGallery.displayName = 'ProductImageGallery';

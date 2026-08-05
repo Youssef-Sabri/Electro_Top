@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, memo } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useOrderTracking } from '@/hooks/useOrderTracking';
@@ -9,7 +9,7 @@ import { formatCurrency } from '@/lib/utils/format';
 import { formatOrderDate, formatOrderTimestamp } from '@/lib/utils/date';
 import { getSafeUrl, getSupportEnv } from '@/lib/utils/misc';
 
-export function ConfirmationClient() {
+export const ConfirmationClient = memo(function ConfirmationClient() {
   const searchParams = useSearchParams();
   const orderId = searchParams.get('id');
 
@@ -40,7 +40,6 @@ export function ConfirmationClient() {
       try {
         const stored = sessionStorage.getItem(`last-order-${orderId}`);
         if (stored) {
-          // eslint-disable-next-line react-hooks/set-state-in-effect
           setCachedOrder(JSON.parse(stored));
         }
       } catch {}
@@ -345,4 +344,5 @@ export function ConfirmationClient() {
       </div>
     </div>
   );
-}
+});
+ConfirmationClient.displayName = 'ConfirmationClient';
