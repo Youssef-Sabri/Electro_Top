@@ -1,7 +1,6 @@
 'use client';
 
 import { memo, useState, useMemo, useEffect, useCallback, useRef, useDeferredValue } from 'react';
-import dynamic from 'next/dynamic';
 import { useSearchParams } from 'next/navigation';
 import { useProducts } from '@/hooks/useProducts';
 import { useCategoryHierarchy } from '@/hooks/useCategoryHierarchy';
@@ -9,7 +8,6 @@ import { usePagination } from '@/hooks/usePagination';
 import { ProductCard } from '@/components/catalog/ProductCard';
 import { sortByRelevance } from '@/lib/utils/search';
 import { defaultProductSort } from '@/lib/utils/sort';
-import { getBannerTheme } from '@/lib/utils/color';
 import type { Product, CategoryGroup, SubcategoryBanner } from '@/types';
 import { CustomDropdown } from '@/components/ui/CustomDropdown';
 import { SubcategoryBannerCard } from '@/components/catalog/SubcategoryBannerCard';
@@ -56,7 +54,9 @@ export const ShopPageContent = memo(function ShopPageContent({ initialProducts, 
         const res = await fetch('/api/discounts');
         if (res.ok) {
           const data = await res.json();
-          setDiscounts(data.banners || []);
+          if (data.banners) {
+            setDiscounts(data.banners);
+          }
         }
       } catch {
         // Ignore fallback
@@ -65,10 +65,13 @@ export const ShopPageContent = memo(function ShopPageContent({ initialProducts, 
     fetchDiscounts();
   }, []);
 
+  const discountBannerMap = useMemo(() => {
+    return new Map(discounts.map((b) => [b.subcategory_name, b]));
+  }, [discounts]);
+
   const activeBannerForCategory = useMemo(() => {
-    if (category === ALL_CATEGORIES) return null;
-    return discounts.find((b) => b.is_active && b.subcategory_name === category) || null;
-  }, [category, discounts]);
+    return category === ALL_CATEGORIES ? null : discountBannerMap.get(category) || null;
+  }, [category, discountBannerMap]);
 
   const activeSubcategoryImages = useMemo(() => {
     if (category === ALL_CATEGORIES) return [];
@@ -80,14 +83,6 @@ export const ShopPageContent = memo(function ShopPageContent({ initialProducts, 
       .map((p) => p.image_url);
     return Array.from(new Set(urls));
   }, [category, products, categoryHierarchy]);
-
-  const discountBannerMap = useMemo(() => {
-    const map = new Map<string, SubcategoryBanner>();
-    discounts.forEach((b) => {
-      if (b.is_active) map.set(b.subcategory_name, b);
-    });
-    return map;
-  }, [discounts]);
 
   // Sync selection states when main category category state changes
   useEffect(() => {
@@ -259,16 +254,35 @@ export const ShopPageContent = memo(function ShopPageContent({ initialProducts, 
 
   return (
     <div className="min-h-screen bg-white font-tajawal text-on-surface">
-      <section className="bg-on-background py-16 text-start relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-primary/10 to-transparent pointer-events-none" />
+      <section className="bg-on-background py-10 md:py-14 text-start relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-r from-primary/10 via-transparent to-primary/5 pointer-events-none" />
         <div className="max-w-max-width mx-auto px-margin-mobile md:px-margin-desktop relative z-10">
-          <span className="text-secondary-fixed font-bold text-xs uppercase tracking-widest">
-            اكتشف كتالوج منتجاتنا
-          </span>
-          <h1 className="font-headline-lg text-[32px] md:text-[40px] text-white font-extrabold mt-2">
-            المتجر
-          </h1>
-          <div className="w-16 h-1 bg-primary rounded-full mt-4"></div>
+          <div className="flex flex-col lg:flex-row items-center justify-between gap-6 lg:gap-10">
+            
+            {/* Header Text (Right in RTL) */}
+            <div className="flex-1 space-y-2">
+              <span className="text-secondary-fixed font-bold text-xs uppercase tracking-widest">
+                {category !== ALL_CATEGORIES ? `قسم المنتجات • ${category}` : 'اكتشف كتالوج منتجاتنا'}
+              </span>
+              <h1 className="font-headline-lg text-[28px] md:text-[36px] lg:text-[40px] text-white font-extrabold mt-1">
+                {category !== ALL_CATEGORIES ? category : 'المتجر'}
+              </h1>
+              <div className="w-16 h-1 bg-primary rounded-full mt-3" />
+            </div>
+
+            {/* Subcategory Discount Banner (Left in RTL inside Header) */}
+            {activeBannerForCategory && (
+              <div className="w-full lg:w-[480px] xl:w-[520px] shrink-0">
+                <SubcategoryBannerCard
+                  banner={activeBannerForCategory}
+                  categoryImages={activeSubcategoryImages}
+                  interactiveLink={false}
+                  variant="compact"
+                />
+              </div>
+            )}
+
+          </div>
         </div>
       </section>
 
@@ -313,16 +327,6 @@ export const ShopPageContent = memo(function ShopPageContent({ initialProducts, 
             </button>
           </div>
         </div>
-
-        {/* Active Subcategory Discount Banner */}
-        {activeBannerForCategory && (
-          <SubcategoryBannerCard
-            banner={activeBannerForCategory}
-            categoryImages={activeSubcategoryImages}
-            interactiveLink={false}
-            className="mb-8"
-          />
-        )}
 
         {paginatedProducts.length > 0 ? (
           <div className="space-y-12">

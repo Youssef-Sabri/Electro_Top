@@ -28,8 +28,6 @@ export interface BannerTheme {
   textClass: string;
   badgeClass: string;
   borderClass: string;
-  accentBadge: string;
-  ctaBg: string;
   glowColor: string;
   radialHighlight: string;
 }
@@ -42,8 +40,6 @@ export const BANNER_THEMES: BannerTheme[] = [
     textClass: 'text-white',
     badgeClass: 'bg-black/35 text-amber-300 border-amber-400/40',
     borderClass: 'border-[#ca202b]/40',
-    accentBadge: 'bg-gradient-to-r from-amber-400 to-yellow-300 text-neutral-950 font-black shadow-md shadow-amber-500/20',
-    ctaBg: 'bg-white text-[#800013] hover:bg-amber-50 hover:shadow-lg hover:shadow-black/20',
     glowColor: 'rgba(202, 32, 43, 0.4)',
     radialHighlight: 'from-amber-400/15 via-red-500/10 to-transparent',
   },
@@ -54,8 +50,6 @@ export const BANNER_THEMES: BannerTheme[] = [
     textClass: 'text-white',
     badgeClass: 'bg-black/35 text-yellow-300 border-yellow-400/40',
     borderClass: 'border-amber-400/40',
-    accentBadge: 'bg-gradient-to-r from-yellow-300 to-amber-400 text-neutral-950 font-black shadow-md shadow-yellow-500/20',
-    ctaBg: 'bg-white text-amber-900 hover:bg-amber-50 hover:shadow-lg',
     glowColor: 'rgba(234, 88, 12, 0.4)',
     radialHighlight: 'from-yellow-300/20 via-orange-500/10 to-transparent',
   },
@@ -66,8 +60,6 @@ export const BANNER_THEMES: BannerTheme[] = [
     textClass: 'text-white',
     badgeClass: 'bg-emerald-950/60 text-emerald-200 border-emerald-400/40',
     borderClass: 'border-emerald-400/30',
-    accentBadge: 'bg-gradient-to-r from-emerald-300 to-teal-300 text-emerald-950 font-black shadow-md shadow-emerald-500/20',
-    ctaBg: 'bg-white text-emerald-900 hover:bg-emerald-50 hover:shadow-lg',
     glowColor: 'rgba(16, 185, 129, 0.4)',
     radialHighlight: 'from-emerald-300/20 via-teal-500/10 to-transparent',
   },
@@ -78,8 +70,6 @@ export const BANNER_THEMES: BannerTheme[] = [
     textClass: 'text-white',
     badgeClass: 'bg-blue-950/60 text-blue-200 border-blue-400/40',
     borderClass: 'border-blue-400/30',
-    accentBadge: 'bg-gradient-to-r from-cyan-300 to-blue-300 text-blue-950 font-black shadow-md shadow-cyan-500/20',
-    ctaBg: 'bg-white text-blue-900 hover:bg-blue-50 hover:shadow-lg',
     glowColor: 'rgba(37, 99, 235, 0.4)',
     radialHighlight: 'from-cyan-300/20 via-blue-500/10 to-transparent',
   },
@@ -90,8 +80,6 @@ export const BANNER_THEMES: BannerTheme[] = [
     textClass: 'text-white',
     badgeClass: 'bg-purple-950/60 text-purple-200 border-purple-400/40',
     borderClass: 'border-purple-400/30',
-    accentBadge: 'bg-gradient-to-r from-pink-300 to-purple-300 text-purple-950 font-black shadow-md shadow-purple-500/20',
-    ctaBg: 'bg-white text-purple-950 hover:bg-purple-50 hover:shadow-lg',
     glowColor: 'rgba(168, 85, 247, 0.4)',
     radialHighlight: 'from-fuchsia-300/20 via-purple-500/10 to-transparent',
   },
@@ -102,8 +90,6 @@ export const BANNER_THEMES: BannerTheme[] = [
     textClass: 'text-white',
     badgeClass: 'bg-zinc-800/80 text-amber-400 border-amber-400/30',
     borderClass: 'border-zinc-700/60',
-    accentBadge: 'bg-gradient-to-r from-amber-400 to-yellow-400 text-zinc-950 font-black shadow-md shadow-amber-400/20',
-    ctaBg: 'bg-amber-400 text-zinc-950 hover:bg-amber-300 hover:shadow-lg',
     glowColor: 'rgba(251, 191, 36, 0.3)',
     radialHighlight: 'from-amber-400/15 via-zinc-600/10 to-transparent',
   },

@@ -1,17 +1,19 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import type { Product } from '@/types';
+import type { Product, SubcategoryBanner } from '@/types';
 import { useCart } from '@/hooks/useCart';
+import { useDiscountedProduct } from '@/hooks/useDiscountedProduct';
 import { formatCurrency } from '@/lib/utils/format';
 import { Toast } from '@/components/ui/Toast';
 import { getColorHex } from '@/lib/utils/color';
 
 interface ProductDetailActionsProps {
   product: Product;
+  discountBanner?: SubcategoryBanner | null;
 }
 
-export function ProductDetailActions({ product }: ProductDetailActionsProps) {
+export function ProductDetailActions({ product, discountBanner }: ProductDetailActionsProps) {
   const { addToCart } = useCart();
   const [quantity, setQuantity] = useState(1);
   const [isAdded, setIsAdded] = useState(false);
@@ -27,6 +29,8 @@ export function ProductDetailActions({ product }: ProductDetailActionsProps) {
     };
   }, []);
 
+  const { discountInfo, effectiveProduct } = useDiscountedProduct(product, discountBanner);
+
   const handleIncrement = useCallback(() => {
     setQuantity((q) => Math.min(q + 1, product.stock));
   }, [product.stock]);
@@ -38,18 +42,18 @@ export function ProductDetailActions({ product }: ProductDetailActionsProps) {
   const handleAddToCart = useCallback(() => {
     if (product.stock <= 0) return;
     if (product.has_colors && selectedColor === null) return;
-    addToCart(product, quantity, selectedColor);
+    addToCart(effectiveProduct, quantity, selectedColor);
     setIsAdded(true);
     setShowToast(true);
     if (isAddedTimerRef.current) clearTimeout(isAddedTimerRef.current);
     isAddedTimerRef.current = setTimeout(() => {
       setIsAdded(false);
     }, 2000);
-  }, [product, quantity, selectedColor, addToCart]);
+  }, [product.stock, product.has_colors, selectedColor, addToCart, effectiveProduct, quantity]);
 
   const isOutOfStock = product.stock <= 0;
   const isDisabled = isOutOfStock || (product.has_colors && selectedColor === null);
-  const totalPrice = product.price * quantity;
+  const totalPrice = discountInfo.discountedPrice * quantity;
 
   return (
     <div className="space-y-5">

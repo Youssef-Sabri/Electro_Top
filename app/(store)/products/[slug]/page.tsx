@@ -3,12 +3,14 @@ import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { headers } from 'next/headers';
 import Link from 'next/link';
-import { fetchProductBySlug } from '@/lib/services/catalog';
+import { fetchProductBySlug, fetchActiveSubcategoryBanners } from '@/lib/services/catalog';
 import { SITE_METADATA } from '@/lib/constants';
 import { formatCurrency } from '@/lib/utils/format';
+import { getDiscountedProduct } from '@/hooks/useDiscountedProduct';
 import { ProductDetailActions } from '@/components/catalog/ProductDetailActions';
 import { ProductImageGallery } from '@/components/catalog/ProductImageGallery';
 import StoreLoading from '@/app/(store)/loading';
+import type { SubcategoryBanner } from '@/types';
 
 interface ProductPageProps {
   params: Promise<{ slug: string }>;
@@ -62,20 +64,35 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
 
 export default async function ProductPage({ params }: ProductPageProps) {
   const { slug } = await params;
-  const product = await fetchProductBySlug(slug);
+  const [product, banners] = await Promise.all([
+    fetchProductBySlug(slug),
+    fetchActiveSubcategoryBanners(),
+  ]);
 
   if (!product) {
     notFound();
   }
 
+  const discountBanner = product.category
+    ? banners.find((b) => b.subcategory_name === product.category) || null
+    : null;
+
   return (
     <Suspense fallback={<StoreLoading />}>
-      <ProductContent product={product} slug={slug} />
+      <ProductContent product={product} slug={slug} discountBanner={discountBanner} />
     </Suspense>
   );
 }
 
-async function ProductContent({ product, slug }: { product: NonNullable<Awaited<ReturnType<typeof fetchProductBySlug>>>; slug: string }) {
+async function ProductContent({
+  product,
+  slug,
+  discountBanner,
+}: {
+  product: NonNullable<Awaited<ReturnType<typeof fetchProductBySlug>>>;
+  slug: string;
+  discountBanner: SubcategoryBanner | null;
+}) {
   const requestHeaders = await headers();
   const nonce = requestHeaders.get('x-nonce') || undefined;
   const baseUrl = SITE_METADATA.url || '';
@@ -85,6 +102,7 @@ async function ProductContent({ product, slug }: { product: NonNullable<Awaited<
     .map((img) => (img.startsWith('http') ? img : `${baseUrl}${img}`));
 
   const productUrl = `${baseUrl}/products/${slug}`;
+  const { discountInfo } = getDiscountedProduct(product, discountBanner);
 
   return (
     <div className="min-h-screen bg-white font-tajawal text-on-surface">
@@ -133,10 +151,20 @@ async function ProductContent({ product, slug }: { product: NonNullable<Awaited<
               {product.name}
             </h1>
 
-            <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-6">
+            <div className="flex items-baseline gap-2 sm:gap-3 mb-4 sm:mb-6 flex-wrap">
               <span className="text-primary font-extrabold text-xl sm:text-2xl md:text-3xl">
-                {formatCurrency(product.price)}
+                {formatCurrency(discountInfo.discountedPrice)}
               </span>
+              {discountInfo.hasDiscount && (
+                <span className="text-sm sm:text-base text-on-surface-variant/60 line-through font-mono">
+                  {formatCurrency(discountInfo.originalPrice)}
+                </span>
+              )}
+              {discountInfo.hasDiscount && (
+                <span className="bg-[var(--color-status-delivered)]/15 text-[var(--color-status-delivered)] font-bold text-xs px-2.5 py-1 rounded-full border border-[var(--color-status-delivered)]/30">
+                  توفير {discountInfo.discountPercentage}%
+                </span>
+              )}
             </div>
 
             {/* Description */}
@@ -151,7 +179,7 @@ async function ProductContent({ product, slug }: { product: NonNullable<Awaited<
 
             {/* Interactive Actions (colors, quantity, add to cart) */}
             <div className="mt-auto">
-              <ProductDetailActions product={product} />
+              <ProductDetailActions product={product} discountBanner={discountBanner} />
             </div>
           </div>
         </div>

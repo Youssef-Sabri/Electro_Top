@@ -8,6 +8,8 @@ export interface Product {
   name: string;
   description: string;
   price: number;
+  original_price?: number;
+  discount_percentage?: number;
   image_url: string;
   image_url_2?: string | null;
   image_url_3?: string | null;

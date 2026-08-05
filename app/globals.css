@@ -309,8 +309,22 @@ select.select-reset::-ms-expand {
   35%, 100% { transform: translateX(250%) skewX(-25deg); }
 }
 
+@keyframes bannerFlyingAngle {
+  0%, 100% {
+    transform: perspective(1000px) rotate(-1.5deg) rotateX(3deg) rotateY(-3deg) translateY(0px);
+  }
+  50% {
+    transform: perspective(1000px) rotate(-1.5deg) rotateX(1deg) rotateY(-1deg) translateY(-9px);
+  }
+}
+
 .animate-banner-float {
   animation: bannerFloat 4s ease-in-out infinite;
+}
+
+.animate-banner-flying-angle {
+  animation: bannerFlyingAngle 6s ease-in-out infinite;
+  will-change: transform;
 }
 
 .animate-banner-gloss {

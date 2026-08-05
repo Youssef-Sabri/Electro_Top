@@ -2,10 +2,11 @@
 
 import { createContext, useState, useEffect, useMemo, useCallback, useRef, ReactNode } from 'react';
 import { usePathname } from 'next/navigation';
-import type { Product } from '@/types';
+import type { Product, SubcategoryBanner } from '@/types';
 import { supabase } from '@/lib/supabase/client';
-import { TABLES, PRODUCT_SELECT_FIELDS } from '@/lib/constants';
+import { TABLES, PRODUCT_SELECT_FIELDS, SUBCATEGORY_BANNER_SELECT_FIELDS } from '@/lib/constants';
 import { devLog } from '@/lib/utils/misc';
+import { getDiscountedProduct } from '@/hooks/useDiscountedProduct';
 import { useRealtimeProducts } from '@/hooks/useRealtimeProducts';
 
 export interface ProductsContextType {
@@ -29,18 +30,28 @@ export function ProductsProvider({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
+  const [discounts, setDiscounts] = useState<SubcategoryBanner[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
   const [refreshVersion, setRefreshVersion] = useState(0);
   const hasFetchedRef = useRef(false);
   const isFetchingRef = useRef(false);
 
+  const discountsMap = useMemo(() => {
+    const map = new Map<string, SubcategoryBanner>();
+    for (const b of discounts) {
+      map.set(b.subcategory_name, b);
+    }
+    return map;
+  }, [discounts]);
+
   const productsMap = useMemo(() => {
     const map = new Map<string, Product>();
     for (const p of products) {
-      map.set(p.id, p);
+      const banner = p.category ? discountsMap.get(p.category) : null;
+      map.set(p.id, banner ? getDiscountedProduct(p, banner).effectiveProduct : p);
     }
     return map;
-  }, [products]);
+  }, [products, discountsMap]);
 
   const loadData = useCallback(async (force = false) => {
     if (isFetchingRef.current || (!force && hasFetchedRef.current)) return;
@@ -49,9 +60,11 @@ export function ProductsProvider({ children }: { children: ReactNode }) {
       const [
         { data: catData, error: catError },
         { data: prodData, error: prodError },
+        { data: bannerData, error: bannerError },
       ] = await Promise.all([
         supabase.from(TABLES.categories).select('name').order('name'),
         supabase.from(TABLES.products).select(PRODUCT_SELECT_FIELDS).order('sort_order', { ascending: true }),
+        supabase.from(TABLES.subcategoryBanners).select(SUBCATEGORY_BANNER_SELECT_FIELDS).eq('is_active', true),
       ]);
 
       if (!catError && catData) {
@@ -60,11 +73,14 @@ export function ProductsProvider({ children }: { children: ReactNode }) {
       if (!prodError && prodData) {
         setProducts(prodData);
       }
+      if (!bannerError && bannerData) {
+        setDiscounts(bannerData);
+      }
       setIsLoaded(true);
       hasFetchedRef.current = true;
       setRefreshVersion((v) => v + 1);
     } catch (error) {
-      devLog('Failed to load products/categories from Supabase:', error);
+      devLog('Failed to load products/categories/discounts from Supabase:', error);
       setIsLoaded(true);
       hasFetchedRef.current = true;
     } finally {

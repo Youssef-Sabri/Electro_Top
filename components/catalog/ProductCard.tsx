@@ -1,37 +1,30 @@
 'use client';
 
-import React, { memo, useState, useRef, useEffect, useCallback, useMemo } from 'react';
+import React, { memo, useState, useRef, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { getBannerTheme } from '@/lib/utils/color';
 import type { Product, SubcategoryBanner } from '@/types';
 import { useCart } from '@/hooks/useCart';
+import { useDiscountedProduct } from '@/hooks/useDiscountedProduct';
 import { Toast } from '@/components/ui/Toast';
-import { formatCurrency, calculateDiscountedPrice } from '@/lib/utils/format';
+import { formatCurrency } from '@/lib/utils/format';
 
 interface ProductCardProps {
   product: Product;
-  onOpenDetails?: (product: Product) => void;
   index?: number;
   discountBanner?: SubcategoryBanner | null;
 }
 
-export const ProductCard = memo(function ProductCard({ product, onOpenDetails, index = 0, discountBanner }: ProductCardProps) {
+export const ProductCard = memo(function ProductCard({ product, index = 0, discountBanner }: ProductCardProps) {
   const router = useRouter();
   const { addToCart } = useCart();
   const [showToast, setShowToast] = useState(false);
   const [isAdded, setIsAdded] = useState(false);
   const isAddedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const discountInfo = useMemo(() => {
-    return calculateDiscountedPrice(product.price, discountBanner?.discount_percentage);
-  }, [product.price, discountBanner?.discount_percentage]);
-
-  const effectiveProduct = useMemo(() => {
-    if (!discountInfo.hasDiscount) return product;
-    return { ...product, price: discountInfo.discountedPrice };
-  }, [product, discountInfo]);
+  const { discountInfo, effectiveProduct } = useDiscountedProduct(product, discountBanner);
 
   useEffect(() => {
     return () => {
@@ -47,11 +40,7 @@ export const ProductCard = memo(function ProductCard({ product, onOpenDetails, i
     if (product.stock <= 0) return;
     
     if (hasColorVariants) {
-      if (onOpenDetails) {
-        onOpenDetails(effectiveProduct);
-      } else {
-        router.push(`/products/${product.slug}`);
-      }
+      router.push(`/products/${product.slug}`);
       return;
     }
     
@@ -62,7 +51,7 @@ export const ProductCard = memo(function ProductCard({ product, onOpenDetails, i
     isAddedTimerRef.current = setTimeout(() => {
       setIsAdded(false);
     }, 1500);
-  }, [product, effectiveProduct, hasColorVariants, onOpenDetails, router, addToCart]);
+  }, [product, effectiveProduct, hasColorVariants, router, addToCart]);
 
 
   const isOutOfStock = product.stock <= 0;

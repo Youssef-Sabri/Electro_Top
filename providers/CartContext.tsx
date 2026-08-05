@@ -42,6 +42,8 @@ function loadCartFromStorage(): CartItem[] {
               name: (productObj.name as string) || 'Unnamed Product',
               description: (productObj.description as string) || '',
               price: productObj.price,
+              original_price: typeof productObj.original_price === 'number' ? productObj.original_price : undefined,
+              discount_percentage: typeof productObj.discount_percentage === 'number' ? productObj.discount_percentage : undefined,
               image_url: (productObj.image_url as string) || '',
               stock: typeof productObj.stock === 'number' ? productObj.stock : 10,
               is_active: productObj.is_active !== false,
@@ -161,6 +163,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         const current = productsById.get(item.product.id)!;
         if (
           item.product.price !== current.price ||
+          item.product.original_price !== current.original_price ||
           item.product.stock !== current.stock ||
           item.product.name !== current.name ||
           item.product.image_url !== current.image_url

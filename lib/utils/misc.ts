@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import type { Product } from '@/types';
 
 const TRACKING_ID_REGEX = /^ET-[A-Z0-9]{10}$/i;
 
@@ -106,4 +107,17 @@ export function shuffleArray<T>(array: T[]): T[] {
     [result[i], result[j]] = [result[j], result[i]];
   }
   return result;
+}
+
+// Map of subcategory name -> unique product image URLs (for banner cards/previews)
+export function getSubcategoryImagesMap(products: Product[]): Map<string, string[]> {
+  const map = new Map<string, string[]>();
+  for (const p of products) {
+    if (p.category && p.image_url) {
+      const existing = map.get(p.category) || [];
+      existing.push(p.image_url);
+      map.set(p.category, existing);
+    }
+  }
+  return map;
 }

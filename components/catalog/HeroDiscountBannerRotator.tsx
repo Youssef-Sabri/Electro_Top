@@ -1,0 +1,137 @@
+'use client';
+
+import React, { useState, useEffect, useRef, memo } from 'react';
+import { SubcategoryBannerCard } from '@/components/catalog/SubcategoryBannerCard';
+import type { SubcategoryBanner } from '@/types';
+
+interface HeroDiscountBannerRotatorProps {
+  banners: SubcategoryBanner[];
+  subcategoryImagesMap?: Map<string, string[]>;
+}
+
+export const HeroDiscountBannerRotator = memo(function HeroDiscountBannerRotator({
+  banners,
+  subcategoryImagesMap,
+}: HeroDiscountBannerRotatorProps) {
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [isFading, setIsFading] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Auto-rotate every 9 seconds if there are multiple active banners
+  useEffect(() => {
+    if (banners.length <= 1 || isHovered) return;
+
+    const interval = setInterval(() => {
+      setIsFading(true);
+      timeoutRef.current = setTimeout(() => {
+        setCurrentIndex((prev) => (prev + 1) % banners.length);
+        setIsFading(false);
+      }, 300);
+    }, 9000);
+
+    return () => {
+      clearInterval(interval);
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    };
+  }, [banners.length, isHovered]);
+
+  if (banners.length === 0) return null;
+
+  const activeBanner = banners[currentIndex % banners.length] || banners[0];
+  const catImages = subcategoryImagesMap?.get(activeBanner.subcategory_name) || [];
+
+  const handleSelectSlide = (idx: number) => {
+    if (idx === currentIndex) return;
+    setIsFading(true);
+    timeoutRef.current = setTimeout(() => {
+      setCurrentIndex(idx);
+      setIsFading(false);
+    }, 200);
+  };
+
+  return (
+    <div
+      className="relative w-full group select-none max-w-xl mx-auto lg:max-w-none"
+      onMouseEnter={() => setIsHovered(true)}
+      aria-label="قسم العروض والخصومات المتميزة"
+      onMouseLeave={() => setIsHovered(false)}
+      dir="rtl"
+    >
+      {/* Decorative Glow Ambient Halo */}
+      <div className="absolute -inset-1.5 bg-gradient-to-r from-primary/30 via-electro-gold/25 to-primary/30 rounded-3xl blur-xl opacity-75 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+
+      {/* Main Animated Card Wrapper */}
+      <div
+        className="relative z-10 transition-all duration-500 ease-out transform"
+        style={{
+          opacity: isFading ? 0.3 : 1,
+          transform: isFading ? 'scale(0.98) translateY(2px)' : 'scale(1) translateY(0)',
+        }}
+      >
+        <SubcategoryBannerCard
+          banner={activeBanner}
+          categoryImages={catImages}
+          interactiveLink
+          className="shadow-2xl hover:shadow-primary/20 border-white/20"
+        />
+      </div>
+
+      {/* Controls Bar for Multiple Active Banners */}
+      {banners.length > 1 && (
+        <div className="mt-3.5 flex items-center justify-between px-2 text-white/80">
+          
+          {/* Active Banner Counter */}
+          <div className="flex items-center gap-1.5 bg-black/40 border border-white/15 backdrop-blur-md px-3 py-1 rounded-full text-xs font-bold font-mono">
+            <span className="text-electro-gold">{currentIndex + 1}</span>
+            <span className="text-white/40">/</span>
+            <span>{banners.length}</span>
+            <span className="text-[10px] text-white/70 font-sans mr-1">عروض نشطة</span>
+          </div>
+
+          {/* Indicator Dots */}
+          <div className="flex items-center gap-1.5">
+            {banners.map((b, idx) => (
+              <button
+                key={b.id || idx}
+                type="button"
+                onClick={() => handleSelectSlide(idx)}
+                aria-label={`الانتقال إلى العرض ${idx + 1}`}
+                className={`h-2 rounded-full transition-all duration-300 cursor-pointer ${
+                  idx === currentIndex
+                    ? 'w-6 bg-electro-gold shadow-md shadow-electro-gold/50'
+                    : 'w-2 bg-white/30 hover:bg-white/60'
+                }`}
+              />
+            ))}
+          </div>
+
+          {/* Navigation SVG Arrows */}
+          <div className="flex items-center gap-1.5">
+            <button
+              type="button"
+              onClick={() => handleSelectSlide((currentIndex - 1 + banners.length) % banners.length)}
+              aria-label="العرض السابق"
+              className="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 active:scale-95 flex items-center justify-center text-white transition-all cursor-pointer border border-white/10"
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+            <button
+              type="button"
+              onClick={() => handleSelectSlide((currentIndex + 1) % banners.length)}
+              aria-label="العرض التالي"
+              className="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 active:scale-95 flex items-center justify-center text-white transition-all cursor-pointer border border-white/10"
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+          </div>
+
+        </div>
+      )}
+    </div>
+  );
+});

@@ -3,13 +3,13 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef, memo } from 'react';
 import { useCategoryHierarchy } from '@/hooks/useCategoryHierarchy';
 import { useProducts } from '@/hooks/useProducts';
-import { useConfirmModal } from '@/hooks/useConfirmModal';
 import { useToast } from '@/hooks/useToast';
 import { Toast } from '@/components/ui/Toast';
 import { Spinner } from '@/components/ui/Spinner';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { PasswordConfirmModal } from '@/components/ui/PasswordConfirmModal';
-import { BANNER_THEMES, getBannerTheme } from '@/lib/utils/color';
+import { BANNER_THEMES } from '@/lib/utils/color';
+import { getSubcategoryImagesMap } from '@/lib/utils/misc';
 import { SubcategoryBannerCard } from '@/components/catalog/SubcategoryBannerCard';
 import type { SubcategoryBanner } from '@/types';
 
@@ -135,7 +135,6 @@ export const DiscountsClient = memo(function DiscountsClient() {
   const { hierarchy, loading: hierarchyLoading } = useCategoryHierarchy();
   const { products } = useProducts();
   const { toast, showSuccess, showError, dismissToast } = useToast();
-  const { confirmModal, closeConfirm } = useConfirmModal();
 
   const [banners, setBanners] = useState<SubcategoryBanner[]>([]);
   const [loadingBanners, setLoadingBanners] = useState(true);
@@ -166,17 +165,7 @@ export const DiscountsClient = memo(function DiscountsClient() {
     return Array.from(s);
   }, [hierarchy]);
 
-  const subcategoryImagesMap = useMemo(() => {
-    const map = new Map<string, string[]>();
-    products.forEach((p) => {
-      if (p.category && p.image_url) {
-        const existing = map.get(p.category) || [];
-        existing.push(p.image_url);
-        map.set(p.category, existing);
-      }
-    });
-    return map;
-  }, [products]);
+  const subcategoryImagesMap = useMemo(() => getSubcategoryImagesMap(products), [products]);
 
   const fetchBanners = useCallback(async () => {
     try {
@@ -255,8 +244,6 @@ export const DiscountsClient = memo(function DiscountsClient() {
     return banners.filter(b => b.title.toLowerCase().includes(q) || b.subcategory_name.toLowerCase().includes(q) || (b.discount_badge && b.discount_badge.toLowerCase().includes(q)));
   }, [banners, searchQuery]);
 
-  const selectedTheme = useMemo(() => getBannerTheme(formData.banner_color), [formData.banner_color]);
-
   return (
     <div className="space-y-8 pb-12 font-tajawal">
       {/* Page Header */}
@@ -303,25 +290,27 @@ export const DiscountsClient = memo(function DiscountsClient() {
               />
 
               {/* Admin Overlay Actions */}
-              <div className="flex items-center justify-between mt-3 bg-white border border-outline-variant/20 rounded-2xl px-4 py-2.5 shadow-sm">
+              <div className="flex flex-wrap sm:flex-nowrap items-center justify-between gap-2 mt-3 bg-white border border-outline-variant/20 rounded-2xl p-2.5 sm:px-4 sm:py-2.5 shadow-sm">
                 <button
                   type="button"
                   onClick={() => handleToggleActive(banner)}
-                  className={`px-3 py-1 rounded-full text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                  className={`px-2.5 sm:px-3 py-1 rounded-full text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 shrink-0 ${
                     banner.is_active
-                      ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                      : 'bg-rose-50 text-rose-700 border border-rose-200'
+                      ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100'
+                      : 'bg-rose-50 text-rose-700 border border-rose-200 hover:bg-rose-100'
                   }`}
+                  title="تغيير حالة التفعيل"
                 >
-                  <span className="w-2 h-2 rounded-full bg-current animate-pulse" />
-                  {banner.is_active ? 'نشط (ظاهر بالمتجر)' : 'معطل (مخفي)'}
+                  <span className="w-2 h-2 rounded-full bg-current animate-pulse shrink-0" />
+                  <span>{banner.is_active ? 'نشط' : 'معطل'}</span>
+                  <span className="hidden sm:inline">{banner.is_active ? ' (ظاهر بالمتجر)' : ' (مخفي)'}</span>
                 </button>
 
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1.5 sm:gap-2 shrink-0 ms-auto sm:ms-0">
                   <button
                     type="button"
                     onClick={() => handleOpenEdit(banner)}
-                    className="flex items-center gap-1 text-xs font-bold text-on-surface bg-surface-container-low hover:bg-surface-container px-3 py-1.5 rounded-lg border border-outline-variant/30 transition-all cursor-pointer"
+                    className="flex items-center gap-1 text-xs font-bold text-on-surface bg-surface-container-low hover:bg-surface-container px-2.5 sm:px-3 py-1.5 rounded-lg border border-outline-variant/30 transition-all cursor-pointer"
                   >
                     <span className="material-symbols-outlined text-sm select-none">edit</span>
                     تعديل
@@ -329,7 +318,7 @@ export const DiscountsClient = memo(function DiscountsClient() {
                   <button
                     type="button"
                     onClick={() => handleReqDelete(banner.id)}
-                    className="flex items-center gap-1 text-xs font-bold text-rose-600 bg-rose-50 hover:bg-rose-100 px-3 py-1.5 rounded-lg border border-rose-200 transition-all cursor-pointer"
+                    className="flex items-center gap-1 text-xs font-bold text-rose-600 bg-rose-50 hover:bg-rose-100 px-2.5 sm:px-3 py-1.5 rounded-lg border border-rose-200 transition-all cursor-pointer"
                   >
                     <span className="material-symbols-outlined text-sm select-none">delete</span>
                     حذف
@@ -456,8 +445,8 @@ export const DiscountsClient = memo(function DiscountsClient() {
               <hr className="border-outline-variant/10" />
 
               {/* Active Toggle */}
-              <div className="flex items-center justify-between py-1">
-                <div>
+              <div className="flex items-center justify-between py-1 gap-4">
+                <div className="flex flex-col text-right">
                   <span className="text-xs font-bold text-on-surface">تفعيل البنر والخصم فوراً</span>
                   <p className="text-[11px] text-on-surface-variant/60">عند التفعيل، سيظهر البنر ويُطبّق الخصم مباشرة.</p>
                 </div>
@@ -466,9 +455,17 @@ export const DiscountsClient = memo(function DiscountsClient() {
                   role="switch"
                   aria-checked={formData.is_active}
                   onClick={() => setFormData(p => ({ ...p, is_active: !p.is_active }))}
-                  className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full transition-colors duration-200 ${formData.is_active ? 'bg-primary' : 'bg-on-surface-variant/25'}`}
+                  dir="ltr"
+                  className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full p-0.5 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary/20 ${
+                    formData.is_active ? 'bg-primary' : 'bg-surface-container-high border border-outline-variant/40'
+                  }`}
+                  aria-label="تفعيل البنر والخصم فوراً"
                 >
-                  <span className={`inline-block h-4.5 w-4.5 rounded-full bg-white shadow transition-transform duration-200 ${formData.is_active ? 'translate-x-1' : 'translate-x-[1.375rem]'}`} />
+                  <span
+                    className={`inline-block h-5 w-5 rounded-full bg-white shadow-md transform transition-transform duration-200 ${
+                      formData.is_active ? 'translate-x-5' : 'translate-x-0'
+                    }`}
+                  />
                 </button>
               </div>
 

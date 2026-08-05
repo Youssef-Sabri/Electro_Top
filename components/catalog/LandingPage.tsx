@@ -5,8 +5,9 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useProducts } from '@/hooks/useProducts';
 import { useCategoryHierarchy } from '@/hooks/useCategoryHierarchy';
-import type { Product, CategoryGroup } from '@/types';
-import { shuffleArray } from '@/lib/utils/misc';
+import type { Product, CategoryGroup, SubcategoryBanner } from '@/types';
+import { shuffleArray, getSubcategoryImagesMap } from '@/lib/utils/misc';
+import { HeroDiscountBannerRotator } from '@/components/catalog/HeroDiscountBannerRotator';
 
 interface CategorySlideshowCardProps {
   category: string;
@@ -107,12 +108,14 @@ interface LandingPageProps {
   initialCategories?: string[];
   initialProducts?: Product[];
   initialHierarchy?: CategoryGroup[];
+  initialBanners?: SubcategoryBanner[];
 }
 
 export const LandingPage = memo(function LandingPage({
   initialCategories = [],
   initialProducts = [],
-  initialHierarchy = []
+  initialHierarchy = [],
+  initialBanners = []
 }: LandingPageProps) {
   const { categories: contextCategories, products, initializeData, isLoaded } = useProducts();
   const { hierarchy } = useCategoryHierarchy(initialHierarchy);
@@ -138,6 +141,8 @@ export const LandingPage = memo(function LandingPage({
   }, [categories, hierarchy]);
 
   const activeProds = products.length > 0 ? products : initialProducts;
+
+  const subcategoryImagesMap = useMemo(() => getSubcategoryImagesMap(activeProds), [activeProds]);
 
   const categoryProducts = useMemo(() => {
     const mapping: Record<string, Product[]> = {};
@@ -219,41 +224,50 @@ export const LandingPage = memo(function LandingPage({
   return (
     <div className="w-full font-tajawal text-on-surface bg-white">
       {/* Premium Dark Hero Section */}
-      <section className="relative bg-[#1A0B0C] py-24 md:py-32 overflow-hidden hero-clip border-b border-outline-variant/10">
+      <section className="relative bg-[#1A0B0C] py-20 sm:py-24 md:py-28 overflow-hidden hero-clip border-b border-outline-variant/10">
         {/* Glow Ambient Orbs */}
         <div className="absolute top-[-20%] right-[-10%] w-[550px] h-[550px] rounded-full bg-primary/20 blur-[120px] pointer-events-none" />
         <div className="absolute bottom-[-10%] left-[-10%] w-[450px] h-[450px] rounded-full bg-electro-gold/10 blur-[100px] pointer-events-none" />
         <div className="absolute top-[30%] left-[25%] w-[300px] h-[300px] rounded-full bg-primary/10 blur-[80px] pointer-events-none" />
 
         <div className="max-w-max-width mx-auto px-margin-mobile md:px-margin-desktop relative z-10">
-          <div className="max-w-3xl text-start">
-            <h1 className="font-headline-lg text-[34px] sm:text-[46px] md:text-[56px] text-white mb-6 leading-[1.2] font-extrabold animate-fade-in-up">
+          <div className={`grid grid-cols-1 ${initialBanners.length > 0 ? 'lg:grid-cols-12 gap-8 lg:gap-12 items-center' : ''}`}>
+            
+            {/* Right Side (in RTL): Hero Copy & CTA */}
+            <div className={`text-start ${initialBanners.length > 0 ? 'lg:col-span-6 xl:col-span-7' : 'max-w-3xl'}`}>
+              <h1 className="font-headline-lg text-[32px] sm:text-[44px] md:text-[54px] text-white mb-6 leading-[1.2] font-extrabold animate-fade-in-up">
+                كابلات السويدي ومعدات كهربائية <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-container via-red-400 to-electro-gold">أصلية بضمان كامل</span>
+              </h1>
 
-              كابلات السويدي ومعدات كهربائية <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-container via-red-400 to-electro-gold">أصلية بضمان كامل</span>
-            </h1>
+              <p className="text-surface-variant/85 text-base md:text-lg mb-8 md:mb-10 leading-relaxed max-w-2xl font-medium">
+                نعمل كموزعين معتمدين لدى السويدي إلكتريك، ميتسوبيشي ياباني، هيمل، ABB، وفينوس. نوفر لك كافة لوحات التوزيع والقواطع والكابلات والمستلزمات الكهربائية للمشاريع السكنية، التجارية، والصناعية بأفضل أسعار التجزئة والجملة.
+              </p>
 
-            <p className="text-surface-variant/85 text-base md:text-lg mb-10 leading-relaxed max-w-2xl font-medium">
-              نعمل كموزعين معتمدين لدى السويدي إلكتريك، ميتسوبيشي ياباني، هيمل، ABB، وفينوس. نوفر لك كافة لوحات التوزيع والقواطع والكابلات والمستلزمات الكهربائية للمشاريع السكنية، التجارية، والصناعية بأفضل أسعار التجزئة والجملة.
-            </p>
-
-            {/* Hero CTA Action Buttons */}
-
-            <div className="flex flex-wrap items-center gap-4">
-              <Link
-                href="/shop"
-                className="bg-primary hover:bg-primary-container active:scale-[0.97] text-on-primary px-8 py-4 rounded-full font-bold transition-all duration-200 shadow-xl shadow-primary/30 text-sm flex items-center gap-2.5 group"
-              >
-                <span>تصفح المتجر الآن</span>
-                <span className="material-symbols-outlined text-sm rotate-180 group-hover:-translate-x-1 transition-transform">arrow_forward</span>
-              </Link>
+              {/* Hero CTA Action Buttons */}
+              <div className="flex flex-wrap items-center gap-4">
+                <Link
+                  href="/shop"
+                  className="bg-primary hover:bg-primary-container active:scale-[0.97] text-on-primary px-8 py-4 rounded-full font-bold transition-all duration-200 shadow-xl shadow-primary/30 text-sm flex items-center gap-2.5 group"
+                >
+                  <span>تصفح المتجر الآن</span>
+                  <span className="material-symbols-outlined text-sm rotate-180 group-hover:-translate-x-1 transition-transform">arrow_forward</span>
+                </Link>
+              </div>
             </div>
 
+            {/* Left Side (in RTL): Single Animated Rotating Discount Card */}
+            {initialBanners.length > 0 && (
+              <div className="lg:col-span-6 xl:col-span-5 w-full mt-8 lg:mt-0">
+                <HeroDiscountBannerRotator
+                  banners={initialBanners}
+                  subcategoryImagesMap={subcategoryImagesMap}
+                />
+              </div>
+            )}
 
           </div>
         </div>
-
       </section>
-
 
       {/* Featured Categories */}
       <section className="max-w-max-width mx-auto px-margin-mobile md:px-margin-desktop py-20 text-center">

@@ -1,6 +1,6 @@
 import { createSupabaseServerClient } from '@/lib/supabase/server';
-import { PRODUCT_SELECT_FIELDS, TABLES } from '@/lib/constants';
-import type { Product, CategoryGroup } from '@/types';
+import { PRODUCT_SELECT_FIELDS, SUBCATEGORY_BANNER_SELECT_FIELDS, TABLES } from '@/lib/constants';
+import type { Product, CategoryGroup, SubcategoryBanner } from '@/types';
 import { devLog } from '@/lib/utils/misc';
 
 // Server-safe Supabase client for public reads (no auth cookies needed)
@@ -104,6 +104,22 @@ export async function fetchAllProductSlugs(): Promise<{ slug: string; updated_at
         slug: p.slug,
         updated_at: p.updated_at || p.created_at,
       }));
+  } catch {
+    return [];
+  }
+}
+
+export async function fetchActiveSubcategoryBanners(): Promise<SubcategoryBanner[]> {
+  const supabase = getPublicClient();
+
+  try {
+    const { data, error } = await supabase
+      .from(TABLES.subcategoryBanners)
+      .select(SUBCATEGORY_BANNER_SELECT_FIELDS)
+      .eq('is_active', true);
+
+    if (error || !data) return [];
+    return data;
   } catch {
     return [];
   }

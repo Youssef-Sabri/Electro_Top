@@ -86,9 +86,16 @@ export const CartItem = memo(function CartItem({ item }: CartItemProps) {
               </span>
             )}
           </div>
-          <p className="font-bold text-primary text-end shrink-0 text-base font-mono tabular-nums">
-            {formatCurrency(product.price)}
-          </p>
+          <div className="flex flex-col items-end shrink-0">
+            <span className="font-bold text-primary text-base font-mono tabular-nums">
+              {formatCurrency(product.price)}
+            </span>
+            {product.original_price && product.original_price > product.price && (
+              <span className="text-xs text-on-surface-variant/60 line-through font-mono tabular-nums">
+                {formatCurrency(product.original_price)}
+              </span>
+            )}
+          </div>
         </div>
 
         {/* Action controls */}
