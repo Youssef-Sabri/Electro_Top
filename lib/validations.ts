@@ -77,8 +77,6 @@ export const subcategoryBannerSchema = z.object({
   end_date: z.string().optional().nullable().or(z.literal('')),
 });
 
-export type SubcategoryBannerFormData = z.infer<typeof subcategoryBannerSchema>;
-
 export const SAFE_FILENAME_RE = /^receipt-[a-z0-9]+\.(jpg|jpeg|png|webp|heic|heif|gif)$/i;
 
 export type ProductFormData = z.infer<typeof productFormSchema>;
