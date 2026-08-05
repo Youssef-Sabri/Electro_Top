@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef, memo } from 'react';
+import React, { useState, useEffect, useRef, useCallback, memo } from 'react';
 import { SubcategoryBannerCard } from '@/components/catalog/SubcategoryBannerCard';
 import type { SubcategoryBanner } from '@/types';
 
@@ -16,39 +16,60 @@ export const HeroDiscountBannerRotator = memo(function HeroDiscountBannerRotator
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isFading, setIsFading] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
-  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const indexRef = useRef(0);
+  const fadeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Auto-rotate every 9 seconds if there are multiple active banners
+  // Reset the slide when the banner list changes
+  useEffect(() => {
+    indexRef.current = 0;
+    setCurrentIndex(0);
+    setIsFading(false);
+    if (fadeTimerRef.current) {
+      clearTimeout(fadeTimerRef.current);
+      fadeTimerRef.current = null;
+    }
+  }, [banners]);
+
+  // Clear any pending fade timer on unmount
+  useEffect(() => {
+    return () => {
+      if (fadeTimerRef.current) clearTimeout(fadeTimerRef.current);
+    };
+  }, []);
+
+  const goToSlide = useCallback(
+    (idx: number) => {
+      if (banners.length === 0) return;
+      const bounded = ((idx % banners.length) + banners.length) % banners.length;
+      if (bounded === indexRef.current) return;
+      if (fadeTimerRef.current) clearTimeout(fadeTimerRef.current);
+      indexRef.current = bounded;
+      setIsFading(true);
+      fadeTimerRef.current = setTimeout(() => {
+        setCurrentIndex(bounded);
+        setIsFading(false);
+        fadeTimerRef.current = null;
+      }, 200);
+    },
+    [banners.length]
+  );
+
+  // Auto-rotate every 9 seconds if there are multiple active banners.
+  // Restarts on every slide change so a manual selection is never instantly overridden.
   useEffect(() => {
     if (banners.length <= 1 || isHovered) return;
 
     const interval = setInterval(() => {
-      setIsFading(true);
-      timeoutRef.current = setTimeout(() => {
-        setCurrentIndex((prev) => (prev + 1) % banners.length);
-        setIsFading(false);
-      }, 300);
+      goToSlide(indexRef.current + 1);
     }, 9000);
 
-    return () => {
-      clearInterval(interval);
-      if (timeoutRef.current) clearTimeout(timeoutRef.current);
-    };
-  }, [banners.length, isHovered]);
+    return () => clearInterval(interval);
+  }, [banners.length, isHovered, currentIndex, goToSlide]);
 
   if (banners.length === 0) return null;
 
   const activeBanner = banners[currentIndex % banners.length] || banners[0];
   const catImages = subcategoryImagesMap?.get(activeBanner.subcategory_name) || [];
-
-  const handleSelectSlide = (idx: number) => {
-    if (idx === currentIndex) return;
-    setIsFading(true);
-    timeoutRef.current = setTimeout(() => {
-      setCurrentIndex(idx);
-      setIsFading(false);
-    }, 200);
-  };
 
   return (
     <div
@@ -95,7 +116,7 @@ export const HeroDiscountBannerRotator = memo(function HeroDiscountBannerRotator
               <button
                 key={b.id || idx}
                 type="button"
-                onClick={() => handleSelectSlide(idx)}
+                onClick={() => goToSlide(idx)}
                 aria-label={`الانتقال إلى العرض ${idx + 1}`}
                 className={`h-2 rounded-full transition-all duration-300 cursor-pointer ${
                   idx === currentIndex
@@ -110,7 +131,7 @@ export const HeroDiscountBannerRotator = memo(function HeroDiscountBannerRotator
           <div className="flex items-center gap-1.5">
             <button
               type="button"
-              onClick={() => handleSelectSlide((currentIndex - 1 + banners.length) % banners.length)}
+              onClick={() => goToSlide(indexRef.current - 1)}
               aria-label="العرض السابق"
               className="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 active:scale-95 flex items-center justify-center text-white transition-all cursor-pointer border border-white/10"
             >
@@ -120,7 +141,7 @@ export const HeroDiscountBannerRotator = memo(function HeroDiscountBannerRotator
             </button>
             <button
               type="button"
-              onClick={() => handleSelectSlide((currentIndex + 1) % banners.length)}
+              onClick={() => goToSlide(indexRef.current + 1)}
               aria-label="العرض التالي"
               className="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 active:scale-95 flex items-center justify-center text-white transition-all cursor-pointer border border-white/10"
             >
