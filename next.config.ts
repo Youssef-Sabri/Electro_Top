@@ -43,6 +43,7 @@ const nextConfig: NextConfig = {
     // to Supabase Storage. Serving directly from Supabase CDN reduces Vercel Image
     // Transformations from thousands down to 0 and improves image loading speeds.
     unoptimized: true,
+    qualities: [60, 70, 75, 80, 85],
     remotePatterns: [
       {
         // Supabase Storage CDN — locked to specific project to prevent cross-project image optimization
