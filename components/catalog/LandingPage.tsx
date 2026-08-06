@@ -13,9 +13,10 @@ interface CategorySlideshowCardProps {
   category: string;
   products: Product[];
   productCount: number;
+  cardIndex?: number;
 }
 
-function CategorySlideshowCard({ category, products, productCount }: CategorySlideshowCardProps) {
+function CategorySlideshowCard({ category, products, productCount, cardIndex = 0 }: CategorySlideshowCardProps) {
   const rawImages = useMemo(() => {
     const urls = products
       .map((p) => p.image_url)
@@ -28,12 +29,25 @@ function CategorySlideshowCard({ category, products, productCount }: CategorySli
   useEffect(() => {
     if (rawImages.length <= 1) return;
 
-    const interval = setInterval(() => {
-      setCurrentIndex((prev) => (prev + 1) % rawImages.length);
-    }, 4500);
+    // Stagger the initial start timer by 1200ms per card index
+    const initialDelay = (cardIndex % 4) * 1200;
+    // Vary the interval slightly (4200ms + (cardIndex % 3) * 600ms) for an organic wave
+    const intervalDuration = 4200 + (cardIndex % 3) * 600;
 
-    return () => clearInterval(interval);
-  }, [rawImages.length]);
+    let intervalId: ReturnType<typeof setInterval> | null = null;
+
+    const delayTimeout = setTimeout(() => {
+      setCurrentIndex((prev) => (prev + 1) % rawImages.length);
+      intervalId = setInterval(() => {
+        setCurrentIndex((prev) => (prev + 1) % rawImages.length);
+      }, intervalDuration);
+    }, initialDelay);
+
+    return () => {
+      clearTimeout(delayTimeout);
+      if (intervalId) clearInterval(intervalId);
+    };
+  }, [rawImages.length, cardIndex]);
 
   return (
     <Link
@@ -268,12 +282,13 @@ export const LandingPage = memo(function LandingPage({
             pointerEvents: fadeCategories ? 'auto' : 'none' as const
           }}
         >
-          {displayedCategories.map((category) => (
+          {displayedCategories.map((category, idx) => (
             <div key={category} className="shrink-0 w-[82vw] sm:w-[340px] md:w-full snap-center">
               <CategorySlideshowCard
                 category={category}
                 products={categoryProducts[category] || []}
                 productCount={categoryCounts[category] || 0}
+                cardIndex={idx}
               />
             </div>
           ))}
