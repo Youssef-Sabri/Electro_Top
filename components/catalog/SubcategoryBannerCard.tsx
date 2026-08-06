@@ -229,14 +229,16 @@ export const SubcategoryBannerCard = memo(function SubcategoryBannerCard({
           {/* Right Side (RTL): Title, Badges & CTA */}
           <div className="flex-1 space-y-2 sm:space-y-3 text-right min-w-0">
             
-            {/* Header Badges Row (Subcategory Tag + Discount Percentage) */}
+            {/* Header Badges Row (Discount Percentage + Badge Tag) */}
             <div className="flex flex-wrap items-center gap-2">
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-xl text-[10px] sm:text-xs font-bold bg-black/40 text-amber-300 border border-white/20 backdrop-blur-md shadow-sm whitespace-nowrap max-w-[170px] sm:max-w-[240px]">
-                <svg className="w-3.5 h-3.5 text-amber-300 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
-                </svg>
-                <span className="truncate">{banner.subcategory_name || 'قسم المنتجات'}</span>
-              </span>
+              {!isCompact && (
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-xl text-[10px] sm:text-xs font-bold bg-black/40 text-amber-300 border border-white/20 backdrop-blur-md shadow-sm whitespace-nowrap">
+                  <svg className="w-3.5 h-3.5 text-amber-300 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+                  </svg>
+                  <span>{banner.subcategory_name || 'قسم المنتجات'}</span>
+                </span>
+              )}
 
               {pctNum > 0 && (
                 <span className="inline-flex items-center gap-1 bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-400 text-on-surface px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-xl font-black text-[10px] sm:text-xs shadow-md shadow-amber-500/20 border border-amber-200 whitespace-nowrap">
