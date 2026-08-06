@@ -16,8 +16,6 @@ interface CategorySlideshowCardProps {
 }
 
 function CategorySlideshowCard({ category, products, productCount }: CategorySlideshowCardProps) {
-  const [shuffledImages, setShuffledImages] = useState<string[]>([]);
-
   const rawImages = useMemo(() => {
     const urls = products
       .map((p) => p.image_url)
@@ -25,36 +23,19 @@ function CategorySlideshowCard({ category, products, productCount }: CategorySli
     return Array.from(new Set(urls));
   }, [products]);
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setShuffledImages(shuffleArray(rawImages));
-    }, 0);
-    return () => clearTimeout(timer);
-  }, [rawImages]);
-
   const [currentIndex, setCurrentIndex] = useState(0);
-  const prevImagesRef = useRef(shuffledImages);
 
   useEffect(() => {
-    const prev = prevImagesRef.current;
-    if (prev !== shuffledImages) {
-      prevImagesRef.current = shuffledImages;
-      const boundedIndex = shuffledImages.length > 0 ? Math.min(currentIndex, shuffledImages.length - 1) : 0;
-      setCurrentIndex(boundedIndex);
-    }
-  }, [shuffledImages, currentIndex]);
-
-  useEffect(() => {
-    if (shuffledImages.length <= 1) return;
+    if (rawImages.length <= 1) return;
 
     const interval = setInterval(() => {
-      setCurrentIndex((prev) => (prev + 1) % shuffledImages.length);
-    }, 3000);
+      setCurrentIndex((prev) => (prev + 1) % rawImages.length);
+    }, 4000);
 
     return () => clearInterval(interval);
-  }, [shuffledImages]);
+  }, [rawImages.length]);
 
-  const currentImg = shuffledImages[currentIndex];
+  const currentImg = rawImages.length > 0 ? rawImages[currentIndex % rawImages.length] : null;
 
   return (
     <Link
@@ -282,10 +263,9 @@ export const LandingPage = memo(function LandingPage({
         <div
           role="region"
           aria-label="الأقسام المميزة"
-          className="flex overflow-x-auto pb-6 scrollbar-hide -mx-margin-mobile px-margin-mobile md:mx-0 md:px-0 md:pb-0 md:overflow-visible md:grid md:grid-cols-3 gap-6 md:gap-8 transition-all duration-500 ease-in-out snap-x snap-mandatory"
+          className="flex overflow-x-auto pb-6 scrollbar-hide -mx-margin-mobile px-margin-mobile md:mx-0 md:px-0 md:pb-0 md:overflow-visible md:grid md:grid-cols-3 gap-6 md:gap-8 transition-opacity duration-300 ease-in-out snap-x snap-mandatory min-h-[380px]"
           style={{
             opacity: fadeCategories ? 1 : 0,
-            transform: fadeCategories ? 'translateY(0) scale(1)' : 'translateY(4px) scale(0.995)',
             pointerEvents: fadeCategories ? 'auto' : 'none' as const
           }}
         >
