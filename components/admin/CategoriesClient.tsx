@@ -9,9 +9,9 @@ import { useHydrated } from '@/hooks/useHydrated';
 import { useToast } from '@/hooks/useToast';
 import { ConfirmationModal } from '@/components/ui/ConfirmationModal';
 import { Skeleton } from '@/components/ui/Skeleton';
-import { Spinner } from '@/components/ui/Spinner';
 import { Toast } from '@/components/ui/Toast';
 import { CategoryGroupCard } from '@/components/admin/CategoryGroupCard';
+import { AdminCategoriesSkeleton } from '@/components/admin/AdminSkeletons';
 
 export interface CategoryHierarchyItem {
   name: string;
@@ -312,12 +312,7 @@ export const CategoriesClient = memo(function CategoriesClient() {
   );
 
   if (!isMounted) {
-    return (
-      <div className="flex flex-col items-center justify-center py-20 font-tajawal text-on-surface-variant">
-        <Spinner className="h-8 w-8 mb-3" />
-        <p className="text-sm">جاري تحميل إدارة الأقسام...</p>
-      </div>
-    );
+    return <AdminCategoriesSkeleton />;
   }
 
   return (

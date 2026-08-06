@@ -4,25 +4,35 @@ import { memo, useState, useCallback, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
 import { TABLES, ORDER_ITEM_SELECT_FIELDS } from '@/lib/constants';
-import { useOrders } from '@/hooks/useOrders';
-import { useProducts } from '@/hooks/useProducts';
-import { useHydrated } from '@/hooks/useHydrated';
-import { useToast } from '@/hooks/useToast';
+
+import {
+  useOrders,
+  useProducts,
+  useHydrated,
+  useToast,
+} from '@/hooks';
+
+import {
+  exportToCSV,
+  formatOrderDate,
+  todayStamp,
+} from '@/lib/utils';
+
 import type { OrderItem } from '@/types';
-import { formatCurrency, getInitials } from '@/lib/utils/format';
-import { formatOrderDate, todayStamp } from '@/lib/utils/date';
-import { STATUS_OPTIONS } from '@/lib/utils/status';
-import { exportToCSV } from '@/lib/utils/csv';
-import { StatusBadge } from '@/components/ui/StatusBadge';
-import { StatCard } from '@/components/ui/StatCard';
-import { Skeleton } from '@/components/ui/Skeleton';
-import { Spinner } from '@/components/ui/Spinner';
-import { PaymentMethodBadge } from '@/components/ui/PaymentMethodBadge';
-import { PaginationControls } from '@/components/ui/PaginationControls';
-import { CustomDropdown } from '@/components/ui/CustomDropdown';
-import { ConfirmationModal } from '@/components/ui/ConfirmationModal';
-import { PasswordConfirmModal } from '@/components/ui/PasswordConfirmModal';
-import { Toast } from '@/components/ui/Toast';
+
+import {
+  StatCard,
+  PaginationControls,
+  ConfirmationModal,
+  PasswordConfirmModal,
+  Toast,
+} from '@/components/ui';
+
+import { OrdersFilterBar } from '@/components/admin/orders/OrdersFilterBar';
+import { OrdersTable } from '@/components/admin/orders/OrdersTable';
+import { OrdersMobileList } from '@/components/admin/orders/OrdersMobileList';
+
+import { AdminTableSkeleton } from '@/components/admin/AdminSkeletons';
 
 export const OrdersLedger = memo(function OrdersLedger() {
   const { orders, isLoading, clearAllOrders, deleteOrder, page, totalPages, filters, setFilters, goToPage, globalCounts } = useOrders();
@@ -37,8 +47,6 @@ export const OrdersLedger = memo(function OrdersLedger() {
   const [searchValue, setSearchValue] = useState(filters.searchQuery);
   const isMounted = useHydrated();
   const { toast, showSuccess, showError, dismissToast } = useToast();
-
-
 
   const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -76,7 +84,6 @@ export const OrdersLedger = memo(function OrdersLedger() {
   }, []);
 
   const handleExportCSV = useCallback(async () => {
-    // Dynamically fetch items for CSV export on-demand
     const orderIds = orders.map(o => o.id_unique_tracking);
     const itemsMap = new Map<string, OrderItem[]>();
     if (orderIds.length > 0) {
@@ -176,67 +183,26 @@ export const OrdersLedger = memo(function OrdersLedger() {
 
   const handleClearConfirmCancel = useCallback(() => setIsClearConfirmOpen(false), []);
 
+  const handleRequestDeleteOrder = useCallback((id: string) => {
+    setOrderToDeleteId(id);
+    setIsDeleteConfirmOpen(true);
+  }, []);
+
   if (!isMounted) {
-    return (
-      <div className="flex flex-col items-center justify-center py-20 font-tajawal text-on-surface-variant">
-        <Spinner className="h-8 w-8 mb-3" />
-        <p className="text-sm">جاري تحميل دفتر الطلبات...</p>
-      </div>
-    );
+    return <AdminTableSkeleton />;
   }
 
   return (
     <section className="space-y-gutter font-tajawal">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 text-start">
-        <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-          <div>
-            <h2 className="font-headline-lg text-headline-lg text-on-surface">جميع الطلبات</h2>
-            <p className="text-on-surface-variant font-body-md text-body-md">
-              إجمالي الطلبات في النظام: {metrics.totalCount} طلب.
-            </p>
-          </div>
-          <button
-            onClick={handleExportCSV}
-            className="flex items-center gap-1.5 px-4 py-2 bg-primary/10 text-primary border border-primary/20 rounded-lg hover:bg-primary/20 transition-all font-semibold text-xs cursor-pointer select-none h-fit w-fit"
-            title="تصدير كافة الطلبات إلى CSV"
-          >
-            <span className="material-symbols-outlined text-[16px]">download</span>
-            تصدير CSV
-          </button>
-          <button
-            onClick={() => setIsClearConfirmOpen(true)}
-            className="flex items-center gap-1.5 px-4 py-2 bg-red-50 text-red-600 border border-red-200 rounded-lg hover:bg-red-100 transition-all font-semibold text-xs cursor-pointer select-none h-fit w-fit"
-            title="حذف جميع بيانات الطلبات"
-          >
-            <span className="material-symbols-outlined text-[16px]">delete_sweep</span>
-            مسح جميع الطلبات
-          </button>
-        </div>
-        
-          <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
-          <div className="relative">
-            <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant select-none">
-              search
-            </span>
-            <label htmlFor="orders-search" className="sr-only">بحث في الطلبات</label>
-            <input
-              id="orders-search"
-              className="pr-10 pl-4 py-2 bg-surface-container-lowest border border-outline-variant rounded-lg font-body-md text-body-md focus:outline-none focus:ring-2 focus:ring-primary/10 focus:border-primary w-full sm:w-64 text-on-surface text-start"
-              placeholder="البحث برقم الطلب، اسم العميل..."
-              type="text"
-              value={searchValue}
-              onChange={(e) => handleSearchChange(e.target.value)}
-            />
-          </div>
-
-          <CustomDropdown
-            labelPrefix="الحالة:"
-            options={STATUS_OPTIONS}
-            value={filters.status}
-            onChange={handleStatusChange}
-          />
-        </div>
-      </div>
+      <OrdersFilterBar
+        totalCount={metrics.totalCount}
+        searchValue={searchValue}
+        onSearchChange={handleSearchChange}
+        statusFilter={filters.status}
+        onStatusChange={handleStatusChange}
+        onExportCSV={handleExportCSV}
+        onClearAllOrders={() => setIsClearConfirmOpen(true)}
+      />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-gutter text-start">
         <StatCard title="إجمالي الطلبات" value={metrics.totalCount} description="سجلات نشطة في النظام" icon="shopping_bag" iconColor="text-purple-600" />
@@ -246,216 +212,19 @@ export const OrdersLedger = memo(function OrdersLedger() {
       </div>
 
       <div className="bg-surface-container-lowest rounded-xl border border-outline-variant/30 shadow-sm overflow-hidden text-start">
-        <div className="overflow-x-auto lg:overflow-x-hidden">
-          <table className="hidden lg:table w-full text-start border-collapse">
-            <thead>
-              <tr className="bg-surface-container-low border-b border-outline-variant/30 select-none text-start">
-                <th scope="col" className="px-6 py-4 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider text-start">
-                  رقم الطلب
-                </th>
-                <th scope="col" className="px-6 py-4 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider text-start">
-                  العميل
-                </th>
-                <th scope="col" className="px-6 py-4 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider text-start">
-                  رقم الهاتف
-                </th>
-                <th scope="col" className="px-6 py-4 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider text-start">
-                  الحالة
-                </th>
-                <th scope="col" className="px-6 py-4 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider text-start">
-                  التاريخ
-                </th>
-                <th scope="col" className="px-6 py-4 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider text-start">
-                  الدفع
-                </th>
-                <th scope="col" className="px-6 py-4 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider text-end">
-                  الإجمالي
-                </th>
-                <th scope="col" className="px-6 py-4 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider text-end">
-                  الإجراءات
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-outline-variant/10">
-              {isLoading ? (
-                Array.from({ length: 5 }).map((_, idx) => (
-                  <tr key={`sk-row-${idx}`} className="border-b border-outline-variant/10">
-                    <td className="px-6 py-4"><Skeleton className="h-4 w-20" /></td>
-                    <td className="px-6 py-4"><Skeleton className="h-4 w-24" /></td>
-                    <td className="px-6 py-4"><Skeleton className="h-4 w-24" /></td>
-                    <td className="px-6 py-4"><Skeleton className="h-4 w-32" /></td>
-                    <td className="px-6 py-4"><Skeleton className="h-4 w-16" /></td>
-                    <td className="px-6 py-4"><Skeleton className="h-4 w-20" /></td>
-                    <td className="px-6 py-4"><Skeleton className="h-4 w-16" /></td>
-                    <td className="px-6 py-4 text-end"><Skeleton className="h-8 w-8 rounded inline-block" /></td>
-                  </tr>
-                ))
-              ) : orders.length > 0 ? (
-                orders.map((order) => {
-                  const dateStr = formatOrderDate(order.created_at);
+        <OrdersTable
+          isLoading={isLoading}
+          orders={orders}
+          onRowClick={handleRowClick}
+          onDeleteOrder={handleRequestDeleteOrder}
+        />
 
-                  const orderTotal = order.total_amount;
-
-                  return (
-                    <tr
-                      key={order.id_unique_tracking}
-                      onClick={() => handleRowClick(order.id_unique_tracking)}
-                      className="hover:bg-surface-container-low/50 transition-all duration-200 cursor-pointer origin-center"
-                    >
-                      <td className="px-6 py-4 font-headline-md text-label-md text-secondary-fixed-dim font-bold text-start">
-                        #{order.id_unique_tracking}
-                      </td>
-                      
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-full bg-surface-container-highest flex items-center justify-center text-primary font-bold text-xs select-none">
-                            {getInitials(order.customer_name)}
-                          </div>
-                          <span className="font-body-md text-body-md text-on-surface font-semibold">
-                            {order.customer_name}
-                          </span>
-                        </div>
-                      </td>
- 
-                      <td className="px-6 py-4 font-body-md text-body-md text-on-surface font-mono text-start">
-                        {order.phone_number}
-                      </td>
-
-                      <td className="px-6 py-4">
-                        <StatusBadge status={order.status} />
-                      </td>
-
-                      <td className="px-6 py-4 font-body-md text-body-md text-on-surface-variant text-start">
-                        {dateStr}
-                      </td>
-
-                      <td className="px-6 py-4 font-body-md text-body-md text-on-surface text-start">
-                        <PaymentMethodBadge method={order.payment_method} />
-                      </td>
-
-                      <td className="px-6 py-4 font-headline-md text-label-md text-on-surface text-end font-bold">
-                        {formatCurrency(orderTotal)}
-                      </td>
-
-                      <td className="px-6 py-4 text-end">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setOrderToDeleteId(order.id_unique_tracking);
-                            setIsDeleteConfirmOpen(true);
-                          }}
-                          className="p-1.5 bg-red-50 text-red-600 hover:bg-red-100 border border-red-200 rounded-md transition-colors cursor-pointer select-none"
-                          title="حذف هذا الطلب"
-                          aria-label="حذف هذا الطلب"
-                        >
-                          <span className="material-symbols-outlined text-[18px]">delete</span>
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })
-              ) : (
-                <tr>
-                  <td colSpan={8} className="text-center py-20 text-on-surface-variant italic">
-                    لا توجد أي طلبات تطابق معايير البحث بالتصفية.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Mobile Card List (shown on mobile, hidden on desktop) */}
-        <div className="block lg:hidden divide-y divide-outline-variant/10">
-          {isLoading ? (
-            Array.from({ length: 3 }).map((_, idx) => (
-              <div key={`sk-card-${idx}`} className="p-4 space-y-4">
-                <div className="flex justify-between items-start">
-                  <div className="flex items-center gap-3">
-                    <Skeleton className="w-9 h-9 rounded-full" />
-                    <div className="space-y-2">
-                      <Skeleton className="h-4 w-24" />
-                      <Skeleton className="h-3 w-16" />
-                    </div>
-                  </div>
-                  <Skeleton className="h-4 w-16" />
-                </div>
-                <div className="flex justify-between items-center">
-                  <div className="flex gap-2">
-                    <Skeleton className="h-6 w-16" />
-                    <Skeleton className="h-6 w-16" />
-                  </div>
-                  <Skeleton className="h-3 w-12" />
-                </div>
-                <Skeleton className="h-12 rounded-lg" />
-              </div>
-            ))
-          ) : orders.length > 0 ? (
-            orders.map((order) => {
-              const dateStr = formatOrderDate(order.created_at);
-              const orderTotal = order.total_amount;
-
-              return (
-                <div
-                  key={order.id_unique_tracking}
-                  onClick={() => handleRowClick(order.id_unique_tracking)}
-                  className="p-4 space-y-4 hover:bg-surface-container-low/50 transition-all duration-200 cursor-pointer text-start"
-                >
-                  <div className="flex justify-between items-start">
-                    <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-full bg-surface-container-highest flex items-center justify-center text-primary font-bold text-sm select-none">
-                        {getInitials(order.customer_name)}
-                      </div>
-                      <div className="text-start">
-                        <h4 className="font-bold text-on-surface text-base leading-snug">{order.customer_name}</h4>
-                        <span className="text-xs text-on-surface-variant block mt-0.5">{order.phone_number}</span>
-                      </div>
-                    </div>
-                    <span className="font-bold text-secondary-fixed-dim text-sm font-mono">
-                      #{order.id_unique_tracking}
-                    </span>
-                  </div>
-
-                  <div className="flex flex-wrap gap-2 items-center justify-between">
-                    <div className="flex gap-2">
-                      <StatusBadge status={order.status} />
-                      <PaymentMethodBadge method={order.payment_method} />
-                    </div>
-                    <span className="text-[11px] text-on-surface-variant font-medium">
-                      {dateStr}
-                    </span>
-                  </div>
-
-                  <div className="flex items-center justify-between bg-surface-container-low/40 p-2.5 rounded-lg">
-                    <div>
-                      <span className="text-[10px] text-on-surface-variant block">الإجمالي</span>
-                      <span className="font-bold text-on-surface text-base font-mono">
-                        {formatCurrency(orderTotal)}
-                      </span>
-                    </div>
-
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setOrderToDeleteId(order.id_unique_tracking);
-                        setIsDeleteConfirmOpen(true);
-                      }}
-                      className="p-2 bg-red-50 text-red-600 hover:bg-red-100 border border-red-200 rounded-lg transition-colors cursor-pointer select-none flex items-center justify-center"
-                      title="حذف هذا الطلب"
-                      aria-label="حذف هذا الطلب"
-                    >
-                      <span className="material-symbols-outlined text-[18px]">delete</span>
-                    </button>
-                  </div>
-                </div>
-              );
-            })
-          ) : (
-            <div className="py-12 text-center text-on-surface-variant font-medium text-sm font-tajawal">
-              لا توجد أي طلبات تطابق معايير البحث بالتصفية.
-            </div>
-          )}
-        </div>
+        <OrdersMobileList
+          isLoading={isLoading}
+          orders={orders}
+          onRowClick={handleRowClick}
+          onDeleteOrder={handleRequestDeleteOrder}
+        />
 
         <PaginationControls
           currentPage={page + 1}

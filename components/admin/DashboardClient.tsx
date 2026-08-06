@@ -7,7 +7,6 @@ import { formatCurrency } from '@/lib/utils/format';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { StatCard } from '@/components/ui/StatCard';
 import { Skeleton } from '@/components/ui/Skeleton';
-import { Spinner } from '@/components/ui/Spinner';
 import type { Order } from '@/types';
 
 interface DashboardStats {

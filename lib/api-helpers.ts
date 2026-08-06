@@ -29,3 +29,16 @@ export function revalidateShopPaths() {
   revalidatePath('/');
   revalidatePath('/shop');
 }
+
+export function apiSuccess<T extends object>(data?: T, status = 200) {
+  return NextResponse.json({ success: true, ...data }, { status });
+}
+
+export function apiError(message: string, status = 400, extra?: Record<string, unknown>) {
+  return NextResponse.json({ error: message, ...extra }, { status });
+}
+
+export function apiValidationError(fieldErrors: Record<string, string | string[]>, message = 'Validation failed') {
+  return NextResponse.json({ error: message, fieldErrors }, { status: 400 });
+}
+

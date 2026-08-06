@@ -221,7 +221,7 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
     }, filters.searchQuery ? 300 : 0);
 
     return () => clearTimeout(timer);
-  }, [filters, page, loadData, pathname]);
+  }, [filters, page, loadData, pathname, fetchGlobalCounts]);
 
   const refreshOrders = useCallback(async () => {
     await loadData(page, filters);

@@ -13,12 +13,12 @@ import { getSafeUrl, devLog, getSupportEnv, isValidTrackingId } from '@/lib/util
 import { SAFE_FILENAME_RE } from '@/lib/validations';
 
 import { Toast } from '@/components/ui/Toast';
-import { Spinner } from '@/components/ui/Spinner';
 import { CustomDropdown } from '@/components/ui/CustomDropdown';
 import { ConfirmationModal } from '@/components/ui/ConfirmationModal';
 import { PrintableInvoice } from '@/components/admin/PrintableInvoice';
 import { OrderItemsCard } from '@/components/admin/OrderItemsCard';
 import { StatusHistoryTimeline } from '@/components/admin/StatusHistoryTimeline';
+import { AdminOrderDetailSkeleton } from '@/components/admin/AdminSkeletons';
 
 
 const MAX_NOTES_LENGTH = 2000;
@@ -275,12 +275,7 @@ export const OrderDetailClient = memo(function OrderDetailClient({ id }: OrderDe
   }, [order]);
 
   if (loading) {
-    return (
-      <div className="flex flex-col items-center justify-center py-20 font-tajawal text-on-surface-variant">
-        <Spinner className="h-8 w-8 mb-3" />
-        <p className="text-sm">جاري جلب تفاصيل الطلب...</p>
-      </div>
-    );
+    return <AdminOrderDetailSkeleton />;
   }
 
   if (!order) {

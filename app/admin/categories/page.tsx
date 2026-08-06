@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import dynamic from 'next/dynamic';
-import { Spinner } from '@/components/ui/Spinner';
+import { AdminCategoriesSkeleton } from '@/components/admin/AdminSkeletons';
 
 export const metadata: Metadata = {
   title: 'إدارة الأقسام والكتالوج | لوحة التحكم',
@@ -10,12 +10,7 @@ export const metadata: Metadata = {
 const CategoriesClient = dynamic(
   () => import('@/components/admin/CategoriesClient').then((mod) => mod.CategoriesClient),
   {
-    loading: () => (
-      <div className="flex flex-col items-center justify-center py-20 font-tajawal text-on-surface-variant">
-        <Spinner className="h-8 w-8 mb-3" />
-        <p className="text-sm">جاري تحميل إدارة الأقسام...</p>
-      </div>
-    ),
+    loading: AdminCategoriesSkeleton,
   }
 );
 
