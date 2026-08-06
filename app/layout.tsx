@@ -7,7 +7,6 @@ import { CartProvider } from '@/providers/CartContext';
 import { ProductsProvider } from '@/providers/ProductsContext';
 import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
 import { SITE_METADATA } from '@/lib/constants';
-import { SpeedInsights } from '@vercel/speed-insights/next';
 
 const materialSymbolsUrl = 'https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=block';
 
@@ -170,7 +169,6 @@ export default async function RootLayout({
             </CartProvider>
           </ProductsProvider>
         </ErrorBoundary>
-        <SpeedInsights />
       </body>
     </html>
   );
