@@ -245,17 +245,17 @@ export const ShopPageContent = memo(function ShopPageContent({ initialProducts, 
       <section className="bg-on-background py-10 md:py-14 text-start relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-primary/10 via-transparent to-primary/5 pointer-events-none" />
         <div className="max-w-max-width mx-auto px-margin-mobile md:px-margin-desktop relative z-10">
-          <div className="flex flex-col lg:flex-row items-center justify-between gap-6 lg:gap-10">
+          <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 lg:gap-10">
             
             {/* Header Text (Right in RTL) */}
-            <div className="flex-1 space-y-2">
-              <span className="text-secondary-fixed font-bold text-xs uppercase tracking-widest">
+            <div className="flex-1 space-y-2 text-start w-full">
+              <span className="text-secondary-fixed font-bold text-xs uppercase tracking-widest block">
                 {category !== ALL_CATEGORIES ? `قسم المنتجات • ${category}` : 'اكتشف كتالوج منتجاتنا'}
               </span>
               <h1 className="font-headline-lg text-[28px] md:text-[36px] lg:text-[40px] text-white font-extrabold mt-1">
                 {category !== ALL_CATEGORIES ? category : 'المتجر'}
               </h1>
-              <div className="w-16 h-1 bg-primary rounded-full mt-3" />
+              <div className="w-16 h-1 bg-primary rounded-full mt-3 ms-0" />
             </div>
 
             {/* Subcategory Discount Banner (Left in RTL inside Header) */}
