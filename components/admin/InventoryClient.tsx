@@ -144,6 +144,28 @@ export const InventoryClient = memo(function InventoryClient() {
     sortBy,
   });
 
+  const latestInventoryFiltersRef = useRef({
+    searchQuery,
+    statusFilter,
+    stockFilter,
+    selectedMainCategoryFilter,
+    selectedSubCategoryFilter,
+    sortBy,
+    currentPage,
+  });
+
+  useEffect(() => {
+    latestInventoryFiltersRef.current = {
+      searchQuery,
+      statusFilter,
+      stockFilter,
+      selectedMainCategoryFilter,
+      selectedSubCategoryFilter,
+      sortBy,
+      currentPage,
+    };
+  });
+
   // Synchronize state to URL & Hard Reset Page to 1 on Filter Change
   useEffect(() => {
     if (pathname !== '/admin/inventory') return;
@@ -205,6 +227,7 @@ export const InventoryClient = memo(function InventoryClient() {
   // Sync URL query params back to state (for back/forward navigation and link resets)
   useEffect(() => {
     if (pathname !== '/admin/inventory') return;
+    const latest = latestInventoryFiltersRef.current;
     const urlSearch = searchParams?.get('search') || '';
     const urlStatus = (searchParams?.get('status') === 'active' || searchParams?.get('status') === 'inactive') ? searchParams.get('status') as 'all' | 'active' | 'inactive' : 'all';
     const urlStock = (searchParams?.get('stock') === 'out' || searchParams?.get('stock') === 'low' || searchParams?.get('stock') === 'instock') ? searchParams.get('stock') as 'all' | 'out' | 'low' | 'instock' : 'all';
@@ -214,12 +237,12 @@ export const InventoryClient = memo(function InventoryClient() {
     const urlPage = searchParams?.get('page') ? parseInt(searchParams.get('page')!, 10) : 1;
 
     const filtersChangedFromUrl =
-      urlSearch !== searchQuery ||
-      urlStatus !== statusFilter ||
-      urlStock !== stockFilter ||
-      urlMainCat !== selectedMainCategoryFilter ||
-      urlSubCat !== selectedSubCategoryFilter ||
-      urlSort !== sortBy;
+      urlSearch !== latest.searchQuery ||
+      urlStatus !== latest.statusFilter ||
+      urlStock !== latest.stockFilter ||
+      urlMainCat !== latest.selectedMainCategoryFilter ||
+      urlSubCat !== latest.selectedSubCategoryFilter ||
+      urlSort !== latest.sortBy;
 
     setSearchQuery((prev) => (prev === urlSearch ? prev : urlSearch));
     setStatusFilter((prev) => (prev === urlStatus ? prev : urlStatus));
@@ -231,10 +254,11 @@ export const InventoryClient = memo(function InventoryClient() {
     if (filtersChangedFromUrl) {
       const explicitPage = searchParams?.has('page') ? urlPage : 1;
       setCurrentPage(explicitPage);
-    } else if (urlPage !== currentPage) {
+    } else if (urlPage !== latest.currentPage) {
       setCurrentPage(urlPage);
     }
   }, [searchParams, pathname, setCurrentPage]);
+
 
   const handleExportCSV = useCallback(() => {
     const headers = [

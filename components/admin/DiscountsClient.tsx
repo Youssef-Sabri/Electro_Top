@@ -183,8 +183,9 @@ export const DiscountsClient = memo(function DiscountsClient() {
 
   const resetForm = useCallback(() => {
     setEditingBanner(null);
-    setFormData({ subcategory_name: allSubcategoryNames[0] || '', title: '', subtitle: '', discount_percentage: 15, discount_badge: '', banner_color: 'gradient-primary', image_url: '', is_active: true });
+    setFormData({ subcategory_name: allSubcategoryNames[0] || '', title: '', subtitle: '', discount_percentage: '', discount_badge: '', banner_color: 'gradient-primary', image_url: '', is_active: true });
   }, [allSubcategoryNames]);
+
 
   const handleOpenCreate = useCallback(() => { resetForm(); setIsModalOpen(true); }, [resetForm]);
 
@@ -396,12 +397,13 @@ export const DiscountsClient = memo(function DiscountsClient() {
                 <div className="space-y-1.5">
                   <label className="block text-xs font-bold text-on-surface">نسبة الخصم % <span className="text-error">*</span></label>
                   <input
-                    type="number" min="1" max="99" step="0.5" placeholder="15"
+                    type="number" min="1" max="99" step="0.5" placeholder="أدخل نسبة الخصم (مثال: 20)"
                     value={formData.discount_percentage}
                     onChange={e => setFormData(p => ({ ...p, discount_percentage: e.target.value }))}
                     className="w-full bg-white border border-outline-variant/40 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-on-surface font-semibold placeholder:text-on-surface-variant/40"
                     required
                   />
+
                   <p className="text-[10px] text-on-surface-variant/50">يُطبّق تلقائياً على كافة منتجات هذا القسم.</p>
                 </div>
                 <div className="space-y-1.5">
