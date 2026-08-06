@@ -13,10 +13,10 @@ interface CategorySlideshowCardProps {
   category: string;
   products: Product[];
   productCount: number;
-  cardIndex?: number;
+  globalSlideIndex: number;
 }
 
-function CategorySlideshowCard({ category, products, productCount, cardIndex = 0 }: CategorySlideshowCardProps) {
+function CategorySlideshowCard({ category, products, productCount, globalSlideIndex }: CategorySlideshowCardProps) {
   const rawImages = useMemo(() => {
     const urls = products
       .map((p) => p.image_url)
@@ -24,30 +24,7 @@ function CategorySlideshowCard({ category, products, productCount, cardIndex = 0
     return Array.from(new Set(urls)).slice(0, 4);
   }, [products]);
 
-  const [currentIndex, setCurrentIndex] = useState(0);
-
-  useEffect(() => {
-    if (rawImages.length <= 1) return;
-
-    // Stagger the initial start timer by 1200ms per card index
-    const initialDelay = (cardIndex % 4) * 1200;
-    // Vary the interval slightly (4200ms + (cardIndex % 3) * 600ms) for an organic wave
-    const intervalDuration = 4200 + (cardIndex % 3) * 600;
-
-    let intervalId: ReturnType<typeof setInterval> | null = null;
-
-    const delayTimeout = setTimeout(() => {
-      setCurrentIndex((prev) => (prev + 1) % rawImages.length);
-      intervalId = setInterval(() => {
-        setCurrentIndex((prev) => (prev + 1) % rawImages.length);
-      }, intervalDuration);
-    }, initialDelay);
-
-    return () => {
-      clearTimeout(delayTimeout);
-      if (intervalId) clearInterval(intervalId);
-    };
-  }, [rawImages.length, cardIndex]);
+  const activeIndex = rawImages.length > 0 ? (globalSlideIndex % rawImages.length) : 0;
 
   return (
     <Link
@@ -60,7 +37,7 @@ function CategorySlideshowCard({ category, products, productCount, cardIndex = 0
             <div
               key={imgUrl}
               className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
-                idx === (currentIndex % rawImages.length) ? 'opacity-100 z-10' : 'opacity-0 z-0'
+                idx === activeIndex ? 'opacity-100 z-10' : 'opacity-0 z-0'
               }`}
             >
               <Image
@@ -112,6 +89,16 @@ export const LandingPage = memo(function LandingPage({
 }: LandingPageProps) {
   const { categories: contextCategories, products, initializeData, isLoaded } = useProducts();
   const { hierarchy } = useCategoryHierarchy(initialHierarchy);
+
+  // Single Master Global Clock Pulse for 100% atomic synchronized category slideshow switching
+  const [globalSlideIndex, setGlobalSlideIndex] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setGlobalSlideIndex((prev) => prev + 1);
+    }, 4500);
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     if (!isLoaded && initialProducts.length > 0) {
@@ -282,13 +269,13 @@ export const LandingPage = memo(function LandingPage({
             pointerEvents: fadeCategories ? 'auto' : 'none' as const
           }}
         >
-          {displayedCategories.map((category, idx) => (
+          {displayedCategories.map((category) => (
             <div key={category} className="shrink-0 w-[82vw] sm:w-[340px] md:w-full snap-center">
               <CategorySlideshowCard
                 category={category}
                 products={categoryProducts[category] || []}
                 productCount={categoryCounts[category] || 0}
-                cardIndex={idx}
+                globalSlideIndex={globalSlideIndex}
               />
             </div>
           ))}
