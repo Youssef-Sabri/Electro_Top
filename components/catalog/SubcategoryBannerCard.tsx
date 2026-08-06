@@ -42,7 +42,7 @@ const BannerImageFan = memo(function BannerImageFan({
 }) {
   const [activeBaseIndex, setActiveBaseIndex] = useState(0);
 
-  // Dynamic random image rotation every 3 seconds
+  // Dynamic random image rotation every 3.2 seconds
   useEffect(() => {
     if (imagePool.length <= 1) {
       setActiveBaseIndex(0);
@@ -57,7 +57,7 @@ const BannerImageFan = memo(function BannerImageFan({
         }
         return nextIndex;
       });
-    }, 3000);
+    }, 3200);
 
     return () => clearInterval(timer);
   }, [imagePool]);
