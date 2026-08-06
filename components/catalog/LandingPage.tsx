@@ -20,7 +20,7 @@ function CategorySlideshowCard({ category, products, productCount }: CategorySli
     const urls = products
       .map((p) => p.image_url)
       .filter((url): url is string => !!url);
-    return Array.from(new Set(urls));
+    return Array.from(new Set(urls)).slice(0, 4);
   }, [products]);
 
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -30,43 +30,42 @@ function CategorySlideshowCard({ category, products, productCount }: CategorySli
 
     const interval = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % rawImages.length);
-    }, 4000);
+    }, 4500);
 
     return () => clearInterval(interval);
   }, [rawImages.length]);
 
-  const currentImg = rawImages.length > 0 ? rawImages[currentIndex % rawImages.length] : null;
-
   return (
     <Link
       href={`/shop?category=${encodeURIComponent(category)}`}
-      className="group relative h-[380px] rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-500 hover:-translate-y-1.5 active:scale-[0.98] active:shadow-md border border-outline-variant/20 w-full block bg-white"
+      className="group relative h-[380px] rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-500 hover:-translate-y-1.5 active:scale-[0.98] active:shadow-md border border-outline-variant/20 w-full block bg-surface-container-low"
     >
-      <div className="absolute inset-0 w-full h-full select-none pointer-events-none bg-white">
-        {currentImg ? (
-          <div
-            key={currentImg}
-            className="absolute inset-0"
-            style={{
-              animation: 'fadeInScale 800ms cubic-bezier(0.4, 0, 0.2, 1)'
-            }}
-          >
-            <Image
-              src={currentImg}
-              alt={`معاينة منتجات قسم ${category}`}
-              fill
-              className="object-cover group-hover:scale-105 transition-transform duration-500"
-              sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
-              quality={70}
-              priority
-            />
-          </div>
+      <div className="absolute inset-0 w-full h-full select-none pointer-events-none bg-surface-container-low">
+        {rawImages.length > 0 ? (
+          rawImages.map((imgUrl, idx) => (
+            <div
+              key={imgUrl}
+              className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
+                idx === (currentIndex % rawImages.length) ? 'opacity-100 z-10' : 'opacity-0 z-0'
+              }`}
+            >
+              <Image
+                src={imgUrl}
+                alt={`معاينة منتجات قسم ${category}`}
+                fill
+                className="object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+                sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                quality={75}
+                loading={idx === 0 ? 'eager' : 'lazy'}
+              />
+            </div>
+          ))
         ) : (
           <div className="absolute inset-0 bg-gradient-to-br from-surface-container to-surface-container-low" />
         )}
       </div>
 
-      <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-transparent flex flex-col justify-end p-6 text-start z-10">
+      <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-transparent flex flex-col justify-end p-6 text-start z-20">
         <h2 className="font-headline-md text-white font-bold text-[20px]">{category}</h2>
         {productCount > 0 && (
           <span className="text-white/60 text-xs mt-1 font-semibold">
