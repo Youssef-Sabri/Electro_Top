@@ -168,14 +168,6 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
     }
   }, [filters]);
 
-  // Fetch global counts when on admin routes
-  useEffect(() => {
-    if (pathname?.startsWith('/admin')) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- legitimate async data fetch
-      fetchGlobalCounts();
-    }
-  }, [fetchGlobalCounts, pathname]);
-
   // Synchronize URL changes back to state (handles back/forward navigation)
   useEffect(() => {
     if (!pathname?.startsWith('/admin')) return;
@@ -223,6 +215,7 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
       supabase.auth.getSession().then(({ data: { session } }) => {
         if (session) {
           loadData(page, filters);
+          fetchGlobalCounts();
         }
       });
     }, filters.searchQuery ? 300 : 0);
