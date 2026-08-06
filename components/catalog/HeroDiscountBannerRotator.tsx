@@ -84,10 +84,9 @@ export const HeroDiscountBannerRotator = memo(function HeroDiscountBannerRotator
 
       {/* Main Animated Card Wrapper */}
       <div
-        className="relative z-10 transition-all duration-500 ease-out transform"
+        className="relative z-10 transition-opacity duration-300 ease-out"
         style={{
-          opacity: isFading ? 0.3 : 1,
-          transform: isFading ? 'scale(0.98) translateY(2px)' : 'scale(1) translateY(0)',
+          opacity: isFading ? 0.4 : 1,
         }}
       >
         <SubcategoryBannerCard
