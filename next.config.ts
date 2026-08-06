@@ -38,9 +38,11 @@ const nextConfig: NextConfig = {
     optimizePackageImports: ['@supabase/supabase-js'],
   },
   images: {
-    qualities: [60, 70, 75, 80, 85],
-    minimumCacheTTL: 60 * 60 * 24 * 7,
-    formats: ['image/avif', 'image/webp'],
+    // Disable Vercel Image Optimization serverless proxying since product images
+    // are already compressed client-side (to ~50-150KB JPEG @ 1920px) before upload
+    // to Supabase Storage. Serving directly from Supabase CDN reduces Vercel Image
+    // Transformations from thousands down to 0 and improves image loading speeds.
+    unoptimized: true,
     remotePatterns: [
       {
         // Supabase Storage CDN — locked to specific project to prevent cross-project image optimization
