@@ -1,9 +1,7 @@
-import { Suspense } from 'react';
 import { Metadata } from 'next';
 import { ShopPageContent } from '@/components/catalog/ShopPageContent';
 import { fetchCatalog, fetchActiveSubcategoryBanners } from '@/lib/services/catalog';
 import { SITE_METADATA } from '@/lib/constants';
-import StoreLoading from '@/app/(store)/loading';
 
 export const metadata: Metadata = {
   title: 'المتجر والمنتجات | إلكترو توب',
@@ -15,7 +13,7 @@ export const metadata: Metadata = {
 
 export const revalidate = 3600;
 
-async function ShopCatalogLoader() {
+export default async function ShopPage() {
   const [{ categories, products, hierarchy }, banners] = await Promise.all([
     fetchCatalog(),
     fetchActiveSubcategoryBanners(),
@@ -54,12 +52,5 @@ async function ShopCatalogLoader() {
       />
       <ShopPageContent initialProducts={products} initialCategories={categories} initialHierarchy={hierarchy} initialBanners={banners} />
     </>
-  );
-}
-export default function ShopPage() {
-  return (
-    <Suspense fallback={<StoreLoading />}>
-      <ShopCatalogLoader />
-    </Suspense>
   );
 }
