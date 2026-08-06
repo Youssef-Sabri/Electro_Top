@@ -85,16 +85,36 @@ export async function POST(request: NextRequest) {
 
   // Validate all product IDs exist and are active, fetch current prices/stock
   const productIds = cartItems.map((item: { product: { id: string } }) => item.product.id)
-  const { data: serverProducts, error: prodErr } = await adminClient
-    .from('products')
-    .select('id, price, stock, is_active, name')
-    .in('id', productIds)
+  const [{ data: serverProducts, error: prodErr }, { data: activeBanners }] = await Promise.all([
+    adminClient
+      .from('products')
+      .select('id, price, stock, is_active, name, category')
+      .in('id', productIds),
+    adminClient
+      .from('subcategory_banners')
+      .select('subcategory_name, discount_percentage, is_active, start_date, end_date')
+      .eq('is_active', true),
+  ])
 
   if (prodErr || !serverProducts) {
     return NextResponse.json({ error: 'فشل التحقق من المنتجات.' }, { status: 500 })
   }
 
   const productMap = new Map(serverProducts.map((p) => [p.id, p]))
+  const bannerMap = new Map<string, number>()
+  if (activeBanners) {
+    const nowTs = new Date()
+    for (const b of activeBanners) {
+      if (typeof b.discount_percentage === 'number' && b.discount_percentage > 0) {
+        if (b.start_date && new Date(b.start_date) > nowTs) continue
+        if (b.end_date && new Date(b.end_date) < nowTs) continue
+        const existing = bannerMap.get(b.subcategory_name) || 0
+        if (b.discount_percentage > existing) {
+          bannerMap.set(b.subcategory_name, b.discount_percentage)
+        }
+      }
+    }
+  }
 
   for (const item of cartItems) {
     if (!item.product?.id || typeof item.quantity !== 'number' || item.quantity < 1) {
@@ -121,13 +141,20 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Invalid instapay_screenshot format.' }, { status: 400 })
   }
 
-  const newItems = cartItems.map((item: { product: { id: string }; quantity: number; selectedColor?: string | null }, index: number) => {
+  const newItems = cartItems.map((item: { product: { id: string; price?: number }; quantity: number; selectedColor?: string | null }, index: number) => {
+    const serverProduct = productMap.get(item.product.id)
+    const basePrice = serverProduct?.price ?? item.product.price ?? 0
+    const discountPct = serverProduct?.category ? (bannerMap.get(serverProduct.category) || 0) : 0
+    const unitPrice = discountPct > 0
+      ? Math.round(basePrice * (1 - discountPct / 100) * 100) / 100
+      : basePrice
+
     return {
       id: `oi-${trackingId}-${index}`,
       order_id: trackingId,
       product_id: item.product.id,
       quantity: item.quantity,
-      unit_price: 0, // overridden by before_order_item_insert database trigger
+      unit_price: unitPrice,
       selected_color: item.selectedColor || null,
     }
   })
