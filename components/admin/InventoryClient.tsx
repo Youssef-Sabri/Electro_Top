@@ -367,9 +367,31 @@ export const InventoryClient = memo(function InventoryClient() {
 
   if (!isMounted) {
     return (
-      <div className="flex flex-col items-center justify-center py-20 font-tajawal text-on-surface-variant">
-        <Spinner className="h-8 w-8 mb-3" />
-        <p className="text-sm">جاري تحميل إدارة المخزون...</p>
+      <div className="space-y-8 font-tajawal text-on-surface animate-pulse" dir="rtl">
+        <div>
+          <Skeleton className="h-8 w-48 mb-2" />
+          <Skeleton className="h-4 w-96" />
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4 gap-6">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={`sk-inv-stat-${i}`} className="bg-white border border-outline-variant/30 rounded-xl p-6 shadow-sm space-y-3">
+              <Skeleton className="h-4 w-24" />
+              <Skeleton className="h-8 w-32" />
+              <Skeleton className="h-3 w-40" />
+            </div>
+          ))}
+        </div>
+
+        <div className="bg-surface-container-lowest border border-outline-variant/30 rounded-xl p-6 shadow-sm space-y-5">
+          <Skeleton className="h-6 w-48" />
+          <Skeleton className="h-10 w-full rounded-lg" />
+          <div className="flex flex-wrap gap-3">
+            <Skeleton className="h-9 w-36 rounded-lg" />
+            <Skeleton className="h-9 w-36 rounded-lg" />
+            <Skeleton className="h-9 w-24 rounded-lg" />
+          </div>
+        </div>
       </div>
     );
   }

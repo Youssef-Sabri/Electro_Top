@@ -12,6 +12,8 @@ import { ProductImageGallery } from '@/components/catalog/ProductImageGallery';
 import StoreLoading from '@/app/(store)/loading';
 import type { SubcategoryBanner } from '@/types';
 
+export const revalidate = 3600;
+
 interface ProductPageProps {
   params: Promise<{ slug: string }>;
 }
