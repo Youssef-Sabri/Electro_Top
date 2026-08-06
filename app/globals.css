@@ -336,6 +336,14 @@ select.select-reset::-ms-expand {
   will-change: transform;
 }
 
+@media (max-width: 768px) {
+  .animate-banner-float,
+  .animate-banner-flying-angle {
+    animation: none !important;
+    transform: none !important;
+  }
+}
+
 .animate-banner-gloss {
   animation: bannerGloss 5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
 }
